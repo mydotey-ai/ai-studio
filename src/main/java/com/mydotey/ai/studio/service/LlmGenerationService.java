@@ -94,14 +94,21 @@ public class LlmGenerationService {
 
         // 解析 token 使用情况
         Integer totalTokens = null;
+        Integer promptTokens = null;
+        Integer completionTokens = null;
+
         JsonNode usage = root.get("usage");
         if (usage != null) {
             totalTokens = usage.get("total_tokens").asInt();
+            promptTokens = usage.get("prompt_tokens").asInt();
+            completionTokens = usage.get("completion_tokens").asInt();
         }
 
         return LlmResponse.builder()
                 .content(content)
                 .finishReason(finishReason)
+                .promptTokens(promptTokens)
+                .completionTokens(completionTokens)
                 .totalTokens(totalTokens)
                 .build();
     }
