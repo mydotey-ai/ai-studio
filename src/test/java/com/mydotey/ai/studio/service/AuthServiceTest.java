@@ -64,7 +64,7 @@ public class AuthServiceTest extends TestBase {
 
     @Test
     void testRegisterDuplicateUsername() {
-        String username = "duplicate_test";
+        String username = "duplicate_test_" + System.currentTimeMillis();
         RegisterRequest request = new RegisterRequest();
         request.setUsername(username);
         request.setEmail(username + "@example.com");
