@@ -9,14 +9,14 @@ import com.mydotey.ai.studio.mapper.UserMapper;
 import com.mydotey.ai.studio.util.PasswordUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class AuthServiceTest extends TestBase {
 
     @Autowired
@@ -28,24 +28,27 @@ public class AuthServiceTest extends TestBase {
     @Autowired
     private PasswordUtil passwordUtil;
 
-    private static final String TEST_USER_PREFIX = "testuser_";
-    private static int testUserCounter = 0;
+    private final List<String> createdUsernames = new ArrayList<>();
 
-    private String getNextTestUsername() {
-        return TEST_USER_PREFIX + (++testUserCounter);
+    @AfterEach
+    void cleanup() {
+        // 清理本次测试创建的所有用户数据
+        for (String username : createdUsernames) {
+            userMapper.delete(new LambdaQueryWrapper<User>()
+                    .eq(User::getUsername, username));
+        }
+        createdUsernames.clear();
     }
 
-    @BeforeEach
-    void setup() {
-        // 清理本次测试可能遗留的数据
-        String username = getNextTestUsername();
-        userMapper.delete(new LambdaQueryWrapper<User>()
-                .likeRight(User::getUsername, username));
+    private String generateUniqueUsername(String prefix) {
+        String username = prefix + "_" + System.currentTimeMillis();
+        createdUsernames.add(username);
+        return username;
     }
 
     @Test
     void testRegisterUser() {
-        String username = "testuser_" + System.currentTimeMillis();
+        String username = generateUniqueUsername("testuser");
         RegisterRequest request = new RegisterRequest();
         request.setUsername(username);
         request.setEmail(username + "@example.com");
@@ -64,7 +67,7 @@ public class AuthServiceTest extends TestBase {
 
     @Test
     void testRegisterDuplicateUsername() {
-        String username = "duplicate_test_" + System.currentTimeMillis();
+        String username = generateUniqueUsername("duplicate_test");
         RegisterRequest request = new RegisterRequest();
         request.setUsername(username);
         request.setEmail(username + "@example.com");
@@ -83,7 +86,7 @@ public class AuthServiceTest extends TestBase {
 
     @Test
     void testLoginSuccess() {
-        String username = "login_test_" + System.currentTimeMillis();
+        String username = generateUniqueUsername("login_test");
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setUsername(username);
         registerRequest.setEmail(username + "@example.com");
@@ -106,7 +109,7 @@ public class AuthServiceTest extends TestBase {
 
     @Test
     void testLoginInvalidCredentials() {
-        String username = "invalid_test_" + System.currentTimeMillis();
+        String username = generateUniqueUsername("invalid_test");
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setUsername(username);
         registerRequest.setEmail(username + "@example.com");
