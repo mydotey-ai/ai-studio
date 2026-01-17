@@ -13,6 +13,15 @@ embedding:
   batch-size: 100
   timeout: 30000
 
+llm:
+  endpoint: https://api.openai.com/v1
+  api-key: ${LLM_API_KEY:your-api-key-here}
+  model: gpt-3.5-turbo
+  default-temperature: 0.3
+  default-max-tokens: 1000
+  timeout: 60000
+  enable-streaming: true
+
 file:
   upload-dir: /tmp/ai-studio-uploads
 
