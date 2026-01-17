@@ -1,6 +1,7 @@
 package com.mydotey.ai.studio.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -18,6 +19,7 @@ public class RagQueryRequest {
      * 知识库 ID 列表
      */
     @NotNull(message = "Knowledge base IDs are required")
+    @NotEmpty(message = "At least one knowledge base ID is required")
     private List<Long> knowledgeBaseIds;
 
     /**

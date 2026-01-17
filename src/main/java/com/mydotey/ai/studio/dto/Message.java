@@ -13,7 +13,7 @@ public class Message {
     /**
      * 消息角色：user, assistant, system
      */
-    private String role;
+    private MessageRole role;
 
     /**
      * 消息内容
