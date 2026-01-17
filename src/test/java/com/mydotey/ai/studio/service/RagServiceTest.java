@@ -1,5 +1,7 @@
 package com.mydotey.ai.studio.service;
 
+import com.mydotey.ai.studio.config.LlmConfig;
+import com.mydotey.ai.studio.dto.LlmResponse;
 import com.mydotey.ai.studio.dto.RagQueryRequest;
 import com.mydotey.ai.studio.dto.RagQueryResponse;
 import com.mydotey.ai.studio.dto.SourceDocument;
@@ -13,6 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("RAG 服务测试")
 @ExtendWith(MockitoExtension.class)
@@ -30,22 +35,79 @@ class RagServiceTest {
     @Mock
     private LlmGenerationService llmGenerationService;
 
+    @Mock
+    private LlmConfig llmConfig;
+
     @InjectMocks
     private RagService ragService;
 
     @Test
     @DisplayName("应该完整执行 RAG 流程")
     void testRagQuery() {
+        // 1. 准备测试数据
+        String question = "什么是人工智能？";
+        List<Long> kbIds = List.of(1L);
+
+        // 2. 准备 mock 的相关文档
+        List<SourceDocument> mockSources = List.of(
+                SourceDocument.builder()
+                        .documentId(100L)
+                        .documentName("AI简介.pdf")
+                        .chunkIndex(0)
+                        .content("人工智能是计算机科学的一个分支")
+                        .score(0.95)
+                        .build()
+        );
+
+        // 3. Mock vectorSearchService.search() to return mockSources
+        when(vectorSearchService.search(eq(question), eq(kbIds), anyInt(), anyDouble()))
+                .thenReturn(mockSources);
+
+        // 4. Mock contextBuilderService.buildContext()
+        when(contextBuilderService.buildContext(eq(question), eq(mockSources), anyList()))
+                .thenReturn("知识库内容：人工智能是计算机科学的一个分支");
+
+        // 5. Mock promptTemplateService.buildSystemPrompt()
+        when(promptTemplateService.buildSystemPrompt(anyString()))
+                .thenReturn("你是一个专业的助手");
+
+        // 6. Mock llmGenerationService.generate()
+        LlmResponse mockLlmResponse = LlmResponse.builder()
+                .content("根据知识库，人工智能是计算机科学的一个分支")
+                .totalTokens(100)
+                .build();
+        when(llmGenerationService.generate(anyString(), anyString(), anyDouble(), anyInt()))
+                .thenReturn(mockLlmResponse);
+
+        // Mock llmConfig.getModel()
+        when(llmConfig.getModel()).thenReturn("gpt-4");
+
+        // 7. 准备请求并调用
         RagQueryRequest request = new RagQueryRequest();
-        request.setQuestion("什么是人工智能？");
-        request.setKnowledgeBaseIds(List.of(1L));
+        request.setQuestion(question);
+        request.setKnowledgeBaseIds(kbIds);
         request.setTopK(5);
         request.setScoreThreshold(0.7);
         request.setTemperature(0.3);
         request.setMaxTokens(1000);
 
-        // 简化测试，实际需要 mock 各个服务的行为
-        assertNotNull(request);
-        assertNotNull(request.getQuestion());
+        // 8. 执行并验证
+        RagQueryResponse response = ragService.query(request);
+
+        // 9. 验证结果
+        assertNotNull(response);
+        assertNotNull(response.getAnswer());
+        assertEquals("根据知识库，人工智能是计算机科学的一个分支", response.getAnswer());
+        assertTrue(response.isComplete());
+        assertEquals(1, response.getSources().size());
+        assertEquals("AI简介.pdf", response.getSources().get(0).getDocumentName());
+        assertEquals(100, response.getTotalTokens().intValue());
+        assertEquals("gpt-4", response.getModel());
+
+        // 10. 验证所有服务被正确调用
+        verify(vectorSearchService).search(eq(question), eq(kbIds), eq(5), eq(0.7));
+        verify(contextBuilderService).buildContext(eq(question), eq(mockSources), anyList());
+        verify(promptTemplateService).buildSystemPrompt(anyString());
+        verify(llmGenerationService).generate(anyString(), anyString(), eq(0.3), eq(1000));
     }
 }
