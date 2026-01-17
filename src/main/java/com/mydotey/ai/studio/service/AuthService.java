@@ -8,7 +8,6 @@ import com.mydotey.ai.studio.dto.RegisterRequest;
 import com.mydotey.ai.studio.entity.RefreshToken;
 import com.mydotey.ai.studio.entity.User;
 import com.mydotey.ai.studio.mapper.UserMapper;
-import com.mydotey.ai.studio.service.RefreshTokenService;
 import com.mydotey.ai.studio.util.JwtUtil;
 import com.mydotey.ai.studio.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,22 +23,35 @@ public class AuthService {
     private final PasswordUtil passwordUtil;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final LoginAttemptService loginAttemptService;
 
     public LoginResponse login(LoginRequest request) {
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                .eq(User::getUsername, request.getUsername()));
+        String username = request.getUsername();
 
-        if (user == null) {
-            throw new BusinessException("Invalid username or password");
+        // 检查是否被锁定
+        if (loginAttemptService.isLocked(username)) {
+            long remainingSeconds = loginAttemptService.getRemainingLockTime(username);
+            throw new BusinessException(
+                    String.format("Account is locked. Try again in %d minutes",
+                            remainingSeconds / 60 + 1)
+            );
         }
 
-        if (!"ACTIVE".equals(user.getStatus())) {
-            throw new BusinessException("Account is inactive or locked");
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username));
+
+        if (user == null || !"ACTIVE".equals(user.getStatus())) {
+            loginAttemptService.recordFailedAttempt(username, user != null ? user.getId() : null);
+            throw new BusinessException("Invalid username or password");
         }
 
         if (!passwordUtil.matches(request.getPassword(), user.getPasswordHash())) {
+            loginAttemptService.recordFailedAttempt(username, user.getId());
             throw new BusinessException("Invalid username or password");
         }
+
+        // 登录成功，重置尝试次数
+        loginAttemptService.recordSuccessfulAttempt(username);
 
         // Update last login time
         user.setLastLoginAt(Instant.now());
