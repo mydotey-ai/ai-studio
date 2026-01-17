@@ -1,6 +1,6 @@
 package com.mydotey.ai.studio.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.CreateKnowledgeBaseRequest;
 import com.mydotey.ai.studio.dto.KnowledgeBaseResponse;
@@ -51,11 +51,11 @@ public class KnowledgeBaseController {
     }
 
     @GetMapping
-    public ApiResponse<Page<KnowledgeBaseResponse>> list(
+    public ApiResponse<IPage<KnowledgeBaseResponse>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestAttribute("userId") Long userId) {
-        Page<KnowledgeBaseResponse> response = kbService.list(userId, page, size);
+        IPage<KnowledgeBaseResponse> response = kbService.list(userId, page, size);
         return ApiResponse.success(response);
     }
 }

@@ -1,6 +1,7 @@
 package com.mydotey.ai.studio.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.CreateKnowledgeBaseRequest;
@@ -99,14 +100,14 @@ public class KnowledgeBaseService {
         return toResponse(kb);
     }
 
-    public Page<KnowledgeBaseResponse> list(Long userId, int page, int size) {
+    public IPage<KnowledgeBaseResponse> list(Long userId, int page, int size) {
         Page<KnowledgeBase> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<KnowledgeBase> wrapper = new LambdaQueryWrapper<KnowledgeBase>()
                 .and(w -> w.eq(KnowledgeBase::getOwnerId, userId)
                         .or().eq(KnowledgeBase::getIsPublic, true))
                 .orderByDesc(KnowledgeBase::getCreatedAt);
 
-        Page<KnowledgeBase> result = kbMapper.selectPage(pageParam, wrapper);
+        IPage<KnowledgeBase> result = kbMapper.selectPage(pageParam, wrapper);
         return result.convert(this::toResponse);
     }
 
