@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.service;
 
+import com.mydotey.ai.studio.TestBase;
 import com.mydotey.ai.studio.dto.LoginRequest;
 import com.mydotey.ai.studio.dto.LoginResponse;
 import com.mydotey.ai.studio.dto.RegisterRequest;
