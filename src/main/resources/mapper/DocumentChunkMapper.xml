@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mydotey.ai.studio.mapper.DocumentChunkMapper">
+
+    <select id="searchByEmbedding" resultType="com.mydotey.ai.studio.entity.DocumentChunk">
+        SELECT
+            dc.id,
+            dc.document_id,
+            dc.chunk_index,
+            dc.content,
+            dc.metadata,
+            dc.created_at,
+            1 - (dc.embedding &lt;=> #{queryEmbedding}::vector) as similarity_score
+        FROM document_chunks dc
+        INNER JOIN documents d ON dc.document_id = d.id
+        WHERE
+            d.kb_id IN
+            <foreach collection="knowledgeBaseIds" item="kbId" open="(" separator="," close=")">
+                #{kbId}
+            </foreach>
+            AND dc.embedding IS NOT NULL
+        ORDER BY dc.embedding &lt;=> #{queryEmbedding}::vector
+        LIMIT #{topK}
+    </select>
+
+</mapper>
