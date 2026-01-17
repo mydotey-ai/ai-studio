@@ -91,8 +91,15 @@ public class UserService {
             user.setAvatarUrl(request.getAvatarUrl());
         }
 
-        // 更新密码
+        // 更新密码 - 需要验证当前密码
         if (request.getNewPassword() != null && !request.getNewPassword().isEmpty()) {
+            // 验证当前密码
+            if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
+                throw new BusinessException("Current password is required to change password");
+            }
+            if (!passwordUtil.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+                throw new BusinessException("Current password is incorrect");
+            }
             user.setPasswordHash(passwordUtil.encode(request.getNewPassword()));
         }
 

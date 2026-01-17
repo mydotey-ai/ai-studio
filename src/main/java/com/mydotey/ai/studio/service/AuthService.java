@@ -12,6 +12,7 @@ import com.mydotey.ai.studio.util.JwtUtil;
 import com.mydotey.ai.studio.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -25,6 +26,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttemptService;
 
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         String username = request.getUsername();
 
@@ -64,6 +66,7 @@ public class AuthService {
                 user.getId(), user.getUsername(), user.getEmail(), user.getRole());
     }
 
+    @Transactional
     public LoginResponse refreshAccessToken(String refreshToken) {
         RefreshToken token = refreshTokenService.validateRefreshToken(refreshToken);
 
@@ -86,6 +89,7 @@ public class AuthService {
                 user.getId(), user.getUsername(), user.getEmail(), user.getRole());
     }
 
+    @Transactional
     public void logout(String refreshToken) {
         int rowsUpdated = refreshTokenService.revokeToken(refreshToken);
         if (rowsUpdated == 0) {
