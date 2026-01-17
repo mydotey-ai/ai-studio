@@ -5,6 +5,14 @@ spring:
     password: xx123456XX
     driver-class-name: org.postgresql.Driver
 
+embedding:
+  endpoint: https://api.openai.com/v1
+  api-key: ${EMBEDDING_API_KEY:your-api-key-here}
+  model: text-embedding-ada-002
+  dimension: 1536
+  batch-size: 100
+  timeout: 30000
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
