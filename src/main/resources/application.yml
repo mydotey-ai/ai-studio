@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: ai-studio
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-key-change-in-production-min-256-bits}
+  access-token-expiration: 7200000  # 2 hours in milliseconds
+  refresh-token-expiration: 604800000  # 7 days in milliseconds
