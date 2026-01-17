@@ -59,6 +59,9 @@ public class AuthService {
             throw new BusinessException("Invalid or expired refresh token");
         }
 
+        // Revoke old token before creating new one
+        refreshTokenService.revokeToken(refreshToken);
+
         User user = userMapper.selectById(token.getUserId());
         if (user == null || !"ACTIVE".equals(user.getStatus())) {
             throw new BusinessException("User not found or inactive");
@@ -72,7 +75,10 @@ public class AuthService {
     }
 
     public void logout(String refreshToken) {
-        refreshTokenService.revokeToken(refreshToken);
+        int rowsUpdated = refreshTokenService.revokeToken(refreshToken);
+        if (rowsUpdated == 0) {
+            throw new BusinessException("Invalid or already revoked refresh token");
+        }
     }
 
     public void register(RegisterRequest request) {

@@ -33,13 +33,13 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ApiResponse<LoginResponse> refresh(@RequestBody RefreshTokenRequest request) {
+    public ApiResponse<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         LoginResponse response = authService.refreshAccessToken(request.getRefreshToken());
         return ApiResponse.success(response);
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(@RequestBody RefreshTokenRequest request) {
+    public ApiResponse<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
         authService.logout(request.getRefreshToken());
         return ApiResponse.success("Logout successful", null);
     }

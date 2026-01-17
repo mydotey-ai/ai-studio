@@ -44,6 +44,7 @@ public class RefreshTokenService {
     /**
      * Validate refresh token
      */
+    @Transactional(readOnly = true)
     public RefreshToken validateRefreshToken(String token) {
         RefreshToken refreshToken = refreshTokenMapper.selectOne(
                 new LambdaQueryWrapper<RefreshToken>()
@@ -67,8 +68,8 @@ public class RefreshTokenService {
      * Revoke specified refresh token
      */
     @Transactional
-    public void revokeToken(String token) {
-        refreshTokenMapper.update(null,
+    public int revokeToken(String token) {
+        return refreshTokenMapper.update(null,
                 new LambdaUpdateWrapper<RefreshToken>()
                         .eq(RefreshToken::getToken, token)
                         .set(RefreshToken::getIsRevoked, true)
