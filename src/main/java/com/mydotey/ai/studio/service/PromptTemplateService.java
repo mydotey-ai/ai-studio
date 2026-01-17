@@ -1,14 +1,26 @@
 package com.mydotey.ai.studio.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mydotey.ai.studio.dto.Message;
+import com.mydotey.ai.studio.dto.MessageRole;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Prompt 模板服务
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PromptTemplateService {
+
+    private final ObjectMapper objectMapper;
+
+    // Using the same constant as ContextBuilderService to avoid circular dependency
+    private static final String NO_SOURCES_MESSAGE = "（未找到相关资料）";
 
     private static final String DEFAULT_SYSTEM_PROMPT =
             """
@@ -49,7 +61,7 @@ public class PromptTemplateService {
      */
     public String buildSystemPrompt(String context) {
         // 检查是否有找到相关文档
-        boolean hasSources = context != null && !context.contains("（未找到相关资料）");
+        boolean hasSources = context != null && !context.contains(NO_SOURCES_MESSAGE);
 
         if (hasSources) {
             return String.format(DEFAULT_SYSTEM_PROMPT, context);
@@ -63,38 +75,24 @@ public class PromptTemplateService {
      *
      * @param systemPrompt 系统提示词
      * @param userQuestion 用户问题
-     * @return 消息列表
+     * @return 消息列表的 JSON 字符串
      */
     public String buildMessages(String systemPrompt, String userQuestion) {
-        return String.format(
-                """
-                [
-                  {
-                    "role": "system",
-                    "content": "%s"
-                  },
-                  {
-                    "role": "user",
-                    "content": "%s"
-                  }
-                ]
-                """,
-                escapeJsonString(systemPrompt),
-                escapeJsonString(userQuestion)
-        );
-    }
-
-    /**
-     * 转义 JSON 字符串
-     */
-    private String escapeJsonString(String str) {
-        if (str == null) {
-            return "";
+        try {
+            List<Message> messages = List.of(
+                    Message.builder()
+                            .role(MessageRole.SYSTEM)
+                            .content(systemPrompt)
+                            .build(),
+                    Message.builder()
+                            .role(MessageRole.USER)
+                            .content(userQuestion)
+                            .build()
+            );
+            return objectMapper.writeValueAsString(messages);
+        } catch (Exception e) {
+            log.error("Failed to build messages JSON", e);
+            throw new RuntimeException("Failed to build messages JSON", e);
         }
-        return str.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
     }
 }
