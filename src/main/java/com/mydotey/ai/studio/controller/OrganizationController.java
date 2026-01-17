@@ -1,5 +1,7 @@
 package com.mydotey.ai.studio.controller;
 
+import com.mydotey.ai.studio.annotation.AuditLog;
+import com.mydotey.ai.studio.annotation.RequireRole;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.CreateOrganizationRequest;
 import com.mydotey.ai.studio.dto.OrganizationResponse;
@@ -16,6 +18,7 @@ public class OrganizationController {
     private final OrganizationService organizationService;
 
     @PostMapping
+    @AuditLog(action = "ORGANIZATION_CREATE", resourceType = "Organization")
     public ApiResponse<OrganizationResponse> create(
             @Valid @RequestBody CreateOrganizationRequest request,
             @RequestAttribute("userId") Long userId) {
@@ -36,6 +39,8 @@ public class OrganizationController {
     }
 
     @PutMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
+    @AuditLog(action = "ORGANIZATION_UPDATE", resourceType = "Organization", resourceIdParam = "id")
     public ApiResponse<Void> update(
             @PathVariable Long id,
             @Valid @RequestBody CreateOrganizationRequest request) {
