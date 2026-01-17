@@ -6,6 +6,7 @@ import com.mydotey.ai.studio.entity.DocumentChunk;
 import com.mydotey.ai.studio.entity.KnowledgeBase;
 import com.mydotey.ai.studio.mapper.DocumentChunkMapper;
 import com.mydotey.ai.studio.mapper.DocumentMapper;
+import com.mydotey.ai.studio.mapper.KnowledgeBaseMapper;
 import com.mydotey.ai.studio.service.parser.DocumentParser;
 import com.mydotey.ai.studio.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class DocumentProcessingService {
     private final EmbeddingService embeddingService;
     private final DocumentMapper documentMapper;
     private final DocumentChunkMapper chunkMapper;
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final FileUtil fileUtil;
 
     public DocumentProcessingService(List<DocumentParser> parsers,
@@ -41,14 +42,14 @@ public class DocumentProcessingService {
                                      EmbeddingService embeddingService,
                                      DocumentMapper documentMapper,
                                      DocumentChunkMapper chunkMapper,
-                                     KnowledgeBaseService knowledgeBaseService,
+                                     KnowledgeBaseMapper knowledgeBaseMapper,
                                      FileUtil fileUtil) {
         this.parsers = parsers;
         this.chunkingService = chunkingService;
         this.embeddingService = embeddingService;
         this.documentMapper = documentMapper;
         this.chunkMapper = chunkMapper;
-        this.knowledgeBaseService = knowledgeBaseService;
+        this.knowledgeBaseMapper = knowledgeBaseMapper;
         this.fileUtil = fileUtil;
     }
 
@@ -79,7 +80,7 @@ public class DocumentProcessingService {
             }
 
             // 4. 获取知识库配置
-            KnowledgeBase kb = knowledgeBaseService.getById(document.getKbId());
+            KnowledgeBase kb = knowledgeBaseMapper.selectById(document.getKbId());
             ChunkConfig chunkConfig = createChunkConfig(kb);
 
             // 5. 分块
