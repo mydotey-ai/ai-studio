@@ -25,3 +25,13 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-key-change-this-in-production-minimum-256-bits}
+  access-token-expiration: 7200000  # 2 hours in milliseconds
+  refresh-token-expiration: 604800000  # 7 days in milliseconds
+  issuer: ai-studio
+
+auth:
+  max-login-attempts: 5
+  lock-duration: 900000  # 15 minutes in milliseconds
