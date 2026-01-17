@@ -25,6 +25,7 @@ public class LoginAttemptService {
     /**
      * 检查是否被锁定
      */
+    @Transactional
     public boolean isLocked(String identifier) {
         LoginAttempt attempt = loginAttemptMapper.selectOne(
                 new LambdaQueryWrapper<LoginAttempt>()
@@ -39,8 +40,11 @@ public class LoginAttemptService {
             if (attempt.getLockedUntil().isAfter(Instant.now())) {
                 return true;
             } else {
-                // 锁定已过期，重置
-                resetAttempt(identifier);
+                // 锁定已过期，重置（内联以避免独立事务的竞态条件）
+                attempt.setAttemptCount(0);
+                attempt.setLockedUntil(null);
+                attempt.setUpdatedAt(Instant.now());
+                loginAttemptMapper.updateById(attempt);
                 return false;
             }
         }
@@ -110,6 +114,7 @@ public class LoginAttemptService {
     /**
      * 获取剩余锁定时间（秒）
      */
+    @Transactional(readOnly = true)
     public long getRemainingLockTime(String identifier) {
         LoginAttempt attempt = loginAttemptMapper.selectOne(
                 new LambdaQueryWrapper<LoginAttempt>()
