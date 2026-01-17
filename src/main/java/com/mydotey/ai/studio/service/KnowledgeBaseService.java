@@ -111,6 +111,31 @@ public class KnowledgeBaseService {
         return result.convert(this::toResponse);
     }
 
+    /**
+     * 验证用户是否有权限访问指定的知识库
+     *
+     * @param kbIds 知识库 ID 列表
+     * @param userId 用户 ID
+     * @throws BusinessException 如果用户没有权限访问任何请求的知识库
+     */
+    public void validateAccess(List<Long> kbIds, Long userId) {
+        if (kbIds == null || kbIds.isEmpty()) {
+            throw new BusinessException("Knowledge base IDs cannot be empty");
+        }
+
+        // 检查每个知识库的访问权限
+        for (Long kbId : kbIds) {
+            KnowledgeBase kb = kbMapper.selectById(kbId);
+            if (kb == null) {
+                throw new BusinessException("Knowledge base not found: " + kbId);
+            }
+
+            if (!kb.getOwnerId().equals(userId) && !kb.getIsPublic()) {
+                throw new BusinessException("You don't have permission to access knowledge base: " + kbId);
+            }
+        }
+    }
+
     private KnowledgeBaseResponse toResponse(KnowledgeBase kb) {
         User owner = userMapper.selectById(kb.getOwnerId());
         Long documentCount = documentMapper.selectCount(
