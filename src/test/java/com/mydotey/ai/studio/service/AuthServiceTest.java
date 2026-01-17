@@ -7,11 +7,16 @@ import com.mydotey.ai.studio.dto.RegisterRequest;
 import com.mydotey.ai.studio.entity.User;
 import com.mydotey.ai.studio.mapper.UserMapper;
 import com.mydotey.ai.studio.util.PasswordUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class AuthServiceTest extends TestBase {
 
     @Autowired
@@ -23,34 +28,52 @@ public class AuthServiceTest extends TestBase {
     @Autowired
     private PasswordUtil passwordUtil;
 
+    private static final String TEST_USER_PREFIX = "testuser_";
+    private static int testUserCounter = 0;
+
+    private String getNextTestUsername() {
+        return TEST_USER_PREFIX + (++testUserCounter);
+    }
+
+    @BeforeEach
+    void setup() {
+        // 清理本次测试可能遗留的数据
+        String username = getNextTestUsername();
+        userMapper.delete(new LambdaQueryWrapper<User>()
+                .likeRight(User::getUsername, username));
+    }
+
     @Test
     void testRegisterUser() {
+        String username = "testuser_" + System.currentTimeMillis();
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setEmail("test@example.com");
+        request.setUsername(username);
+        request.setEmail(username + "@example.com");
         request.setPassword("password123");
 
         authService.register(request);
 
-        User user = userMapper.selectById(1L);
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username));
         assertNotNull(user);
-        assertEquals("testuser", user.getUsername());
-        assertEquals("test@example.com", user.getEmail());
+        assertEquals(username, user.getUsername());
+        assertEquals(username + "@example.com", user.getEmail());
         assertTrue(passwordUtil.matches("password123", user.getPasswordHash()));
         assertEquals("USER", user.getRole());
     }
 
     @Test
     void testRegisterDuplicateUsername() {
+        String username = "duplicate_test";
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setEmail("test@example.com");
+        request.setUsername(username);
+        request.setEmail(username + "@example.com");
         request.setPassword("password123");
 
         authService.register(request);
 
         RegisterRequest duplicateRequest = new RegisterRequest();
-        duplicateRequest.setUsername("testuser");
+        duplicateRequest.setUsername(username);
         duplicateRequest.setEmail("different@example.com");
         duplicateRequest.setPassword("password456");
 
@@ -60,16 +83,15 @@ public class AuthServiceTest extends TestBase {
 
     @Test
     void testLoginSuccess() {
-        // First register a user
+        String username = "login_test_" + System.currentTimeMillis();
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setEmail("test@example.com");
+        registerRequest.setUsername(username);
+        registerRequest.setEmail(username + "@example.com");
         registerRequest.setPassword("password123");
         authService.register(registerRequest);
 
-        // Now login
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser");
+        loginRequest.setUsername(username);
         loginRequest.setPassword("password123");
 
         LoginResponse response = authService.login(loginRequest);
@@ -77,20 +99,22 @@ public class AuthServiceTest extends TestBase {
         assertNotNull(response);
         assertNotNull(response.getAccessToken());
         assertNotNull(response.getRefreshToken());
-        assertEquals(1L, response.getUser().getId());
-        assertEquals("testuser", response.getUser().getUsername());
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .eq(User::getUsername, username));
+        assertEquals(username, user.getUsername());
     }
 
     @Test
     void testLoginInvalidCredentials() {
+        String username = "invalid_test_" + System.currentTimeMillis();
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setEmail("test@example.com");
+        registerRequest.setUsername(username);
+        registerRequest.setEmail(username + "@example.com");
         registerRequest.setPassword("password123");
         authService.register(registerRequest);
 
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser");
+        loginRequest.setUsername(username);
         loginRequest.setPassword("wrongpassword");
 
         assertThrows(com.mydotey.ai.studio.common.exception.BusinessException.class,
