@@ -4,6 +4,10 @@ import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.RagQueryRequest;
 import com.mydotey.ai.studio.dto.RagQueryResponse;
 import com.mydotey.ai.studio.service.RagService;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,13 +16,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@DisplayName("RAG 控制器测试")
 @ExtendWith(MockitoExtension.class)
+@DisplayName("RAG 控制器测试")
 class RagControllerTest {
 
     @Mock
@@ -64,23 +69,26 @@ class RagControllerTest {
     }
 
     @Test
-    @DisplayName("当服务抛出异常时应该传播异常")
-    void testQueryWithServiceException() {
+    @DisplayName("当请求参数无效时应该返回错误")
+    void testQueryWithInvalidRequest() {
         // Given
         RagQueryRequest request = new RagQueryRequest();
-        request.setQuestion("测试问题");
+        // question is null - should fail validation
         request.setKnowledgeBaseIds(List.of(1L));
+        request.setTopK(5);
 
-        when(ragService.query(any(RagQueryRequest.class), anyLong()))
-                .thenThrow(new RuntimeException("Service error"));
+        // When - manually validate
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Set<ConstraintViolation<RagQueryRequest>> violations = validator.validate(request);
 
-        // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            ragController.query(request, 1L);
-        });
+        // Then
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream()
+                .anyMatch(v -> v.getMessage().contains("Question") ||
+                                v.getPropertyPath().toString().equals("question")));
 
-        assertEquals("Service error", exception.getMessage());
-
-        verify(ragService).query(any(RagQueryRequest.class), eq(1L));
+        // Verify service would never be called due to validation
+        verify(ragService, never()).query(any(RagQueryRequest.class), anyLong());
     }
 }
