@@ -81,7 +81,7 @@ class RagIntegrationTest {
         doc.setKbId(testKbId);
         doc.setFilename("AI简介.txt");
         doc.setFileUrl(filePath);
-        doc.setFileSize(testContent.getBytes().length);
+        doc.setFileSize((long) testContent.getBytes().length);
         doc.setFileType("txt");
         doc.setStatus("COMPLETED");
         doc.setSourceType("UPLOAD");
@@ -128,7 +128,7 @@ class RagIntegrationTest {
         assertNotNull(response);
         assertNotNull(response.getAnswer());
         assertFalse(response.getAnswer().isEmpty());
-        assertTrue(response.getComplete());
+        assertTrue(response.getIsComplete());
     }
 
     @Test
