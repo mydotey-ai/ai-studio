@@ -29,8 +29,8 @@ public class McpToolSyncService {
      * 从 MCP 服务器同步工具列表
      */
     @Transactional
-    public void syncToolsFromServer(Long serverId) throws Exception {
-        log.info("Syncing tools from MCP server: {}", serverId);
+    public void syncToolsFromServer(Long serverId, Long userId) throws Exception {
+        log.info("Syncing tools from MCP server: {}, userId: {}", serverId, userId);
 
         // 获取服务器配置
         McpServer server = mcpServerMapper.selectById(serverId);

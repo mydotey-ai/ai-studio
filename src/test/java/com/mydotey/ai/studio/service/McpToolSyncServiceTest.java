@@ -50,7 +50,7 @@ public class McpToolSyncServiceTest {
         when(mcpToolMapper.insert(any(McpTool.class))).thenReturn(1);
 
         // When
-        mcpToolSyncService.syncToolsFromServer(serverId);
+        mcpToolSyncService.syncToolsFromServer(serverId, 1L);
 
         // Then
         verify(mcpToolMapper).insert(any(McpTool.class));
@@ -82,7 +82,7 @@ public class McpToolSyncServiceTest {
         when(mcpToolMapper.updateById(any(McpTool.class))).thenReturn(1);
 
         // When
-        mcpToolSyncService.syncToolsFromServer(serverId);
+        mcpToolSyncService.syncToolsFromServer(serverId, 1L);
 
         // Then
         verify(mcpToolMapper).updateById(any(McpTool.class));

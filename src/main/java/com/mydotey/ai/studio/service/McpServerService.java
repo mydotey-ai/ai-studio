@@ -53,8 +53,8 @@ public class McpServerService {
     }
 
     @Transactional
-    public void updateMcpServer(Long serverId, UpdateMcpServerRequest request) {
-        log.info("Updating MCP server: {}", serverId);
+    public void updateMcpServer(Long serverId, UpdateMcpServerRequest request, Long userId) {
+        log.info("Updating MCP server: {}, userId: {}", serverId, userId);
 
         McpServer server = getMcpServer(serverId);
 
@@ -83,8 +83,8 @@ public class McpServerService {
     }
 
     @Transactional
-    public void deleteMcpServer(Long serverId) {
-        log.info("Deleting MCP server: {}", serverId);
+    public void deleteMcpServer(Long serverId, Long userId) {
+        log.info("Deleting MCP server: {}, userId: {}", serverId, userId);
         mcpServerMapper.deleteById(serverId);
         log.info("MCP server deleted: {}", serverId);
     }

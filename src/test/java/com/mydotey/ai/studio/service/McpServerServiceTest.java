@@ -72,7 +72,7 @@ public class McpServerServiceTest {
         when(mcpServerMapper.updateById(any(McpServer.class))).thenReturn(1);
 
         // When
-        mcpServerService.updateMcpServer(serverId, request);
+        mcpServerService.updateMcpServer(serverId, request, 1L);
 
         // Then
         ArgumentCaptor<McpServer> captor = ArgumentCaptor.forClass(McpServer.class);
@@ -111,7 +111,7 @@ public class McpServerServiceTest {
         when(mcpServerMapper.deleteById(serverId)).thenReturn(1);
 
         // When
-        mcpServerService.deleteMcpServer(serverId);
+        mcpServerService.deleteMcpServer(serverId, 1L);
 
         // Then
         verify(mcpServerMapper).deleteById(serverId);
