@@ -11,6 +11,7 @@ public class AgentExecutionResponse {
     private String answer;
     private List<ThoughtStep> thoughtSteps;
     private List<ToolCallResult> toolCalls;
+    private Boolean isComplete;
 
     @Data
     @Builder
