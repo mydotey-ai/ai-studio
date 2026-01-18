@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mydotey.ai.studio.annotation.AuditLog;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.*;
@@ -29,6 +30,7 @@ public class RagController {
     private final ContextBuilderService contextBuilderService;
     private final PromptTemplateService promptTemplateService;
     private final StreamingLlmService streamingLlmService;
+    private final ObjectMapper objectMapper;
 
     /**
      * 执行 RAG 查询（非流式）
@@ -108,8 +110,13 @@ public class RagController {
                                 .isComplete(true)
                                 .build();
 
-                        writer.write("data: [DONE]\n\n");
-                        writer.flush();
+                        try {
+                            // 序列化并发送完整响应
+                            writer.write("data: " + objectMapper.writeValueAsString(finalResponse) + "\n\n");
+                            writer.flush();
+                        } catch (IOException e) {
+                            log.error("Failed to send completion event", e);
+                        }
                     }
 
                     @Override
