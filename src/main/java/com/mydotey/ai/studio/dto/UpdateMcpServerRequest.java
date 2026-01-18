@@ -10,6 +10,8 @@ public class UpdateMcpServerRequest {
 
     private String description;
 
+    private String connectionType;
+
     private String command;
 
     private String workingDir;
