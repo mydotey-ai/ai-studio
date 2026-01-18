@@ -75,7 +75,12 @@ class RagIntegrationTest {
                 "这些任务包括学习、推理、解决问题、理解语言、感知等。";
 
         // 这里简化处理 - 直接创建文档记录并模拟分块
-        String filePath = fileUtil.saveFile("AI简介.txt", testContent.getBytes());
+        String filePath;
+        try {
+            filePath = fileUtil.saveFile("AI简介.txt", testContent.getBytes());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save test file", e);
+        }
 
         Document doc = new Document();
         doc.setKbId(testKbId);
