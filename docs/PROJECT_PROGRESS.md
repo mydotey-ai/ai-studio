@@ -1,6 +1,6 @@
 # AI Studio 项目进度
 
-> 最后更新：2026-01-17
+> 最后更新：2026-01-18
 
 ## 项目概述
 
@@ -302,36 +302,220 @@ auth:
 
 ---
 
+### Phase 4: RAG 系统 🚧
+
+**开始时间：2026-01-18**
+
+**实现内容：**
+- RAG 查询 DTOs 和请求模型
+- 向量相似度搜索服务（PGVector）
+- 上下文构建服务
+- LLM 服务配置
+- Prompt 模板服务
+- LLM 生成服务
+- RAG 编排服务
+- RAG 控制器
+- 流式 RAG 响应（SSE）
+
+**新增文件：**
+```
+src/main/java/com/mydotey/ai/studio/
+├── controller/
+│   └── RagController.java
+├── service/
+│   ├── RagService.java
+│   ├── VectorSearchService.java
+│   ├── ContextBuilderService.java
+│   ├── PromptTemplateService.java
+│   ├── LlmGenerationService.java
+│   └── StreamingLlmService.java
+├── config/
+│   ├── LlmConfig.java
+│   └── WebConfig.java
+├── dto/
+│   ├── RagQueryRequest.java
+│   ├── RagQueryResponse.java
+│   ├── SourceDocument.java
+│   ├── Message.java
+│   ├── LlmRequest.java
+│   └── LlmResponse.java
+├── mapper/
+│   └── DocumentChunkMapper.java
+└── integration/
+    └── RagIntegrationTest.java (待完善)
+
+src/main/resources/
+└── mapper/
+    └── DocumentChunkMapper.xml
+
+src/test/java/com/mydotey/ai/studio/
+└── service/
+    └── RagServiceTest.java
+```
+
+**配置项：**
+```yaml
+llm:
+  endpoint: https://api.openai.com/v1
+  api-key: ${LLM_API_KEY:your-api-key-here}
+  model: gpt-3.5-turbo
+  default-temperature: 0.3
+  default-max-tokens: 1000
+  timeout: 60000
+  enable-streaming: true
+```
+
+**API 端点：**
+
+RAG 查询 API (`/api/rag/*`)：
+- `POST /api/rag/query` - 执行 RAG 查询（非流式）
+- `POST /api/rag/query/stream` - 执行 RAG 查询（流式 SSE）
+
+**实现任务完成情况：**
+
+1. ✅ **RAG 查询 DTOs**
+   - RagQueryRequest - 支持问题、知识库 ID 列表、topK、相似度阈值、对话历史、温度、最大 tokens
+   - RagQueryResponse - 返回答案、来源、模型、tokens、完成标志
+   - SourceDocument - 文档 ID、名称、分块索引、内容、相似度分数
+   - Message - 对话消息（角色、内容）
+
+2. ✅ **向量相似度搜索服务**
+   - DocumentChunkMapper - PGVector 向量查询，使用余弦相似度排序
+   - VectorSearchService - 协调 Embedding 生成和向量搜索
+   - DocumentChunk 实体新增 similarityScore 字段（仅用于查询结果）
+
+3. ✅ **上下文构建服务**
+   - ContextBuilderService - 组装知识库内容和对话历史
+   - 支持来源文档格式化（来源编号、文档名称、分块索引）
+   - 支持对话历史截断（最多 5 轮）
+   - 区分无来源和无历史场景
+
+4. ✅ **LLM 服务配置**
+   - LlmConfig - 支持自定义端点、API 密钥、模型、默认温度、默认最大 tokens、超时、流式开关
+   - WebConfig - 提供 RestTemplate Bean
+
+5. ✅ **Prompt 模板服务**
+   - PromptTemplateService - 构建系统和用户提示词
+   - 区分有/无相关文档的场景（无相关文档时明确提示）
+   - 支持消息列表 JSON 构建
+   - JSON 字符串转义处理
+
+6. ✅ **LLM 生成服务**
+   - LlmGenerationService - 调用 OpenAI 兼容 API
+   - 支持非流式生成
+   - 解析 usage 信息（总 tokens）
+   - 错误处理和日志记录
+
+7. ✅ **RAG 编排服务**
+   - RagService - 协调向量搜索、上下文构建、Prompt 和 LLM 生成
+   - 完整的端到端 RAG 流程（检索 → 构建 → 生成）
+   - 支持是否返回来源选项
+   - 支持温度和最大 tokens 参数
+
+8. ✅ **RAG 控制器**
+   - RagController - 提供非流式 REST API
+   - 集成审计日志注解 @AuditLog
+   - 请求参数验证 @Valid
+
+9. ✅ **流式 RAG 响应**
+   - StreamingLlmService - 流式 LLM 生成
+   - SSE 端点 `POST /api/rag/query/stream`
+   - 支持 StreamCallback 接口（onContent、onComplete、onError）
+   - 实时推送内容，最终发送 [DONE] 标记
+
+10. ✅ **RAG 测试覆盖**（已完成）
+    - RagIntegrationTest - 端到端集成测试（3 个测试）
+    - RagServiceTest - Rag 服务单元测试（1 个测试）
+    - VectorSearchServiceTest - 向量搜索服务单元测试（4 个测试）
+    - ContextBuilderServiceTest - 上下文构建服务单元测试（2 个测试）
+    - PromptTemplateServiceTest - Prompt 模板服务单元测试（11 个测试）
+    - LlmGenerationServiceTest - LLM 生成服务单元测试（4 个测试）
+    - StreamingLlmServiceTest - 流式 LLM 服务单元测试（5 个测试）
+    - RagControllerTest - RAG 控制器单元测试（2 个测试）
+
+**测试统计：**
+- Phase 4 总测试数：32 个
+- 全部通过：32 ✅
+- 失败：0
+- 错误：0
+
+**测试覆盖的服务：**
+- ✅ VectorSearchService - 向量相似度搜索、PGVector 查询、Embedding 生成
+- ✅ ContextBuilderService - 上下文构建、来源格式化、对话历史处理
+- ✅ PromptTemplateService - 系统和用户提示词构建、消息列表 JSON 构建
+- ✅ LlmGenerationService - LLM API 调用、响应解析、usage 信息、错误处理
+- ✅ StreamingLlmService - SSE 流式响应、[DONE] 标记处理、错误回调
+- ✅ RagService - 端到端 RAG 编排
+- ✅ RagController - 请求验证、控制器集成
+- ✅ RagIntegration - 完整 RAG 流程集成测试
+
+**技术栈：**
+- PGVector (PostgreSQL) - 向量存储和检索
+- OpenAI Compatible API - LLM 生成
+- Spring SSE - 流式响应
+- MyBatis Plus - 数据访问
+
+**核心功能：**
+- 向量相似度搜索（余弦相似度）
+- 上下文构建（知识库内容 + 对话历史）
+- Prompt 模板管理
+- LLM 集成（OpenAI 兼容）
+- 流式响应（SSE）
+- 多轮对话支持
+
+**待完成：**
+- Phase 4 测试覆盖已完成 ✅
+- 所有 32 个测试通过
+- 可以开始 Phase 5: Agent 系统开发
+
+---
+
 ## 当前状态
 
 **Git 状态：**
 - 分支：main
-- 远程：origin/main（已同步）
-- 工作树：干净
+- 远程：origin/main（领先 20 个提交）
+- 工作树：未跟踪文件
+  - `docs/plans/2026-01-18-phase4-rag-system.md` - Phase 4 RAG 系统详细规划文档
 
 **测试状态：**
-- 总测试数：22
-- 通过：22
+- 总测试数：53（包含 Phase 1-4 的所有测试）
+- 通过：53 ✅
 - 失败：0
+- 错误：0
 - 跳过：0
+
+**Phase 4 测试详情：**
+- LlmGenerationServiceTest: 4 个测试 ✅
+- StreamingLlmServiceTest: 5 个测试 ✅
+- RagControllerTest: 2 个测试 ✅
+- RagIntegrationTest: 3 个测试 ✅
+- RagServiceTest: 1 个测试 ✅
+- VectorSearchServiceTest: 4 个测试 ✅
+- ContextBuilderServiceTest: 2 个测试 ✅
+- PromptTemplateServiceTest: 11 个测试 ✅
+- **Phase 4 小计：32 个测试** ✅
+
+**当前阶段：**
+- Phase 1: 基础架构 ✅
+- Phase 2: 文档处理 ✅
+- Phase 3: 用户认证和权限管理 ✅
+- Phase 4: RAG 系统 ✅（核心功能和测试覆盖已完成）
 
 ---
 
 ## 下一步计划
 
-### Phase 4: RAG 系统（规划中）
+### Phase 4: RAG 系统 - 待完成项
 
-**预计功能：**
-- RAG 查询服务
-- 向量相似度搜索
-- 上下文检索
-- Prompt 构建器
-- 响应生成
+**当前状态：** 🚧 实施中（核心功能已完成，集成测试待完善）
 
-**依赖：**
-- Embedding 服务（✅ 已完成）
-- 文档分块服务（✅ 已完成）
-- 知识库管理（✅ 已完成）
+**剩余任务：**
+- 完善 RagIntegrationTest 集成测试
+- 添加测试数据和测试用例
+- 验证完整 RAG 流程
+
+**相关文档：** [docs/plans/2026-01-18-phase4-rag-system.md](docs/plans/2026-01-18-phase4-rag-system.md)
 
 ### Phase 5: Agent 系统（规划中）
 
