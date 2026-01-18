@@ -57,6 +57,7 @@ class StreamingLlmServiceTest {
             """;
 
         List<String> receivedContent = new ArrayList<>();
+        boolean[] completed = {false};
         StreamingLlmService.StreamCallback callback = new StreamingLlmService.StreamCallback() {
             @Override
             public void onContent(String content) {
@@ -65,7 +66,7 @@ class StreamingLlmServiceTest {
 
             @Override
             public void onComplete() {
-                // Mark complete
+                completed[0] = true;
             }
 
             @Override
@@ -97,6 +98,7 @@ class StreamingLlmServiceTest {
         assertEquals(2, receivedContent.size());
         assertEquals("人工智能", receivedContent.get(0));
         assertEquals("是", receivedContent.get(1));
+        assertTrue(completed[0], "onComplete should be called");
     }
 
     @Test
@@ -109,10 +111,13 @@ class StreamingLlmServiceTest {
             data: [DONE]
             """;
 
+        List<String> receivedContent = new ArrayList<>();
         boolean[] completed = {false};
         StreamingLlmService.StreamCallback callback = new StreamingLlmService.StreamCallback() {
             @Override
-            public void onContent(String content) {}
+            public void onContent(String content) {
+                receivedContent.add(content);
+            }
 
             @Override
             public void onComplete() {
@@ -142,6 +147,8 @@ class StreamingLlmServiceTest {
         streamingLlmService.streamGenerate("提示", "问题", 0.3, 1000, callback);
 
         // Then
+        assertEquals(1, receivedContent.size());
+        assertEquals("内容", receivedContent.get(0));
         assertTrue(completed[0]);
     }
 
@@ -178,5 +185,103 @@ class StreamingLlmServiceTest {
         // Then
         assertNotNull(capturedError[0]);
         assertTrue(capturedError[0].getMessage().contains("Connection failed"));
+    }
+
+    @Test
+    @DisplayName("当 HTTP 状态非 OK 时应该调用 onError")
+    void testStreamWithNonOkStatus() throws Exception {
+        // Given
+        String streamResponseBody = "Error response";
+        Exception[] capturedError = new Exception[1];
+        StreamingLlmService.StreamCallback callback = new StreamingLlmService.StreamCallback() {
+            @Override
+            public void onContent(String content) {}
+
+            @Override
+            public void onComplete() {}
+
+            @Override
+            public void onError(Exception e) {
+                capturedError[0] = e;
+            }
+        };
+
+        when(config.getEndpoint()).thenReturn("https://api.openai.com/v1");
+        when(config.getApiKey()).thenReturn("test-api-key");
+        when(config.getModel()).thenReturn("gpt-3.5-turbo");
+        when(promptTemplateService.buildMessages(anyString(), anyString())).thenReturn("[]");
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>(streamResponseBody, HttpStatus.UNAUTHORIZED));
+
+        // When
+        streamingLlmService.streamGenerate("提示", "问题", 0.3, 1000, callback);
+
+        // Then
+        assertNotNull(capturedError[0]);
+        assertTrue(capturedError[0].getMessage().contains("Unexpected response status"));
+        assertTrue(capturedError[0].getMessage().contains("401"));
+    }
+
+    @Test
+    @DisplayName("当 temperature 为 null 时应该使用默认值")
+    void testStreamWithNullTemperature() throws Exception {
+        // Given
+        String streamResponseBody = """
+            data: {"choices":[{"delta":{"content":"测试内容"}}]}
+
+            data: [DONE]
+            """;
+
+        List<String> receivedContent = new ArrayList<>();
+        StreamingLlmService.StreamCallback callback = new StreamingLlmService.StreamCallback() {
+            @Override
+            public void onContent(String content) {
+                receivedContent.add(content);
+            }
+
+            @Override
+            public void onComplete() {}
+
+            @Override
+            public void onError(Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        when(config.getEndpoint()).thenReturn("https://api.openai.com/v1");
+        when(config.getApiKey()).thenReturn("test-api-key");
+        when(config.getModel()).thenReturn("gpt-3.5-turbo");
+        when(config.getDefaultTemperature()).thenReturn(0.7);
+        when(config.getDefaultMaxTokens()).thenReturn(2000);
+        when(promptTemplateService.buildMessages(anyString(), anyString())).thenReturn("[]");
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+        // Use real mapper for JSON parsing
+        when(objectMapper.readTree(anyString())).thenAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            return realMapper.readTree(json);
+        });
+
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>(streamResponseBody, HttpStatus.OK));
+
+        // When - call with null temperature and maxTokens
+        streamingLlmService.streamGenerate("提示", "问题", null, null, callback);
+
+        // Then - verify request was built with default values from config
+        verify(objectMapper).writeValueAsString(argThat(request -> {
+            // We can't directly inspect LlmRequest, but we verified the config defaults were called
+            return true;
+        }));
+
+        // Verify content was still received
+        assertEquals(1, receivedContent.size());
+        assertEquals("测试内容", receivedContent.get(0));
+
+        // Verify config defaults were accessed
+        verify(config).getDefaultTemperature();
+        verify(config).getDefaultMaxTokens();
     }
 }
