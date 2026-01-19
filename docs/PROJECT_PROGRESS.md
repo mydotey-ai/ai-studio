@@ -680,44 +680,167 @@ Agent 管理 API (`/api/agents/*`)：
 
 ---
 
+### Phase 6: 聊天机器人系统 ✅
+
+**完成时间：2026-01-19**
+
+**实现内容：**
+- 聊天机器人管理（CRUD 操作）
+- 对话管理（创建、查询、删除）
+- 消息历史存储和查询
+- 聊天接口（非流式）
+- 流式聊天接口（SSE）
+- 访问计数统计
+- 完整测试覆盖
+
+**新增文件：**
+```
+src/main/java/com/mydotey/ai/studio/
+├── entity/
+│   ├── Chatbot.java
+│   ├── Conversation.java
+│   └── Message.java
+├── mapper/
+│   ├── ChatbotMapper.java
+│   ├── ConversationMapper.java
+│   └── MessageMapper.java
+├── dto/chatbot/
+│   ├── CreateChatbotRequest.java
+│   ├── UpdateChatbotRequest.java
+│   ├── ChatbotResponse.java
+│   ├── ConversationResponse.java
+│   ├── MessageResponse.java
+│   ├── ChatRequest.java
+│   └── ChatResponse.java
+├── service/
+│   ├── ChatbotService.java
+│   ├── ConversationService.java
+│   └── ChatService.java
+└── controller/
+    └── ChatbotController.java
+
+src/test/java/com/mydotey/ai/studio/
+├── service/
+│   ├── ChatbotServiceTest.java
+│   ├── ConversationServiceTest.java
+│   └── ChatServiceTest.java
+└── integration/
+    └── ChatbotSystemIntegrationTest.java
+```
+
+**API 端点：**
+
+聊天机器人管理 API (`/api/chatbots/*`)：
+- `POST /api/chatbots` - 创建聊天机器人
+- `GET /api/chatbots/{id}` - 获取聊天机器人详情
+- `GET /api/chatbots/my` - 获取我的聊天机器人列表
+- `GET /api/chatbots/published` - 获取已发布的聊天机器人列表
+- `PUT /api/chatbots/{id}` - 更新聊天机器人
+- `DELETE /api/chatbots/{id}` - 删除聊天机器人
+
+对话管理 API (`/api/chatbots/{chatbotId}/conversations/*`)：
+- `GET /api/chatbots/{chatbotId}/conversations` - 获取对话列表
+- `GET /api/chatbots/conversations/{conversationId}` - 获取对话详情
+- `POST /api/chatbots/{chatbotId}/conversations` - 创建新对话
+- `DELETE /api/chatbots/conversations/{conversationId}` - 删除对话
+
+聊天 API (`/api/chatbots/chat*`)：
+- `POST /api/chatbots/chat` - 发送消息（非流式）
+- `POST /api/chatbots/chat/stream` - 发送消息（流式 SSE）
+
+**实现任务完成情况：**
+
+1. ✅ **Chatbot 实体和 Mapper**
+   - Chatbot - 聊天机器人实体
+   - Conversation - 对话实体
+   - Message - 消息实体
+   - 所有对应的 Mapper
+
+2. ✅ **Chatbot DTOs**
+   - CreateChatbotRequest - 创建请求
+   - UpdateChatbotRequest - 更新请求
+   - ChatbotResponse - 聊天机器人响应
+   - ConversationResponse - 对话响应
+   - MessageResponse - 消息响应
+   - ChatRequest - 聊天请求
+   - ChatResponse - 聊天响应
+
+3. ✅ **Chatbot 服务**
+   - CRUD 操作
+   - 权限验证
+   - 访问计数
+   - 发布状态管理
+
+4. ✅ **Conversation 服务**
+   - 对话创建和查询
+   - 对话历史加载
+   - 对话删除（级联删除消息）
+
+5. ✅ **Chat 服务**
+   - 消息发送
+   - Agent 调用
+   - 消息历史管理
+   - 来源和工具调用记录
+
+6. ✅ **Chatbot 控制器**
+   - 提供完整的 REST API
+   - 集成审计日志
+   - SSE 流式响应支持
+
+7. ✅ **测试覆盖**
+   - ChatbotServiceTest - 聊天机器人服务测试（2 个测试）
+   - ConversationServiceTest - 对话服务测试（2 个测试）
+   - ChatServiceTest - 聊天服务测试（1 个测试）
+   - ChatbotSystemIntegrationTest - 系统集成测试（4 个测试）
+
+**技术栈：**
+- Spring Boot 3.5
+- MyBatis-Plus
+- SSE (Server-Sent Events)
+- Agent Execution Service
+
+**核心功能：**
+- 聊天机器人管理
+- 对话管理
+- 消息历史
+- 流式响应
+- Agent 集成
+
+**测试统计：**
+- Phase 6 总测试数：9 个
+- 单元测试：5 ✅
+- 集成测试：4 ✅
+
+---
+
 ## 当前状态
 
 **Git 状态：**
 - 分支：main
 - 远程：origin/main（已同步）
 - 工作树：干净（无未提交更改）
-- 最新提交：8e0bbc6 - docs: add Phase 4 RAG system implementation plans
+- 最新提交：4fc4fe3 - feat: add chatbot controller
 
 **测试状态：**
-- 总测试数：53（包含 Phase 1-4 的所有测试）
-- 通过：53 ✅
+- 总测试数：62（包含 Phase 1-6 的所有测试）
+- 通过：62 ✅
 - 失败：0
 - 错误：0
 - 跳过：0
-
-**Phase 4 测试详情：**
-- LlmGenerationServiceTest: 4 个测试 ✅
-- StreamingLlmServiceTest: 5 个测试 ✅
-- RagControllerTest: 2 个测试 ✅
-- RagIntegrationTest: 3 个测试 ✅
-- RagServiceTest: 1 个测试 ✅
-- VectorSearchServiceTest: 4 个测试 ✅
-- ContextBuilderServiceTest: 2 个测试 ✅
-- PromptTemplateServiceTest: 11 个测试 ✅
-- **Phase 4 小计：32 个测试** ✅
 
 **当前阶段：**
 - Phase 1: 基础架构 ✅
 - Phase 2: 文档处理 ✅
 - Phase 3: 用户认证和权限管理 ✅
-- Phase 4: RAG 系统 ✅（核心功能和测试覆盖已完成）
-- Phase 5: Agent 系统 ✅（MCP、ReAct 工作流、Agent 执行引擎已完成）
+- Phase 4: RAG 系统 ✅
+- Phase 5: Agent 系统 ✅
+- Phase 6: 聊天机器人 ✅
 
 ---
 
 ## 下一步计划
 
-### Phase 6: 聊天机器人（待规划）
+### Phase 7: 网页抓取（待规划）
 
 **预计功能：**
 - 聊天机器人管理
