@@ -1,6 +1,8 @@
 package com.mydotey.ai.studio.integration;
 
 import com.mydotey.ai.studio.dto.chatbot.*;
+import com.mydotey.ai.studio.dto.agent.CreateAgentRequest;
+import com.mydotey.ai.studio.dto.agent.AgentResponse;
 import com.mydotey.ai.studio.service.AgentService;
 import com.mydotey.ai.studio.service.ChatService;
 import com.mydotey.ai.studio.service.ChatbotService;
@@ -36,8 +38,14 @@ class ChatbotSystemIntegrationTest {
     @BeforeEach
     void setUp() {
         // 创建测试 Agent
-        // 这里简化处理，实际应该通过 AgentService 创建
-        testAgentId = 1L;
+        CreateAgentRequest agentRequest = new CreateAgentRequest();
+        agentRequest.setName("测试Agent");
+        agentRequest.setDescription("用于测试的Agent");
+        agentRequest.setSystemPrompt("你是一个测试助手");
+        agentRequest.setWorkflowType("REACT");
+
+        AgentResponse agent = agentService.create(agentRequest, testUserId);
+        testAgentId = agent.getId();
     }
 
     @AfterEach
@@ -141,7 +149,7 @@ class ChatbotSystemIntegrationTest {
         request.setName("待删除");
         request.setAgentId(testAgentId);
 
-        ChatbotResponse chatbot = chatbotService.create(requestRequest, testUserId);
+        ChatbotResponse chatbot = chatbotService.create(request, testUserId);
 
         // 删除
         chatbotService.delete(chatbot.getId(), testUserId);
@@ -150,3 +158,4 @@ class ChatbotSystemIntegrationTest {
         assertThrows(Exception.class, () -> chatbotService.getById(chatbot.getId()));
     }
 }
+

@@ -77,7 +77,7 @@ public class ChatbotController {
             @Valid @RequestBody UpdateChatbotRequest request,
             @RequestAttribute("userId") Long userId) {
         chatbotService.update(id, request, userId);
-        return ApiResponse.success("Chatbot updated successfully");
+        return ApiResponse.<Void>success("Chatbot updated successfully", null);
     }
 
     /**
@@ -89,7 +89,7 @@ public class ChatbotController {
             @PathVariable Long id,
             @RequestAttribute("userId") Long userId) {
         chatbotService.delete(id, userId);
-        return ApiResponse.success("Chatbot deleted successfully");
+        return ApiResponse.<Void>success("Chatbot deleted successfully", null);
     }
 
     /**
@@ -129,7 +129,7 @@ public class ChatbotController {
     @DeleteMapping("/conversations/{conversationId}")
     public ApiResponse<Void> deleteConversation(@PathVariable Long conversationId) {
         conversationService.delete(conversationId);
-        return ApiResponse.success("Conversation deleted successfully");
+        return ApiResponse.<Void>success("Conversation deleted successfully", null);
     }
 
     /**
