@@ -1,10 +1,10 @@
 # AI Studio 项目进度
 
-> 最后更新：2026-01-18
+> 最后更新：2026-01-19
 
 ## 项目概述
 
-AI Studio 是一个基于 Spring Boot 3.5 + MyBatis-Plus 的 AI 开发平台，支持知识库、RAG、Agent 和聊天机器人。
+AI Studio 是一个基于 Spring Boot 3.5 + MyBatis-Plus 的 AI 开发平台，支持知识库、RAG、Agent、聊天机器人和网页抓取。
 
 **技术栈：**
 - Java 21
@@ -813,6 +813,153 @@ src/test/java/com/mydotey/ai/studio/
 
 ---
 
+### Phase 7: Web Crawling System ✅
+
+**完成时间：2026-01-19**
+
+**实现内容：**
+- Jsoup 网页抓取器
+- URL 过滤服务（正则表达式）
+- 爬虫编排器（BFS/DFS 策略）
+- 抓取任务管理
+- 异步抓取执行
+- 进度跟踪
+
+**新增文件：**
+```
+src/main/java/com/mydotey/ai/studio/
+├── entity/
+│   ├── WebCrawlTask.java
+│   └── WebPage.java
+├── mapper/
+│   ├── WebCrawlTaskMapper.java
+│   └── WebPageMapper.java
+├── dto/webcrawl/
+│   ├── CreateCrawlTaskRequest.java
+│   ├── CrawlTaskResponse.java
+│   ├── CrawlTaskProgressResponse.java
+│   ├── WebPageResponse.java
+│   └── StartCrawlRequest.java
+├── service/
+│   ├── WebCrawlService.java
+│   └── webcrawl/
+│       ├── WebScraper.java (interface)
+│       ├── JsoupWebScraper.java
+│       ├── UrlFilter.java
+│       ├── CrawlOrchestrator.java
+│       ├── ScrapedResult.java
+│       └── ScrapingException.java
+└── controller/
+    └── WebCrawlController.java
+
+src/main/resources/
+└── mapper/
+    ├── WebCrawlTaskMapper.xml
+    └── WebPageMapper.xml
+
+src/test/java/com/mydotey/ai/studio/
+├── service/
+│   ├── WebCrawlServiceTest.java
+│   └── webcrawl/
+│       ├── JsoupWebScraperTest.java
+│       ├── UrlFilterTest.java
+│       └── CrawlOrchestratorTest.java
+├── controller/
+│   └── WebCrawlControllerTest.java
+└── integration/
+    └── WebCrawlingIntegrationTest.java
+```
+
+**API 端点：**
+
+网页抓取任务管理 API (`/api/web-crawl/tasks/*`)：
+- `POST /api/web-crawl/tasks` - 创建抓取任务
+- `POST /api/web-crawl/tasks/{id}/start` - 启动抓取任务
+- `GET /api/web-crawl/tasks/{id}` - 获取任务详情
+- `GET /api/web-crawl/tasks/{id}/progress` - 获取任务进度
+- `GET /api/web-crawl/tasks/kb/{kbId}` - 获取知识库的所有任务
+- `DELETE /api/web-crawl/tasks/{id}` - 删除抓取任务
+
+**实现任务完成情况：**
+
+1. ✅ **WebCrawlTask 和 WebPage 实体**
+   - WebCrawlTask - 抓取任务实体（支持 BFS/DFS 策略）
+   - WebPage - 网页实体（存储抓取内容和元数据）
+   - 所有对应的 Mapper
+
+2. ✅ **Web Crawling DTOs**
+   - CreateCrawlTaskRequest - 创建抓取任务请求
+   - CrawlTaskResponse - 抓取任务响应
+   - CrawlTaskProgressResponse - 抓取任务进度响应
+   - WebPageResponse - 网页响应
+   - StartCrawlRequest - 启动抓取请求
+
+3. ✅ **Jsoup Web Scraper**
+   - 静态网页抓取
+   - 提取标题、正文、链接
+   - 错误处理和超时控制
+   - 支持 User-Agent 自定义
+
+4. ✅ **URL Filter**
+   - 正则表达式过滤
+   - 同源策略
+   - URL 去重
+   - 文件类型过滤
+
+5. ✅ **Crawl Orchestrator**
+   - BFS 广度优先策略
+   - DFS 深度优先策略
+   - 最大深度控制
+   - 最大页面数控制
+   - 异步执行
+
+6. ✅ **Web Crawl Service**
+   - 抓取任务 CRUD 操作
+   - 启动异步抓取
+   - 进度跟踪
+   - 权限验证
+
+7. ✅ **Web Crawl Controller**
+   - 提供完整的 REST API
+   - 集成审计日志
+   - 请求参数验证
+
+8. ✅ **测试覆盖**
+   - WebCrawlServiceTest - 抓取任务服务测试（14 个测试）
+   - JsoupWebScraperTest - Jsoup 抓取器测试（2 个测试）
+   - UrlFilterTest - URL 过滤器测试（3 个测试）
+   - CrawlOrchestratorTest - 爬虫编排器测试（6 个测试）
+   - WebCrawlControllerTest - 抓取控制器测试（10 个测试）
+   - WebCrawlingIntegrationTest - 系统集成测试（7 个测试）
+
+**技术栈：**
+- Jsoup 1.17.2 - HTML 解析和网页抓取
+- Spring Async - 异步任务执行
+- 并发处理 - ThreadPoolTaskExecutor
+- 正则表达式 - URL 过滤
+
+**核心功能：**
+- 静态网页抓取（HTML 解析）
+- 级联抓取（BFS/DFS 策略）
+- URL 过滤（正则表达式 + 同源策略）
+- URL 去重机制
+- 抓取进度跟踪
+- 异步执行支持
+- 抓取结果持久化
+
+**测试统计：**
+- Phase 7 总测试数：42 个
+- 单元测试：35 ✅
+  - WebCrawlServiceTest: 14
+  - CrawlOrchestratorTest: 6
+  - WebCrawlControllerTest: 10
+  - JsoupWebScraperTest: 2
+  - UrlFilterTest: 3
+- 集成测试：7 ✅
+  - WebCrawlingIntegrationTest: 7
+
+---
+
 ## 当前状态
 
 **Git 状态：**
@@ -822,8 +969,8 @@ src/test/java/com/mydotey/ai/studio/
 - 最新提交：4fc4fe3 - feat: add chatbot controller
 
 **测试状态：**
-- 总测试数：62（包含 Phase 1-6 的所有测试）
-- 通过：62 ✅
+- 总测试数：104（包含 Phase 1-7 的所有测试）
+- 通过：104 ✅
 - 失败：0
 - 错误：0
 - 跳过：0
@@ -835,19 +982,38 @@ src/test/java/com/mydotey/ai/studio/
 - Phase 4: RAG 系统 ✅
 - Phase 5: Agent 系统 ✅
 - Phase 6: 聊天机器人 ✅
+- Phase 7: 网页抓取系统 ✅
 
 ---
 
 ## 下一步计划
 
-### Phase 7: 网页抓取（待规划）
+### Phase 8: 文件存储系统（待规划）
 
 **预计功能：**
-- 聊天机器人管理
-- 对话管理
-- 消息历史
-- 流式响应
-- API 端点
+- 本地存储
+- 云存储集成（OSS/S3）
+- 文件上传下载
+- 文件管理
+- 访问控制
+
+### Phase 9: 系统监控和日志（待规划）
+
+**预计功能：**
+- APM 监控
+- 结构化日志
+- 请求追踪（trace ID）
+- 性能指标
+- 错误追踪
+
+### Phase 10: API 文档和部署（待规划）
+
+**预计功能：**
+- Swagger/OpenAPI 文档
+- 部署文档
+- 运维手册
+- Docker 容器化
+- CI/CD 流程
 
 ---
 
