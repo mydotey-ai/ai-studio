@@ -22,9 +22,6 @@ llm:
   timeout: 60000
   enable-streaming: true
 
-file:
-  upload-dir: /tmp/ai-studio-uploads
-
 # File Storage Configuration
 file:
   storage:

@@ -84,7 +84,7 @@ public class FileStorageManagerService {
     public InputStream downloadFile(Long fileId, Long userId) {
         FileMetadata metadata = getFileMetadata(fileId, userId);
 
-        FileStorageService storageService = storageFactory.getStorageService(metadata.getStorageConfigId());
+        FileStorageService storageService = getStorageService(metadata.getStorageConfigId());
         return storageService.downloadFile(metadata.getFileKey());
     }
 
