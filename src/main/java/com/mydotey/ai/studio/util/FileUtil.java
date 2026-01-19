@@ -8,17 +8,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 /**
- * 文件工具类
- * Phase 2 使用本地存储，后续可扩展到对象存储
+ * 文件工具类（兼容 Phase 2 文档处理）
+ *
+ * @deprecated 使用 {@link com.mydotey.ai.studio.service.FileStorageManagerService} 代替
  */
 @Slf4j
 @Component
+@Deprecated
 public class FileUtil {
 
-    @Value("${file.upload-dir:${java.io.tmpdir}/uploads}")
+    @Value("${file.storage.local.upload-dir:${java.io.tmpdir}/ai-studio-uploads}")
     private String uploadDir;
 
     /**
@@ -38,11 +39,12 @@ public class FileUtil {
 
     /**
      * 保存上传的文件
+     *
+     * @deprecated 使用 FileStorageManagerService.uploadFile 代替
      */
     public String saveFile(String originalFilename, byte[] content) throws IOException {
         init();
 
-        // 生成唯一文件名
         String filename = System.currentTimeMillis() + "_" + originalFilename;
         Path filePath = Paths.get(uploadDir, filename);
         Files.write(filePath, content);
@@ -52,7 +54,9 @@ public class FileUtil {
     }
 
     /**
-     * 读取文件内容（简化版，仅支持文本）
+     * 读取文件内容
+     *
+     * @deprecated 使用 FileStorageManagerService.downloadFile 代替
      */
     public String readFileContent(String filePath) throws IOException {
         return Files.readString(Paths.get(filePath));
@@ -60,6 +64,8 @@ public class FileUtil {
 
     /**
      * 删除文件
+     *
+     * @deprecated 使用 FileStorageManagerService.deleteFile 代替
      */
     public void deleteFile(String filePath) throws IOException {
         Files.deleteIfExists(Paths.get(filePath));

@@ -11,3 +11,9 @@ jwt:
   secret: ${JWT_SECRET:your-super-secret-key-change-in-production-min-256-bits}
   access-token-expiration: 7200000  # 2 hours in milliseconds
   refresh-token-expiration: 604800000  # 7 days in milliseconds
+
+# File Storage Configuration
+file:
+  storage:
+    local:
+      upload-dir: ${UPLOAD_DIR:${java.io.tmpdir}/ai-studio-uploads}

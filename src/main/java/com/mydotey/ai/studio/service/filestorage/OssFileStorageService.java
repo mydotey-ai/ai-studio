@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
-@Service
 public class OssFileStorageService implements FileStorageService {
 
     private final OSS ossClient;

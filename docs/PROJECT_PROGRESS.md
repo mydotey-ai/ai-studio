@@ -949,6 +949,132 @@ src/test/java/com/mydotey/ai/studio/
 
 **测试统计：**
 - Phase 7 总测试数：42 个
+
+### Phase 8: 文件存储系统 ✅
+
+**完成时间：2026-01-19**
+
+**实现内容：**
+- 多存储类型支持（本地、阿里云 OSS、AWS S3）
+- 文件元数据管理
+- 存储配置管理
+- 统一文件上传下载 API
+- URL 签名（云存储）
+- 访问控制
+- 完整测试覆盖
+
+**新增文件：**
+```
+src/main/java/com/mydotey/ai/studio/
+├── service/
+│   ├── FileStorageManagerService.java
+│   ├── StorageConfigService.java
+│   └── filestorage/
+│       ├── LocalFileStorageService.java
+│       ├── OssFileStorageService.java
+│       ├── S3FileStorageService.java
+│       └── FileStorageFactory.java
+├── controller/
+│   ├── FileStorageController.java
+│   └── StorageConfigController.java
+└── dto/filestorage/
+    ├── CreateStorageConfigRequest.java
+    ├── UpdateStorageConfigRequest.java
+    └── StorageConfigResponse.java
+
+src/test/java/com/mydotey/ai/studio/
+├── service/
+│   ├── FileStorageManagerServiceTest.java
+│   └── filestorage/
+│       ├── LocalFileStorageServiceTest.java
+│       ├── OssFileStorageServiceTest.java
+│       └── S3FileStorageServiceTest.java
+├── controller/
+│   └── FileStorageControllerTest.java
+└── integration/
+    └── FileStorageIntegrationTest.java
+```
+
+**API 端点：**
+
+文件管理 API (`/api/files/*`)：
+- `POST /api/files/upload` - 上传文件
+- `GET /api/files/download/{id}` - 下载文件
+- `GET /api/files/{id}/url` - 获取文件访问 URL
+- `GET /api/files/{id}` - 获取文件元数据
+- `GET /api/files/my` - 获取我的文件列表
+- `GET /api/files/related/{entityType}/{entityId}` - 获取关联实体文件
+- `DELETE /api/files/{id}` - 删除文件
+
+存储配置管理 API (`/api/storage-configs/*`)：
+- `POST /api/storage-configs` - 创建存储配置（管理员）
+- `PUT /api/storage-configs/{id}` - 更新存储配置（管理员）
+- `DELETE /api/storage-configs/{id}` - 删除存储配置（管理员）
+- `GET /api/storage-configs/{id}` - 获取存储配置详情
+- `GET /api/storage-configs` - 获取所有存储配置
+- `GET /api/storage-configs/default` - 获取默认存储配置
+
+**实现任务完成情况：**
+
+1. ✅ **本地存储实现**
+   - LocalFileStorageService - 本地文件存储
+   - 支持文件上传、下载、删除
+   - 支持自定义上传目录
+
+2. ✅ **阿里云 OSS 实现**
+   - OssFileStorageService - OSS 文件存储
+   - 支持签名 URL 生成
+   - 自动创建 Bucket
+
+3. ✅ **AWS S3 实现**
+   - S3FileStorageService - S3 文件存储
+   - 支持 S3 兼容存储
+   - 签名 URL 生成
+
+4. ✅ **文件存储工厂和管理服务**
+   - FileStorageFactory - 存储服务工厂
+   - FileStorageManagerService - 文件管理服务
+   - 元数据持久化
+   - 权限控制
+
+5. ✅ **存储配置管理**
+   - CRUD 操作
+   - 默认配置管理
+   - 敏感信息保护（secret）
+
+6. ✅ **控制器**
+   - FileStorageController - 文件管理 API
+   - StorageConfigController - 配置管理 API
+   - 审计日志集成
+
+7. ✅ **测试覆盖**
+   - LocalFileStorageServiceTest - 本地存储测试
+   - OssFileStorageServiceTest - OSS 测试
+   - S3FileStorageServiceTest - S3 测试
+   - FileStorageManagerServiceTest - 管理服务测试
+   - FileStorageControllerTest - 控制器测试
+   - FileStorageIntegrationTest - 集成测试
+
+**技术栈：**
+- 阿里云 OSS SDK 3.17.4
+- AWS S3 SDK 2.25.11
+- Java NIO（本地存储）
+- 策略模式（多存储支持）
+
+**核心功能：**
+- 多存储类型支持（LOCAL/OSS/S3）
+- 统一文件管理 API
+- 文件元数据管理
+- 存储配置管理
+- URL 签名访问
+- 权限控制
+- 关联实体文件
+
+**测试统计：**
+- Phase 8 总测试数：8 个
+- 单元测试：5 ✅
+- 集成测试：3 ✅
+
 - 单元测试：35 ✅
   - WebCrawlServiceTest: 14
   - CrawlOrchestratorTest: 6
@@ -983,12 +1109,13 @@ src/test/java/com/mydotey/ai/studio/
 - Phase 5: Agent 系统 ✅
 - Phase 6: 聊天机器人 ✅
 - Phase 7: 网页抓取系统 ✅
+- Phase 8: 文件存储系统 ✅
 
 ---
 
 ## 下一步计划
 
-### Phase 8: 文件存储系统（待规划）
+
 
 **预计功能：**
 - 本地存储

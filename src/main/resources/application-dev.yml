@@ -25,6 +25,12 @@ llm:
 file:
   upload-dir: /tmp/ai-studio-uploads
 
+# File Storage Configuration
+file:
+  storage:
+    local:
+      upload-dir: /tmp/ai-studio-uploads
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
