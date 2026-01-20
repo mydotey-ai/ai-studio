@@ -1,0 +1,89 @@
+# Development environment Docker Compose configuration
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Development configuration
+  postgres:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ai_studio_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  # AI Studio Application - Development configuration
+  ai-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ai_studio_dev}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production-min-256-bits}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-dev-api-key}
+      LLM_API_KEY: ${LLM_API_KEY:-dev-api-key}
+      UPLOAD_DIR: /app/uploads
+      # Enable debug logging in development
+      LOGGING_LEVEL_ROOT: DEBUG
+      LOGGING_LEVEL_COM_MYDOTEY_AI: DEBUG
+      # Hot reload configuration (if using spring-boot-devtools)
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
+    volumes:
+      # Mount source code for hot reload (optional)
+      - ./src:/app/src:ro
+      - upload_dev_data:/app/uploads
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Java debugging port
+    command: >
+      sh -c "
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 \
+             -XX:+UseContainerSupport \
+             -XX:+UseG1GC \
+             -XX:MaxRAMPercentage=75.0 \
+             -Djava.security.egd=file:/dev/./urandom \
+             -jar /app/target/*.jar
+      "
+
+  # Prometheus - Development configuration
+  prometheus:
+    volumes:
+      - ./prometheus/prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    ports:
+      - "9090:9090"
+
+  # Grafana - Development configuration
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "true"
+      GF_LOG_LEVEL: debug
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+
+networks:
+  ai-studio-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+    name: ai-studio-postgres-dev-data
+  upload_dev_data:
+    name: ai-studio-upload-dev-data
+  prometheus_dev_data:
+    name: ai-studio-prometheus-dev-data
+  grafana_dev_data:
+    name: ai-studio-grafana-dev-data

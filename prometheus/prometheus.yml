@@ -1,0 +1,34 @@
+# Prometheus configuration for AI Studio
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'ai-studio-monitor'
+
+# Alerting configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Rule files (optional)
+# rule_files:
+#   - "alerts/*.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # AI Studio application metrics
+  - job_name: 'ai-studio'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['ai-studio:8080']
+        labels:
+          application: 'ai-studio'
+          environment: 'production'
+    scrape_interval: 30s
+    scrape_timeout: 10s

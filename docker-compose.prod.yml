@@ -1,0 +1,218 @@
+# Production environment Docker Compose configuration
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Production configuration
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Performance tuning for production
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_MAX_CONNECTIONS: 200
+      POSTGRES_WORK_MEM: 4MB
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./postgres/postgres.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    networks:
+      - ai-studio-network
+    restart: always
+
+  # AI Studio Application - Production configuration
+  ai-studio:
+    image: ${REGISTRY_URL}ai-studio:${TAG:-latest}
+    container_name: ai-studio-app-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY}
+      LLM_API_KEY: ${LLM_API_KEY}
+      UPLOAD_DIR: /app/uploads
+      # Production performance settings
+      SERVER_TOMCAT_MAX_THREADS: 200
+      SERVER_TOMCAT_MIN_SPARE_THREADS: 10
+      SERVER_TOMCAT_ACCEPT_COUNT: 100
+      # JVM settings
+      JAVA_OPTS: >
+        -XX:+UseContainerSupport
+        -XX:+UseG1GC
+        -XX:MaxRAMPercentage=75.0
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/app/logs/heapdump.hprof
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.jmx.enabled=false
+      # Monitoring
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+    volumes:
+      - upload_prod_data:/app/uploads
+      - log_prod_data:/app/logs
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai-studio-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus - Production configuration
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: ai-studio-prometheus-prod
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./prometheus/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_prod_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - ai-studio-network
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Grafana - Production configuration
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: ai-studio-grafana-prod
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: ""
+      GF_LOG_LEVEL: info
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - grafana_prod_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - ai-studio-network
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  ai-studio-network:
+    name: ai-studio-prod-network
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: ai-studio-br0
+
+volumes:
+  postgres_prod_data:
+    name: ai-studio-postgres-prod-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/ai-studio/postgres
+  upload_prod_data:
+    name: ai-studio-upload-prod-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/ai-studio/uploads
+  log_prod_data:
+    name: ai-studio-log-prod-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/ai-studio
+  prometheus_prod_data:
+    name: ai-studio-prometheus-prod-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/ai-studio/prometheus
+  grafana_prod_data:
+    name: ai-studio-grafana-prod-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/ai-studio/grafana

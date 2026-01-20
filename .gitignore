@@ -87,3 +87,9 @@ Desktop.ini
 
 # Git Worktrees
 .worktrees/
+
+# Docker
+.env
+
+# Docker volumes data
+/var/lib/ai-studio/

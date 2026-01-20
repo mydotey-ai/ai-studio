@@ -1,0 +1,23 @@
+# Prometheus configuration for AI Studio - Development environment
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'ai-studio-monitor-dev'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # AI Studio application metrics
+  - job_name: 'ai-studio'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['ai-studio:8080']
+        labels:
+          application: 'ai-studio'
+          environment: 'development'
+    scrape_interval: 15s
+    scrape_timeout: 5s
