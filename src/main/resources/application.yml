@@ -17,3 +17,16 @@ file:
   storage:
     local:
       upload-dir: ${UPLOAD_DIR:${java.io.tmpdir}/ai-studio-uploads}
+
+# Management endpoints for monitoring and metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
