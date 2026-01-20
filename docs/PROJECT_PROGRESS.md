@@ -1,6 +1,6 @@
 # AI Studio 项目进度
 
-> 最后更新：2026-01-19
+> 最后更新：2026-01-20
 
 ## 项目概述
 
@@ -1071,7 +1071,6 @@ src/test/java/com/mydotey/ai/studio/
 - 关联实体文件
 
 **测试统计：**
-**测试统计：**
 - Phase 8 总测试数：16 个
 - 单元测试：13 ✅
   - LocalFileStorageServiceTest: 4
@@ -1082,16 +1081,166 @@ src/test/java/com/mydotey/ai/studio/
 - 集成测试：3 ✅
   - FileStorageIntegrationTest: 3
 
+---
 
-**Git 状态：**
-- 分支：main
-- 远程：origin/main（已同步）
-- 工作树：干净（无未提交更改）
-- 最新提交：4fc4fe3 - feat: add chatbot controller
+### Phase 9: 系统监控和日志 ✅
+
+**完成时间：2026-01-20**
+
+**实现内容：**
+- APM 监控（Micrometer + Prometheus）
+- 结构化日志（Logstash JSON 格式）
+- 请求追踪（Trace ID 传播）
+- 性能指标监控（自定义注解）
+- 错误追踪和慢方法检测
+- Spring Boot Actuator 健康检查
+- 完整测试覆盖
+
+**新增文件：**
+```
+src/main/java/com/mydotey/ai/studio/
+├── annotation/
+│   └── PerformanceMonitor.java
+├── aspect/
+│   └── PerformanceMonitorAspect.java
+├── config/
+│   └── MetricsConfig.java
+├── util/
+│   └── TraceIdUtil.java
+├── filter/
+│   └── TraceIdFilter.java
+└── service/
+    └── DummyService.java (测试用)
+
+src/main/resources/
+└── logback-spring.xml
+
+src/test/java/com/mydotey/ai/studio/
+├── util/
+│   └── TraceIdUtilTest.java
+├── aspect/
+│   └── PerformanceMonitorAspectTest.java
+├── filter/
+│   ├── TraceIdFilterTest.java
+│   └── TraceIdIntegrationTest.java
+└── integration/
+    └── MonitoringLoggingIntegrationTest.java
+```
+
+**配置项：**
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern:
+    level: "%5p [traceId:%X{traceId:-}]"
+```
+
+**API 端点：**
+
+监控 API (`/actuator/*`)：
+- `GET /actuator/health` - 健康检查
+- `GET /actuator/info` - 应用信息
+- `GET /actuator/metrics` - 指标列表
+- `GET /actuator/metrics/{name}` - 特定指标
+- `GET /actuator/prometheus` - Prometheus 格式指标
+
+**实现任务完成情况：**
+
+1. ✅ **性能监控注解**
+   - @PerformanceMonitor - 方法性能监控注解
+   - 支持自定义方法名称、参数记录、返回值记录
+   - 支持慢方法阈值配置
+   - 集成到关键服务（RagService、AgentExecutionService、ChatService）
+
+2. ✅ **性能监控切面**
+   - PerformanceMonitorAspect - AOP 切面实现
+   - 使用 Micrometer Timer 记录方法执行时间
+   - 记录成功/失败状态
+   - 慢方法检测和告警
+
+3. ✅ **指标配置**
+   - MetricsConfig - Prometheus 指标配置
+   - 应用名称标签
+   - Micrometer Registry 配置
+
+4. ✅ **请求追踪工具**
+   - TraceIdUtil - Trace ID 和 Span ID 生成工具
+   - 基于 UUID 生成唯一标识
+   - MDC 集成（SLF4J）
+   - 支持跨服务追踪
+
+5. ✅ **Trace ID 过滤器**
+   - TraceIdFilter - HTTP 请求拦截器
+   - 从请求头读取 Trace ID（X-Trace-ID）
+   - 自动生成新的 Trace ID（如不存在）
+   - 响应头返回 Trace ID
+   - MDC 生命周期管理
+
+6. ✅ **结构化日志配置**
+   - logback-spring.xml - Logback 配置
+   - JSON 格式输出（Logstash Encoder）
+   - 控制台和文件输出
+   - 错误日志单独文件
+   - 日志滚动策略（按大小和时间）
+   - 集成 Trace ID 和应用名称
+
+7. ✅ **全局异常处理增强**
+   - ErrorDetails 集成 Trace ID
+   - 错误日志记录 Trace ID
+   - 统一错误响应格式
+
+8. ✅ **测试覆盖**
+   - TraceIdUtilTest - Trace ID 工具测试（9 个测试）
+   - PerformanceMonitorAspectTest - 性能监控切面测试（9 个测试）
+   - TraceIdFilterTest - Trace ID 过滤器测试（7 个测试）
+   - TraceIdIntegrationTest - Trace ID 集成测试（4 个测试）
+   - MonitoringLoggingIntegrationTest - 监控日志集成测试（4 个测试）
+
+**技术栈：**
+- Micrometer 1.13.0 - 指标收集
+- Prometheus - 监控系统
+- Logstash Logback Encoder 8.0 - JSON 日志
+- Spring Boot Actuator - 健康检查和指标
+- SLF4J MDC - 诊断上下文
+- AOP - 性能监控切面
+
+**核心功能：**
+- Prometheus 指标导出
+- 自定义性能监控注解
+- Trace ID 传播（HTTP 头 + MDC）
+- 结构化 JSON 日志
+- 方法执行时间记录
+- 慢方法检测
+- 错误指标记录
+- Spring Boot Actuator 端点
+
+**测试统计：**
+- Phase 9 总测试数：38 个
+- 单元测试：33 ✅
+  - TraceIdUtilTest: 9
+  - PerformanceMonitorAspectTest: 9
+  - TraceIdFilterTest: 7
+  - TraceIdIntegrationTest: 4
+  - MonitoringLoggingIntegrationTest: 4
+- 集成测试：5 ✅
+  - TraceIdIntegrationTest: 4
+  - MonitoringLoggingIntegrationTest: 4 (含 4 个集成测试)
+  - GlobalExceptionHandlerTest: (已有 Trace ID 验证)
 
 **测试状态：**
-- 总测试数：104（包含 Phase 1-7 的所有测试）
-- 通过：104 ✅
+- 总测试数：142（包含 Phase 1-9 的所有测试）
+- 通过：142 ✅
 - 失败：0
 - 错误：0
 - 跳过：0
@@ -1105,6 +1254,7 @@ src/test/java/com/mydotey/ai/studio/
 - Phase 6: 聊天机器人 ✅
 - Phase 7: 网页抓取系统 ✅
 - Phase 8: 文件存储系统 ✅
+- Phase 9: 系统监控和日志 ✅
 
 ---
 
@@ -1152,10 +1302,10 @@ src/test/java/com/mydotey/ai/studio/
    - [ ] 添加性能测试
    - [ ] 提高测试覆盖率目标
 
-3. **监控和日志**
-   - [ ] 添加 APM 监控
-   - [ ] 结构化日志
-   - [ ] 请求追踪（trace ID）
+3. **监控和日志** ✅ (已完成 - Phase 9)
+   - [x] 添加 APM 监控（Micrometer + Prometheus）
+   - [x] 结构化日志（Logstash JSON 格式）
+   - [x] 请求追踪（Trace ID）
 
 4. **文档**
    - [ ] API 文档（Swagger/OpenAPI）
