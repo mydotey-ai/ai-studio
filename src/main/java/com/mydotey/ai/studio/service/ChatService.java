@@ -2,6 +2,7 @@ package com.mydotey.ai.studio.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mydotey.ai.studio.annotation.PerformanceMonitor;
 import com.mydotey.ai.studio.dto.AgentExecutionRequest;
 import com.mydotey.ai.studio.dto.AgentExecutionResponse;
 import com.mydotey.ai.studio.dto.Message;
@@ -38,6 +39,7 @@ public class ChatService {
      * 发送消息并获取回复（非流式）
      */
     @Transactional
+    @PerformanceMonitor(value = "Chat", slowThreshold = 1000)
     public ChatResponse chat(ChatRequest request, Long userId) {
         Long chatbotId = request.getChatbotId();
         Long conversationId = request.getConversationId();

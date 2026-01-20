@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.service;
 
+import com.mydotey.ai.studio.annotation.PerformanceMonitor;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.config.LlmConfig;
 import com.mydotey.ai.studio.dto.*;
@@ -32,6 +33,7 @@ public class RagService {
      * @param userId 当前用户 ID（用于权限验证）
      * @return RAG 查询响应
      */
+    @PerformanceMonitor(value = "RAG Query", slowThreshold = 2000, logParams = true)
     public RagQueryResponse query(RagQueryRequest request, Long userId) {
         log.info("Executing RAG query, question: {}, kbIds: {}, userId: {}",
                 request.getQuestion(), request.getKnowledgeBaseIds(), userId);

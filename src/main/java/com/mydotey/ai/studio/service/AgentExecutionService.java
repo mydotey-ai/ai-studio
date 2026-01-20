@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.service;
 
+import com.mydotey.ai.studio.annotation.PerformanceMonitor;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.AgentExecutionRequest;
 import com.mydotey.ai.studio.dto.AgentExecutionResponse;
@@ -38,6 +39,7 @@ public class AgentExecutionService {
     /**
      * 执行 Agent
      */
+    @PerformanceMonitor(value = "Agent Execution", slowThreshold = 5000)
     public AgentExecutionResponse executeAgent(Long agentId, AgentExecutionRequest request, Long userId) {
         log.info("Executing agent: {}, query: {}, userId: {}", agentId, request.getQuery(), userId);
 
