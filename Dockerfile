@@ -16,12 +16,17 @@ RUN mvn clean package -DskipTests -B
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
 
+# Metadata labels
+LABEL maintainer="koqizhao@outlook.com" \
+      version="1.0.0" \
+      description="AI Studio - AI Development Studio for Knowledge Base, RAG, Agent, and Chatbot"
+
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and wget for proper signal handling and health checks
+RUN apk add --no-cache dumb-init wget
 
 # Set working directory
 WORKDIR /app
@@ -40,6 +45,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["java", \
      "-XX:+UseContainerSupport", \
+     "-XX:+UseG1GC", \
      "-XX:MaxRAMPercentage=75.0", \
      "-Djava.security.egd=file:/dev/./urandom", \
      "-jar", \
