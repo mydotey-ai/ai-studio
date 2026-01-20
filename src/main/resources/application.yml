@@ -30,3 +30,14 @@ management:
         enabled: true
     tags:
       application: ${spring.application.name}
+
+# SpringDoc OpenAPI configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: true
