@@ -6,6 +6,9 @@ import com.mydotey.ai.studio.dto.filestorage.FileMetadataResponse;
 import com.mydotey.ai.studio.dto.filestorage.FileUploadRequest;
 import com.mydotey.ai.studio.dto.filestorage.FileUploadResponse;
 import com.mydotey.ai.studio.service.FileStorageManagerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
+@Tag(name = "文件存储", description = "文件上传下载和存储配置相关接口")
+@SecurityRequirement(name = "bearerAuth")
 public class FileStorageController {
 
     private final FileStorageManagerService fileStorageManagerService;
@@ -36,6 +41,10 @@ public class FileStorageController {
      */
     @PostMapping("/upload")
     @AuditLog(action = "FILE_UPLOAD", resourceType = "File")
+    @Operation(summary = "上传文件", description = "上传文件到存储系统")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "上传成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<FileUploadResponse> uploadFile(
             @RequestParam("file") MultipartFile file,
             @Valid @ModelAttribute FileUploadRequest request,
@@ -48,6 +57,10 @@ public class FileStorageController {
      * 下载文件
      */
     @GetMapping("/download/{id}")
+    @Operation(summary = "下载文件", description = "从存储系统下载文件")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "下载成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文件不存在")
     public ResponseEntity<Resource> downloadFile(
             @PathVariable Long id,
             @RequestAttribute("userId") Long userId) throws Exception {
@@ -92,6 +105,10 @@ public class FileStorageController {
      * 获取文件元数据
      */
     @GetMapping("/{id}")
+    @Operation(summary = "获取文件元数据", description = "获取指定文件的元数据信息")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文件不存在")
     public ApiResponse<FileMetadataResponse> getFileMetadata(@PathVariable Long id) {
         FileMetadataResponse response = fileStorageManagerService.getFileMetadata(id);
         return ApiResponse.success(response);
@@ -122,6 +139,10 @@ public class FileStorageController {
      */
     @DeleteMapping("/{id}")
     @AuditLog(action = "FILE_DELETE", resourceType = "File", resourceIdParam = "id")
+    @Operation(summary = "删除文件", description = "删除指定的文件")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "删除成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文件不存在")
     public ApiResponse<String> deleteFile(
             @PathVariable Long id,
             @RequestAttribute("userId") Long userId) throws Exception {

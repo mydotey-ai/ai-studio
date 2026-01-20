@@ -6,6 +6,9 @@ import com.mydotey.ai.studio.dto.*;
 import com.mydotey.ai.studio.entity.Agent;
 import com.mydotey.ai.studio.service.AgentExecutionService;
 import com.mydotey.ai.studio.service.AgentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/agents")
 @RequiredArgsConstructor
+@Tag(name = "Agent", description = "AI Agent 管理和执行相关接口")
+@SecurityRequirement(name = "bearerAuth")
 public class AgentController {
 
     private final AgentService agentService;
@@ -25,6 +30,10 @@ public class AgentController {
      */
     @PostMapping
     @AuditLog(action = "CREATE_AGENT", resourceType = "Agent")
+    @Operation(summary = "创建 Agent", description = "创建新的 AI Agent")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "创建成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<AgentResponse> createAgent(
             @Valid @RequestBody CreateAgentRequest request,
             @RequestAttribute("userId") Long userId,
@@ -55,6 +64,10 @@ public class AgentController {
      * 获取 Agent 详情
      */
     @GetMapping("/{id}")
+    @Operation(summary = "获取 Agent 详情", description = "获取指定 Agent 的详细信息")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Agent 不存在")
     public ApiResponse<AgentResponse> getAgent(@PathVariable Long id) {
         Agent agent = agentService.getAgent(id);
 
@@ -82,6 +95,11 @@ public class AgentController {
      */
     @PutMapping("/{id}")
     @AuditLog(action = "UPDATE_AGENT", resourceType = "Agent", resourceIdParam = "id")
+    @Operation(summary = "更新 Agent", description = "更新 Agent 信息")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "更新成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Agent 不存在")
     public ApiResponse<Void> updateAgent(
             @PathVariable Long id,
             @Valid @RequestBody UpdateAgentRequest request,
@@ -96,6 +114,10 @@ public class AgentController {
      */
     @DeleteMapping("/{id}")
     @AuditLog(action = "DELETE_AGENT", resourceType = "Agent", resourceIdParam = "id")
+    @Operation(summary = "删除 Agent", description = "删除指定的 Agent")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "删除成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Agent 不存在")
     public ApiResponse<Void> deleteAgent(
             @PathVariable Long id,
             @RequestAttribute("userId") Long userId) {
@@ -108,6 +130,11 @@ public class AgentController {
      */
     @PostMapping("/{id}/execute")
     @AuditLog(action = "EXECUTE_AGENT", resourceType = "Agent", resourceIdParam = "id")
+    @Operation(summary = "执行 Agent", description = "执行指定的 AI Agent")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "执行成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Agent 不存在")
     public ApiResponse<AgentExecutionResponse> executeAgent(
             @PathVariable Long id,
             @Valid @RequestBody AgentExecutionRequest request,
