@@ -70,11 +70,12 @@ public class AgentSystemIntegrationTest {
         organizationMapper.insert(org);
         orgId = org.getId();
 
-        // Create test user
+        // Create test user with unique username
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
         User user = new User();
         user.setOrgId(orgId);
-        user.setUsername("testuser");
-        user.setEmail("test@example.com");
+        user.setUsername("testuser_" + uniqueId);
+        user.setEmail("test_" + uniqueId + "@example.com");
         user.setPasswordHash("test-hash");
         user.setRole("ADMIN");
         user.setStatus("ACTIVE");
