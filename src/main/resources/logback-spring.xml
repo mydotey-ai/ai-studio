@@ -75,11 +75,13 @@
     <logger name="org.springframework" level="WARN" additivity="false">
         <appender-ref ref="JSON_CONSOLE"/>
         <appender-ref ref="JSON_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
     </logger>
 
     <logger name="com.baomidou.mybatisplus" level="WARN" additivity="false">
         <appender-ref ref="JSON_CONSOLE"/>
         <appender-ref ref="JSON_FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
     </logger>
 
     <!-- Root logger -->
