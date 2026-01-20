@@ -5,6 +5,9 @@ import com.mydotey.ai.studio.annotation.AuditLog;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.*;
 import com.mydotey.ai.studio.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rag")
 @RequiredArgsConstructor
+@Tag(name = "RAG", description = "检索增强生成相关接口")
+@SecurityRequirement(name = "bearerAuth")
 public class RagController {
 
     private final RagService ragService;
@@ -37,6 +42,10 @@ public class RagController {
      */
     @PostMapping("/query")
     @AuditLog(action = "RAG_QUERY", resourceType = "KnowledgeBase")
+    @Operation(summary = "RAG 查询", description = "执行检索增强生成查询（非流式）")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "查询成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<RagQueryResponse> query(@Valid @RequestBody RagQueryRequest request,
                                            @RequestAttribute("userId") Long userId) {
         log.info("Received RAG query request: {}", request.getQuestion());
@@ -51,6 +60,10 @@ public class RagController {
      */
     @PostMapping(value = "/query/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @AuditLog(action = "RAG_QUERY_STREAM", resourceType = "KnowledgeBase")
+    @Operation(summary = "RAG 流式查询", description = "执行检索增强生成查询（SSE 流式返回）")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "查询成功，返回 SSE 流")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public void queryStream(
             @Valid @RequestBody RagQueryRequest request,
             HttpServletResponse response) throws IOException {

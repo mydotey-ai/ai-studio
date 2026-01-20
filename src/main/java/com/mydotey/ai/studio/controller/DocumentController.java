@@ -6,6 +6,10 @@ import com.mydotey.ai.studio.entity.Document;
 import com.mydotey.ai.studio.mapper.DocumentMapper;
 import com.mydotey.ai.studio.service.DocumentProcessingService;
 import com.mydotey.ai.studio.util.FileUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +26,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
+@Tag(name = "文档", description = "文档上传和处理相关接口")
+@SecurityRequirement(name = "bearerAuth")
 public class DocumentController {
 
     private final FileUtil fileUtil;
@@ -32,8 +38,15 @@ public class DocumentController {
      * 上传文档到知识库
      */
     @PostMapping("/upload")
+    @Operation(summary = "上传文档", description = "上传文档到指定知识库并开始处理")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "文档上传成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "请求参数错误或文件为空")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "服务器内部错误")
     public ResponseEntity<ApiResponse<DocumentUploadResponse>> uploadDocument(
+            @Parameter(description = "要上传的文档文件", required = true)
             @RequestParam("file") MultipartFile file,
+            @Parameter(description = "知识库ID", required = true)
             @RequestParam("kbId") Long kbId) {
 
         try {
@@ -86,7 +99,13 @@ public class DocumentController {
      * 获取文档状态
      */
     @GetMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getDocumentStatus(@PathVariable Long id) {
+    @Operation(summary = "获取文档状态", description = "查询文档的处理状态和详细信息")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文档不存在")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDocumentStatus(
+            @Parameter(description = "文档ID", required = true)
+            @PathVariable Long id) {
         Document document = documentMapper.selectById(id);
 
         if (document == null) {
