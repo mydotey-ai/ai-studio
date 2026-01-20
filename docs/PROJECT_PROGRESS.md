@@ -1071,22 +1071,17 @@ src/test/java/com/mydotey/ai/studio/
 - 关联实体文件
 
 **测试统计：**
-- Phase 8 总测试数：8 个
-- 单元测试：5 ✅
+**测试统计：**
+- Phase 8 总测试数：16 个
+- 单元测试：13 ✅
+  - LocalFileStorageServiceTest: 4
+  - OssFileStorageServiceTest: 2
+  - S3FileStorageServiceTest: 2
+  - FileStorageManagerServiceTest: 3
+  - FileStorageControllerTest: 2
 - 集成测试：3 ✅
+  - FileStorageIntegrationTest: 3
 
-- 单元测试：35 ✅
-  - WebCrawlServiceTest: 14
-  - CrawlOrchestratorTest: 6
-  - WebCrawlControllerTest: 10
-  - JsoupWebScraperTest: 2
-  - UrlFilterTest: 3
-- 集成测试：7 ✅
-  - WebCrawlingIntegrationTest: 7
-
----
-
-## 当前状态
 
 **Git 状态：**
 - 分支：main
