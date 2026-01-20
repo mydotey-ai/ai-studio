@@ -93,6 +93,10 @@ public class FileStorageController {
      * 获取文件访问 URL
      */
     @GetMapping("/{id}/url")
+    @Operation(summary = "获取文件访问 URL", description = "获取文件的临时访问 URL，支持设置过期时间")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文件不存在")
     public ApiResponse<String> getFileUrl(
             @PathVariable Long id,
             @RequestParam(defaultValue = "3600") long expirationSeconds,
@@ -118,6 +122,9 @@ public class FileStorageController {
      * 获取用户的文件列表
      */
     @GetMapping("/my")
+    @Operation(summary = "获取用户的文件列表", description = "获取当前用户上传的所有文件")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<List<FileMetadataResponse>> getMyFiles(@RequestAttribute("userId") Long userId) {
         List<FileMetadataResponse> files = fileStorageManagerService.getUserFiles(userId);
         return ApiResponse.success(files);
@@ -127,6 +134,9 @@ public class FileStorageController {
      * 获取关联实体的文件列表
      */
     @GetMapping("/related/{entityType}/{entityId}")
+    @Operation(summary = "获取关联实体的文件列表", description = "获取与指定实体关联的所有文件")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<List<FileMetadataResponse>> getRelatedFiles(
             @PathVariable String entityType,
             @PathVariable Long entityId) {

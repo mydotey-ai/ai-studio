@@ -118,6 +118,9 @@ public class WebCrawlController {
      * @return List of task responses
      */
     @GetMapping("/kb/{kbId}")
+    @Operation(summary = "获取知识库的抓取任务列表", description = "获取指定知识库的所有网页抓取任务")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<List<CrawlTaskResponse>> getTasksByKb(
             @PathVariable Long kbId,
             @RequestAttribute("userId") Long userId) {

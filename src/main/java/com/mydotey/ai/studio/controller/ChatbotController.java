@@ -65,6 +65,9 @@ public class ChatbotController {
      * 获取我的聊天机器人列表
      */
     @GetMapping("/my")
+    @Operation(summary = "获取我的聊天机器人列表", description = "获取当前用户创建的所有聊天机器人")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<List<ChatbotResponse>> getMyChatbots(
             @RequestAttribute("userId") Long userId) {
         List<ChatbotResponse> response = chatbotService.getByOwner(userId);
@@ -75,6 +78,9 @@ public class ChatbotController {
      * 获取已发布的聊天机器人列表
      */
     @GetMapping("/published")
+    @Operation(summary = "获取已发布的聊天机器人列表", description = "获取所有已公开发布的聊天机器人")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     public ApiResponse<List<ChatbotResponse>> getPublishedChatbots() {
         List<ChatbotResponse> response = chatbotService.getPublishedChatbots();
         return ApiResponse.success(response);
@@ -118,6 +124,10 @@ public class ChatbotController {
      * 获取对话列表
      */
     @GetMapping("/{chatbotId}/conversations")
+    @Operation(summary = "获取对话列表", description = "获取指定聊天机器人的所有对话记录")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "聊天机器人不存在")
     public ApiResponse<List<ConversationResponse>> getConversations(
             @PathVariable Long chatbotId,
             @RequestAttribute("userId") Long userId) {
@@ -129,6 +139,10 @@ public class ChatbotController {
      * 获取对话详情
      */
     @GetMapping("/conversations/{conversationId}")
+    @Operation(summary = "获取对话详情", description = "获取指定对话的详细信息和消息历史")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "对话不存在")
     public ApiResponse<ConversationResponse> getConversation(@PathVariable Long conversationId) {
         ConversationResponse response = conversationService.getById(conversationId);
         return ApiResponse.success(response);
@@ -138,6 +152,10 @@ public class ChatbotController {
      * 创建新对话
      */
     @PostMapping("/{chatbotId}/conversations")
+    @Operation(summary = "创建新对话", description = "为指定聊天机器人创建新的对话会话")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "创建成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "聊天机器人不存在")
     public ApiResponse<ConversationResponse> createConversation(
             @PathVariable Long chatbotId,
             @RequestAttribute(value = "userId", required = false) Long userId) {
@@ -149,6 +167,10 @@ public class ChatbotController {
      * 删除对话
      */
     @DeleteMapping("/conversations/{conversationId}")
+    @Operation(summary = "删除对话", description = "删除指定的对话及其所有消息")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "删除成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "对话不存在")
     public ApiResponse<Void> deleteConversation(@PathVariable Long conversationId) {
         conversationService.delete(conversationId);
         return ApiResponse.<Void>success("Conversation deleted successfully", null);
