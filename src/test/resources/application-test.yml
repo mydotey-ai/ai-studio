@@ -17,6 +17,13 @@ mybatis-plus:
 
 # Enable Micrometer metrics
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
   metrics:
     enable:
       all: true
+    export:
+      prometheus:
+        enabled: true
