@@ -31,13 +31,13 @@ management:
     tags:
       application: ${spring.application.name}
 
-# SpringDoc OpenAPI configuration
+# SpringDoc OpenAPI configuration for API documentation
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /api-docs  # OpenAPI JSON documentation path
   swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    tags-sorter: alpha
-    operations-sorter: alpha
-  show-actuator: true
+    path: /swagger-ui.html  # Swagger UI access path
+    enabled: true  # Enable Swagger UI
+    tags-sorter: alpha  # Sort tags alphabetically
+    operations-sorter: alpha  # Sort operations alphabetically
+  show-actuator: true  # Show Actuator endpoints in documentation
