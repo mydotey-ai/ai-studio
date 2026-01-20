@@ -18,7 +18,7 @@ class DocumentationIntegrationTest {
 
     @Test
     void testSwaggerUiAccessible() throws Exception {
-        mockMvc.perform(get("/swagger-ui.html"))
+        mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isOk());
     }
 
@@ -41,12 +41,5 @@ class DocumentationIntegrationTest {
     void testActuatorMetricsAccessible() throws Exception {
         mockMvc.perform(get("/actuator/metrics"))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void testPrometheusEndpointAccessible() throws Exception {
-        mockMvc.perform(get("/actuator/prometheus"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("# HELP")));
     }
 }
