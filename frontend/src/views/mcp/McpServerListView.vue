@@ -2,7 +2,7 @@
   <div class="mcp-server-list">
     <div class="header">
       <h2>MCP服务器</h2>
-      <el-button type="primary" :icon="Plus" @click="handleCreate"> 添加服务器 </el-button>
+      <el-button type="primary" :icon="Plus" @click="handleCreate"> 创建服务器 </el-button>
     </div>
 
     <el-table
@@ -16,14 +16,9 @@
       <el-table-column prop="description" label="描述" min-width="250" show-overflow-tooltip />
       <el-table-column label="连接类型" width="120" align="center">
         <template #default="{ row }">
-          <el-tag size="small">
+          <el-tag :type="row.connectionType === 'STDIO' ? 'primary' : 'success'" size="small">
             {{ row.connectionType === 'STDIO' ? 'STDIO' : 'HTTP' }}
           </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="工具数量" width="100" align="center">
-        <template #default="{ row }">
-          {{ row.toolCount || 0 }}
         </template>
       </el-table-column>
       <el-table-column label="状态" width="100" align="center">
