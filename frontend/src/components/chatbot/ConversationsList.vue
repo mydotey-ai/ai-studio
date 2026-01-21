@@ -92,12 +92,17 @@ async function loadConversations() {
 }
 
 async function handleNewConversation() {
+  loading.value = true
   try {
-    await createConversation(props.chatbotId)
+    const conversation = await createConversation(props.chatbotId)
     ElMessage.success('对话创建成功')
+    emit('select', conversation.id)
     loadConversations()
-  } catch {
-    // Error handled
+  } catch (error) {
+    ElMessage.error('创建对话失败')
+    console.error('Failed to create conversation:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -112,9 +117,17 @@ async function handleDelete(conversation: Conversation) {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteConversation(conversation.id)
-    ElMessage.success('删除成功')
-    loadConversations()
+    loading.value = true
+    try {
+      await deleteConversation(conversation.id)
+      ElMessage.success('删除成功')
+      loadConversations()
+    } catch (error) {
+      ElMessage.error('删除失败')
+      console.error('Failed to delete conversation:', error)
+    } finally {
+      loading.value = false
+    }
   } catch {
     // User cancelled
   }

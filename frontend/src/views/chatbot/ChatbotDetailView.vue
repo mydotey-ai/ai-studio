@@ -103,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Edit, Promotion, Close, Delete, ChatDotSquare } from '@element-plus/icons-vue'
@@ -114,7 +114,7 @@ import {
   publishChatbot,
   unpublishChatbot
 } from '@/api/chatbot'
-import { sendMessageStream } from '@/api/conversation'
+import { sendMessageStream, getConversation } from '@/api/conversation'
 import { useUserStore } from '@/stores/user'
 import type { Chatbot, ChatRequest, Message } from '@/types/chatbot'
 import dayjs from 'dayjs'
@@ -138,6 +138,7 @@ const messages = ref<Message[]>([])
 const currentConversationId = ref<number>()
 const isStreaming = ref(false)
 const streamingText = ref('')
+const eventSourceRef = ref<EventSource | null>(null)
 
 const userInitial = computed(() => userStore.userInfo?.username?.charAt(0).toUpperCase() || 'U')
 
@@ -197,8 +198,9 @@ async function handlePublish() {
     await publishChatbot(chatbotId.value)
     ElMessage.success('发布成功')
     loadChatbot()
-  } catch {
-    // Error handled
+  } catch (error) {
+    ElMessage.error('发布失败')
+    console.error('Failed to publish chatbot:', error)
   }
 }
 
@@ -207,8 +209,9 @@ async function handleUnpublish() {
     await unpublishChatbot(chatbotId.value)
     ElMessage.success('已取消发布')
     loadChatbot()
-  } catch {
-    // Error handled
+  } catch (error) {
+    ElMessage.error('取消发布失败')
+    console.error('Failed to unpublish chatbot:', error)
   }
 }
 
@@ -254,7 +257,7 @@ async function handleSendMessage(messageText: string) {
 
     let assistantMessage: Message | null = null
 
-    sendMessageStream(
+    eventSourceRef.value = sendMessageStream(
       request,
       data => {
         // Extract content from ChatResponse
@@ -277,11 +280,13 @@ async function handleSendMessage(messageText: string) {
       () => {
         isStreaming.value = false
         streamingText.value = ''
+        eventSourceRef.value = null
       },
       error => {
         ElMessage.error('发送失败: ' + error.message)
         isStreaming.value = false
         streamingText.value = ''
+        eventSourceRef.value = null
       }
     )
   } catch (error) {
@@ -292,8 +297,13 @@ async function handleSendMessage(messageText: string) {
 
 async function handleSelectConversation(conversationId: number) {
   currentConversationId.value = conversationId
-  // Load conversation messages
-  // TODO: Implement conversation loading
+  try {
+    const data = await getConversation(chatbotId.value, conversationId)
+    messages.value = data.messages || []
+  } catch (error) {
+    ElMessage.error('加载对话失败')
+    console.error('Failed to load conversation:', error)
+  }
 }
 
 function formatDate(date?: string) {
@@ -302,6 +312,10 @@ function formatDate(date?: string) {
 
 onMounted(() => {
   loadChatbot()
+})
+
+onBeforeUnmount(() => {
+  eventSourceRef.value?.close()
 })
 </script>
 
