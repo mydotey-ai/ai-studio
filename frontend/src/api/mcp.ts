@@ -1,14 +1,15 @@
 import { get, post, put, del } from './request'
 import type {
   McpServer,
+  McpServerListItem,
   CreateMcpServerRequest,
   UpdateMcpServerRequest,
   McpTool,
   TestConnectionResult
 } from '@/types/mcp'
 
-export function getMcpServers(): Promise<McpServer[]> {
-  return get<McpServer[]>('/mcp/servers')
+export function getMcpServers(): Promise<McpServerListItem[]> {
+  return get<McpServerListItem[]>('/mcp/servers')
 }
 
 export function getMcpServer(id: number): Promise<McpServer> {
