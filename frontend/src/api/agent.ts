@@ -1,12 +1,67 @@
 import { get, post, put, del } from './request'
-import type {
-  Agent,
-  CreateAgentRequest,
-  UpdateAgentRequest,
-  AgentExecutionRequest,
-  AgentExecutionResponse
-} from '@/types/agent'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
+
+export interface Agent {
+  id: number
+  name: string
+  description?: string
+  systemPrompt: string
+  ownerId: number
+  isPublic: boolean
+  workflowType: 'REACT' | 'LINEAR' | 'DAG'
+  modelConfig: AgentModelConfig
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AgentModelConfig {
+  model: string
+  temperature: number
+  maxTokens: number
+  topP: number
+}
+
+export interface CreateAgentRequest {
+  name: string
+  description?: string
+  systemPrompt: string
+  isPublic?: boolean
+  workflowType?: string
+  modelConfig?: Partial<AgentModelConfig>
+  knowledgeBaseIds?: number[]
+  toolIds?: number[]
+}
+
+export interface UpdateAgentRequest {
+  name?: string
+  description?: string
+  systemPrompt?: string
+  isPublic?: boolean
+  modelConfig?: Partial<AgentModelConfig>
+  knowledgeBaseIds?: number[]
+  toolIds?: number[]
+}
+
+export interface AgentExecutionRequest {
+  input: string
+  stream?: boolean
+}
+
+export interface AgentExecutionResponse {
+  executionId: string
+  result: string
+  steps: ExecutionStep[]
+  finished: boolean
+}
+
+export interface ExecutionStep {
+  step: number
+  type: 'thought' | 'action' | 'observation'
+  content: string
+  toolName?: string
+  toolArgs?: Record<string, any>
+  toolResult?: any
+}
 
 export function getAgents(params?: PaginationParams) {
   return get<PaginationResponse<Agent>>('/agents', { params })

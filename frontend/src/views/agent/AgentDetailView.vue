@@ -39,31 +39,11 @@
             {{ agent.workflowType }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="最大迭代次数">
-          {{ agent.maxIterations }}
-        </el-descriptions-item>
         <el-descriptions-item label="模型配置" :span="2">
           <pre class="json-config">{{ formatJson(agent.modelConfig) }}</pre>
         </el-descriptions-item>
         <el-descriptions-item label="系统提示词" :span="2">
           <div class="prompt-text">{{ agent.systemPrompt }}</div>
-        </el-descriptions-item>
-        <el-descriptions-item label="知识库" :span="2">
-          <el-tag v-for="kbId in agent.knowledgeBaseIds" :key="kbId" style="margin-right: 8px">
-            {{ getKnowledgeBaseName(kbId) }}
-          </el-tag>
-          <span v-if="agent.knowledgeBaseIds.length === 0">未绑定</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="工具" :span="2">
-          <el-tag
-            v-for="toolId in agent.toolIds"
-            :key="toolId"
-            type="warning"
-            style="margin-right: 8px"
-          >
-            {{ getToolName(toolId) }}
-          </el-tag>
-          <span v-if="agent.toolIds.length === 0">未绑定</span>
         </el-descriptions-item>
         <el-descriptions-item label="创建时间">
           {{ formatDateTime(agent.createdAt) }}
@@ -101,50 +81,36 @@
         <el-divider>执行结果</el-divider>
 
         <div class="result-section">
-          <h4>最终答案</h4>
-          <div class="answer-box">{{ executionResult.answer }}</div>
+          <h4>执行结果</h4>
+          <div class="answer-box">{{ executionResult.result }}</div>
         </div>
 
-        <div v-if="executionResult.thoughtSteps.length > 0" class="result-section">
-          <h4>思考步骤</h4>
+        <div v-if="executionResult.steps.length > 0" class="result-section">
+          <h4>执行步骤</h4>
           <el-timeline>
             <el-timeline-item
-              v-for="step in executionResult.thoughtSteps"
+              v-for="step in executionResult.steps"
               :key="step.step"
               :timestamp="`步骤 ${step.step}`"
             >
-              <div><strong>思考:</strong> {{ step.thought }}</div>
-              <div><strong>行动:</strong> {{ step.action }}</div>
-              <div v-if="step.observation"><strong>观察:</strong> {{ step.observation }}</div>
+              <el-tag size="small" style="margin-bottom: 8px">{{ step.type }}</el-tag>
+              <div>{{ step.content }}</div>
+              <div v-if="step.toolName"><strong>工具:</strong> {{ step.toolName }}</div>
+              <div v-if="step.toolArgs">
+                <strong>参数:</strong>
+                <pre>{{ formatJson(step.toolArgs) }}</pre>
+              </div>
+              <div v-if="step.toolResult">
+                <strong>结果:</strong>
+                <pre>{{ formatJson(step.toolResult) }}</pre>
+              </div>
             </el-timeline-item>
           </el-timeline>
         </div>
 
-        <div v-if="executionResult.toolCalls.length > 0" class="result-section">
-          <h4>工具调用</h4>
-          <div
-            v-for="(call, index) in executionResult.toolCalls"
-            :key="index"
-            class="tool-call-item"
-          >
-            <div><strong>工具:</strong> {{ call.toolName }}</div>
-            <div>
-              <strong>参数:</strong>
-              <pre>{{ call.arguments }}</pre>
-            </div>
-            <div>
-              <strong>结果:</strong>
-              <pre>{{ call.result }}</pre>
-            </div>
-            <el-tag :type="call.success ? 'success' : 'danger'" size="small">
-              {{ call.success ? '成功' : '失败' }}
-            </el-tag>
-          </div>
-        </div>
-
         <div class="result-section">
-          <el-tag :type="executionResult.isComplete ? 'success' : 'warning'">
-            {{ executionResult.isComplete ? '执行完成' : '执行中' }}
+          <el-tag :type="executionResult.finished ? 'success' : 'warning'">
+            {{ executionResult.finished ? '执行完成' : '执行中' }}
           </el-tag>
         </div>
       </div>
@@ -180,25 +146,6 @@
             placeholder='{"model": "gpt-4", "temperature": 0.7}'
           />
         </el-form-item>
-        <el-form-item label="工作流类型" prop="workflowType">
-          <el-select v-model="formData.workflowType" placeholder="选择工作流类型">
-            <el-option label="ReAct" value="REACT" />
-            <el-option label="自定义" value="CUSTOM" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="最大迭代次数" prop="maxIterations">
-          <el-input-number v-model="formData.maxIterations" :min="1" :max="50" />
-        </el-form-item>
-        <el-form-item label="知识库" prop="knowledgeBaseIds">
-          <el-select
-            v-model="formData.knowledgeBaseIds"
-            multiple
-            placeholder="选择知识库"
-            style="width: 100%"
-          >
-            <el-option v-for="kb in knowledgeBases" :key="kb.id" :label="kb.name" :value="kb.id" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="是否公开" prop="isPublic">
           <el-switch v-model="formData.isPublic" />
         </el-form-item>
@@ -217,9 +164,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { ArrowLeft, Edit } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getAgent, updateAgent, deleteAgent, executeAgent } from '@/api/agent'
+import {
+  getAgent,
+  updateAgent,
+  deleteAgent,
+  executeAgent,
+  type Agent,
+  type UpdateAgentRequest,
+  type AgentExecutionResponse
+} from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
-import type { Agent, UpdateAgentRequest, AgentExecutionResponse } from '@/types/agent'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 
 const route = useRoute()
@@ -241,7 +195,6 @@ const formData = reactive<UpdateAgentRequest>({
   name: '',
   description: '',
   systemPrompt: '',
-  modelConfig: '',
   isPublic: false
 })
 
@@ -321,7 +274,6 @@ function resetForm() {
       name: agent.value.name,
       description: agent.value.description,
       systemPrompt: agent.value.systemPrompt,
-      modelConfig: agent.value.modelConfig,
       isPublic: agent.value.isPublic
     })
   }
@@ -333,7 +285,7 @@ async function executeTest() {
   executing.value = true
   try {
     executionResult.value = await executeAgent(agent.value.id, {
-      query: testQuery.value,
+      input: testQuery.value,
       stream: false
     })
     ElMessage.success('执行完成')
@@ -351,21 +303,15 @@ function clearResult() {
   testQuery.value = ''
 }
 
-function getKnowledgeBaseName(id: number) {
-  const kb = knowledgeBases.value.find(k => k.id === id)
-  return kb?.name || `ID: ${id}`
-}
-
-function getToolName(id: number) {
-  return `Tool ${id}`
-}
-
-function formatJson(json: string) {
-  try {
-    return JSON.stringify(JSON.parse(json), null, 2)
-  } catch {
-    return json
+function formatJson(json: unknown) {
+  if (typeof json === 'string') {
+    try {
+      return JSON.stringify(JSON.parse(json), null, 2)
+    } catch {
+      return json
+    }
   }
+  return JSON.stringify(json, null, 2)
 }
 
 function formatDateTime(date: string) {

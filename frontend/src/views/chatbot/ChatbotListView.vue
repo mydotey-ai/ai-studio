@@ -122,9 +122,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, View, Delete, UserFilled } from '@element-plus/icons-vue'
 import { getChatbots, createChatbot, deleteChatbot } from '@/api/chatbot'
-import { getAgents } from '@/api/agent'
+import { getAgents, type Agent } from '@/api/agent'
 import type { ChatbotListItem } from '@/types/chatbot'
-import type { Agent } from '@/types/agent'
 import dayjs from 'dayjs'
 
 const router = useRouter()

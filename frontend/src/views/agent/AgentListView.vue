@@ -92,26 +92,6 @@
           />
         </el-form-item>
 
-        <el-form-item label="模型配置" prop="modelConfig">
-          <el-input
-            v-model="form.modelConfig"
-            type="textarea"
-            :rows="3"
-            placeholder='JSON 格式，例如: {"model": "gpt-4", "temperature": 0.7}'
-          />
-        </el-form-item>
-
-        <el-form-item label="工作流类型" prop="workflowType">
-          <el-radio-group v-model="form.workflowType">
-            <el-radio label="REACT">ReAct (推理+行动)</el-radio>
-            <el-radio label="CUSTOM">自定义工作流</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="最大迭代次数" prop="maxIterations">
-          <el-input-number v-model="form.maxIterations" :min="1" :max="50" />
-        </el-form-item>
-
         <el-form-item label="知识库" prop="knowledgeBaseIds">
           <el-select
             v-model="form.knowledgeBaseIds"
@@ -142,11 +122,17 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, View, Edit, Delete } from '@element-plus/icons-vue'
-import { getAgents, createAgent, updateAgent, deleteAgent as deleteAgentApi } from '@/api/agent'
+import {
+  getAgents,
+  createAgent,
+  updateAgent,
+  deleteAgent as deleteAgentApi,
+  type Agent,
+  type CreateAgentRequest,
+  type UpdateAgentRequest
+} from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
-import type { Agent, CreateAgentRequest, UpdateAgentRequest } from '@/types/agent'
 import type { KnowledgeBase } from '@/types/knowledge-base'
-import { WorkflowType } from '@/types/agent'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -170,9 +156,13 @@ const form = reactive<CreateAgentRequest>({
   name: '',
   description: '',
   systemPrompt: '',
-  modelConfig: '{"model": "gpt-4", "temperature": 0.7}',
-  workflowType: WorkflowType.REACT,
-  maxIterations: 10,
+  modelConfig: {
+    model: 'gpt-4',
+    temperature: 0.7,
+    maxTokens: 2000,
+    topP: 0.9
+  },
+  workflowType: 'REACT',
   knowledgeBaseIds: [],
   toolIds: []
 })
@@ -185,23 +175,7 @@ const rules: FormRules = {
   systemPrompt: [
     { required: true, message: '请输入系统提示词', trigger: 'blur' },
     { min: 10, message: '系统提示词至少 10 个字符', trigger: 'blur' }
-  ],
-  modelConfig: [
-    { required: true, message: '请输入模型配置', trigger: 'blur' },
-    {
-      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-        try {
-          JSON.parse(value)
-          callback()
-        } catch {
-          callback(new Error('模型配置必须是有效的 JSON 格式'))
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  workflowType: [{ required: true, message: '请选择工作流类型', trigger: 'change' }],
-  maxIterations: [{ required: true, message: '请输入最大迭代次数', trigger: 'blur' }]
+  ]
 }
 
 async function loadAgents() {
@@ -239,22 +213,11 @@ async function handleSubmit() {
 
     submitting.value = true
     try {
-      // Validate modelConfig JSON
-      try {
-        JSON.parse(form.modelConfig)
-      } catch {
-        ElMessage.error('模型配置必须是有效的 JSON 格式')
-        return
-      }
-
       if (isEdit.value && editingId.value) {
         const updateData: UpdateAgentRequest = {
           name: form.name,
           description: form.description,
           systemPrompt: form.systemPrompt,
-          modelConfig: form.modelConfig,
-          workflowType: form.workflowType,
-          maxIterations: form.maxIterations,
           knowledgeBaseIds: form.knowledgeBaseIds,
           isPublic: form.isPublic
         }
@@ -283,9 +246,12 @@ function resetForm() {
   form.name = ''
   form.description = ''
   form.systemPrompt = ''
-  form.modelConfig = '{"model": "gpt-4", "temperature": 0.7}'
-  form.workflowType = WorkflowType.REACT
-  form.maxIterations = 10
+  form.modelConfig = {
+    model: 'gpt-4',
+    temperature: 0.7,
+    maxTokens: 2000,
+    topP: 0.9
+  }
   form.knowledgeBaseIds = []
   form.toolIds = []
   form.isPublic = false
@@ -306,11 +272,8 @@ function handleEdit(row: Agent) {
   form.name = row.name
   form.description = row.description || ''
   form.systemPrompt = row.systemPrompt
-  form.modelConfig = row.modelConfig
-  form.workflowType = row.workflowType
-  form.maxIterations = row.maxIterations
-  form.knowledgeBaseIds = [...(row.knowledgeBaseIds || [])]
-  form.toolIds = [...(row.toolIds || [])]
+  form.knowledgeBaseIds = []
+  form.toolIds = []
   form.isPublic = row.isPublic
   showCreateDialog.value = true
 }
