@@ -60,6 +60,11 @@ export interface UpdateChatbotRequest {
   modelConfig?: string
 }
 
+export interface ChatbotListItem extends Chatbot {
+  agentName: string
+  accessCount: number
+}
+
 export interface ChatbotResponse {
   id: number
   name: string

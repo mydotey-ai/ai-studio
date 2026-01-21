@@ -105,11 +105,7 @@
         </el-form-item>
 
         <el-form-item label="头像 URL" prop="avatarUrl">
-          <el-input
-            v-model="form.avatarUrl"
-            placeholder="请输入头像图片 URL"
-            clearable
-          />
+          <el-input v-model="form.avatarUrl" placeholder="请输入头像图片 URL" clearable />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -127,7 +123,7 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'elem
 import { Plus, View, Delete, UserFilled } from '@element-plus/icons-vue'
 import { getChatbots, createChatbot, deleteChatbot } from '@/api/chatbot'
 import { getAgents } from '@/api/agent'
-import type { Chatbot } from '@/types/chatbot'
+import type { ChatbotListItem } from '@/types/chatbot'
 import type { Agent } from '@/types/agent'
 import dayjs from 'dayjs'
 
@@ -137,7 +133,7 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateDialog = ref(false)
-const chatbots = ref<Chatbot[]>([])
+const chatbots = ref<ChatbotListItem[]>([])
 const agents = ref<Agent[]>([])
 
 const pagination = reactive({
@@ -194,20 +190,19 @@ async function handleSubmit() {
 
     submitting.value = true
     try {
-      // Prepare request data with defaults for fields not in form
+      // Prepare request data with sensible defaults for required fields
       const requestData = {
         name: form.name,
         description: form.description,
-        agentId: form.agentId!,
         settings: {
           welcomeMessage: form.welcomeMessage
         },
         styleConfig: {
-          avatarUrl: form.avatarUrl
+          avatarUrl: form.avatarUrl || undefined
         },
-        // Required by API but not in form - use defaults
-        systemPrompt: '',
-        modelConfig: '{}'
+        // Use sensible defaults instead of empty values
+        systemPrompt: `你是一个友好的AI助手。欢迎语: ${form.welcomeMessage}`,
+        modelConfig: JSON.stringify({ temperature: 0.7, max_tokens: 2000 })
       }
 
       await createChatbot(requestData)
@@ -233,15 +228,15 @@ function resetForm() {
   formRef.value?.resetFields()
 }
 
-function handleRowClick(row: Chatbot) {
+function handleRowClick(row: ChatbotListItem) {
   router.push(`/chatbots/${row.id}`)
 }
 
-function handleView(row: Chatbot) {
+function handleView(row: ChatbotListItem) {
   router.push(`/chatbots/${row.id}`)
 }
 
-async function handleDelete(row: Chatbot) {
+async function handleDelete(row: ChatbotListItem) {
   try {
     await ElMessageBox.confirm(`确定要删除聊天机器人"${row.name}"吗？此操作不可恢复。`, '提示', {
       confirmButtonText: '确定',
