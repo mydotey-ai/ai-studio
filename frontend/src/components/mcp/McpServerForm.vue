@@ -1,12 +1,6 @@
 <template>
-  <el-form
-    ref="formRef"
-    :model="formData"
-    :rules="formRules"
-    label-width="120px"
-    @submit.prevent="handleSubmit"
-  >
-    <el-form-item label="服务器名称" prop="name">
+  <el-form ref="formRef" :model="formData" :rules="formRules" label-width="140px">
+    <el-form-item label="名称" prop="name">
       <el-input v-model="formData.name" placeholder="请输入服务器名称" />
     </el-form-item>
 
@@ -14,20 +8,16 @@
       <el-input
         v-model="formData.description"
         type="textarea"
-        :rows="3"
+        :rows="2"
         placeholder="请输入服务器描述（可选）"
       />
     </el-form-item>
 
     <el-form-item label="连接类型" prop="connectionType">
-      <el-select
-        v-model="formData.connectionType"
-        placeholder="请选择连接类型"
-        @change="handleConnectionTypeChange"
-      >
-        <el-option label="STDIO" value="STDIO" />
-        <el-option label="HTTP" value="HTTP" />
-      </el-select>
+      <el-radio-group v-model="formData.connectionType" @change="handleConnectionTypeChange">
+        <el-radio value="STDIO">STDIO（标准输入/输出）</el-radio>
+        <el-radio value="HTTP">HTTP（网络端点）</el-radio>
+      </el-radio-group>
     </el-form-item>
 
     <!-- STDIO 连接配置 -->
@@ -40,16 +30,7 @@
       </el-form-item>
 
       <el-form-item label="工作目录" prop="workingDir">
-        <el-input v-model="formData.workingDir" placeholder="例如: /path/to/allowed/directory" />
-      </el-form-item>
-
-      <el-form-item label="环境变量">
-        <el-input
-          v-model="formData.envString"
-          type="textarea"
-          :rows="3"
-          placeholder='例如: {"KEY1": "value1", "KEY2": "value2"}'
-        />
+        <el-input v-model="formData.workingDir" placeholder="例如：/home/user/projects" />
       </el-form-item>
     </template>
 
@@ -63,7 +44,7 @@
         <el-input
           v-model="formData.headersString"
           type="textarea"
-          :rows="3"
+          :rows="2"
           placeholder='例如: {"Custom-Header": "value"}'
         />
       </el-form-item>
@@ -112,11 +93,6 @@
         />
       </el-form-item>
     </template>
-
-    <el-form-item>
-      <el-button type="primary" @click="handleSubmit">提交</el-button>
-      <el-button @click="handleCancel">取消</el-button>
-    </el-form-item>
   </el-form>
 </template>
 
@@ -133,7 +109,6 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   submit: [data: CreateMcpServerRequest | UpdateMcpServerRequest]
-  cancel: []
 }>()
 
 const formRef = ref<FormInstance>()
@@ -144,7 +119,6 @@ interface FormData {
   connectionType: 'STDIO' | 'HTTP' | ''
   command: string
   workingDir: string
-  envString: string
   endpointUrl: string
   headersString: string
   authType: 'NONE' | 'API_KEY' | 'BASIC'
@@ -160,7 +134,6 @@ const formData = reactive<FormData>({
   connectionType: '',
   command: '',
   workingDir: '',
-  envString: '',
   endpointUrl: '',
   headersString: '',
   authType: 'NONE',
@@ -171,7 +144,7 @@ const formData = reactive<FormData>({
 })
 
 // 验证命令（仅 STDIO 时必填）
-const validateCommand = (rule: unknown, value: string, callback: (error?: Error) => void) => {
+const validateCommand = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
   if (formData.connectionType === 'STDIO' && !value) {
     callback(new Error('请输入命令'))
   } else {
@@ -180,7 +153,7 @@ const validateCommand = (rule: unknown, value: string, callback: (error?: Error)
 }
 
 // 验证端点 URL（仅 HTTP 时必填）
-const validateEndpointUrl = (rule: unknown, value: string, callback: (error?: Error) => void) => {
+const validateEndpointUrl = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
   if (formData.connectionType === 'HTTP' && !value) {
     callback(new Error('请输入端点 URL'))
   } else {
@@ -204,7 +177,6 @@ const handleConnectionTypeChange = () => {
   } else if (formData.connectionType === 'HTTP') {
     formData.command = ''
     formData.workingDir = ''
-    formData.envString = ''
   }
 
   // 触发验证
@@ -241,7 +213,8 @@ const buildAuthConfig = (): string => {
   return '{}'
 }
 
-// 解析认证配置
+// 解析认证配置（保留用于编辑模式，虽然当前 API 不返回此字段）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const parseAuthConfig = (authConfig: string) => {
   try {
     const config = JSON.parse(authConfig)
@@ -277,48 +250,21 @@ const handleSubmit = async () => {
 
   // STDIO 配置
   if (formData.connectionType === 'STDIO') {
-    const config: Record<string, unknown> = {
-      command: formData.command
-    }
+    ;(data as CreateMcpServerRequest).command = formData.command
     if (formData.workingDir) {
-      config.workingDir = formData.workingDir
+      ;(data as CreateMcpServerRequest).workingDir = formData.workingDir
     }
-    if (formData.envString) {
-      try {
-        config.env = JSON.parse(formData.envString)
-      } catch {
-        // 忽略无效的 JSON
-      }
-    }
-    ;(data as CreateMcpServerRequest).config = config as Record<string, unknown>
   }
 
   // HTTP 配置
   if (formData.connectionType === 'HTTP') {
-    const config: Record<string, unknown> = {
-      url: formData.endpointUrl
-    }
+    ;(data as CreateMcpServerRequest).endpointUrl = formData.endpointUrl
     if (formData.headersString) {
-      try {
-        config.headers = JSON.parse(formData.headersString)
-      } catch {
-        // 忽略无效的 JSON
-      }
+      ;(data as CreateMcpServerRequest).headers = formData.headersString
     }
-    ;(data as CreateMcpServerRequest).config = config as Record<string, unknown>
-  }
-
-  // 如果是编辑模式，添加 ID
-  if (props.server) {
-    ;(data as UpdateMcpServerRequest).id = props.server.id
   }
 
   emit('submit', data)
-}
-
-// 取消操作
-const handleCancel = () => {
-  emit('cancel')
 }
 
 // 重置表单
@@ -329,7 +275,6 @@ const reset = () => {
   formData.connectionType = ''
   formData.command = ''
   formData.workingDir = ''
-  formData.envString = ''
   formData.endpointUrl = ''
   formData.headersString = ''
   formData.authType = 'NONE'
@@ -359,21 +304,14 @@ watch(
       formData.description = newServer.description || ''
       formData.connectionType = newServer.connectionType
 
-      // 解析认证配置
-      parseAuthConfig(newServer.authConfig)
-
       // 解析连接配置
-      const config = newServer.config as Record<string, unknown>
       if (newServer.connectionType === 'STDIO') {
-        formData.command = (config.command as string) || ''
-        formData.workingDir = (config.workingDir as string) || ''
-        if (config.env) {
-          formData.envString = JSON.stringify(config.env)
-        }
+        formData.command = newServer.command || ''
+        formData.workingDir = newServer.workingDir || ''
       } else if (newServer.connectionType === 'HTTP') {
-        formData.endpointUrl = (config.url as string) || ''
-        if (config.headers) {
-          formData.headersString = JSON.stringify(config.headers)
+        formData.endpointUrl = newServer.endpointUrl || ''
+        if (newServer.headers) {
+          formData.headersString = newServer.headers
         }
       }
     } else {
@@ -387,7 +325,9 @@ watch(
 defineExpose({
   validate,
   getData,
-  reset
+  reset,
+  handleSubmit,
+  parseAuthConfig
 })
 </script>
 
