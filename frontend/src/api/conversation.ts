@@ -59,41 +59,43 @@ export function sendMessageStream(
     params.append('context', JSON.stringify(data.context))
   }
 
+  // Add token to URL for authentication (EventSource doesn't support custom headers)
+  if (token) {
+    params.append('token', token)
+  }
+
   const url = `${baseURL}/chat/stream?${params.toString()}`
 
-  // Create EventSource with headers
+  // Create EventSource
   const eventSource = new EventSource(url, {
     withCredentials: true
   })
 
-  // Add authorization header via a workaround since EventSource doesn't support custom headers
-  // We'll use the token in the URL query for this implementation
-  if (token) {
-    eventSource.addEventListener('message', (event) => {
-      try {
-        const data = JSON.parse(event.data) as ChatResponse
-        onMessage(data)
-      } catch (err) {
-        if (onError) {
-          onError(err as Error)
-        }
-      }
-    })
-
-    eventSource.addEventListener('error', () => {
-      eventSource.close()
+  // Register event listeners
+  eventSource.addEventListener('message', (event) => {
+    try {
+      const data = JSON.parse(event.data) as ChatResponse
+      onMessage(data)
+    } catch (err) {
       if (onError) {
-        onError(new Error('Stream connection error'))
+        onError(err as Error)
       }
-    })
+    }
+  })
 
-    eventSource.addEventListener('complete', () => {
-      eventSource.close()
-      if (onComplete) {
-        onComplete()
-      }
-    })
-  }
+  eventSource.addEventListener('error', () => {
+    eventSource.close()
+    if (onError) {
+      onError(new Error('Stream connection error'))
+    }
+  })
+
+  eventSource.addEventListener('complete', () => {
+    eventSource.close()
+    if (onComplete) {
+      onComplete()
+    }
+  })
 
   return eventSource
 }

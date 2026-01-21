@@ -2,8 +2,7 @@ import { get, post, put, del } from './request'
 import type {
   Chatbot,
   CreateChatbotRequest,
-  UpdateChatbotRequest,
-  ChatbotResponse
+  UpdateChatbotRequest
 } from '@/types/chatbot'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
 
@@ -20,11 +19,11 @@ export function getChatbot(id: number) {
 }
 
 export function createChatbot(data: CreateChatbotRequest) {
-  return post<ChatbotResponse>('/chatbots', data)
+  return post<Chatbot>('/chatbots', data)
 }
 
 export function updateChatbot(id: number, data: UpdateChatbotRequest) {
-  return put<ChatbotResponse>(`/chatbots/${id}`, data)
+  return put<Chatbot>(`/chatbots/${id}`, data)
 }
 
 export function deleteChatbot(id: number) {
@@ -32,9 +31,9 @@ export function deleteChatbot(id: number) {
 }
 
 export function publishChatbot(id: number) {
-  return post<ChatbotResponse>(`/chatbots/${id}/publish`)
+  return post<Chatbot>(`/chatbots/${id}/publish`)
 }
 
 export function unpublishChatbot(id: number) {
-  return post<ChatbotResponse>(`/chatbots/${id}/unpublish`)
+  return post<Chatbot>(`/chatbots/${id}/unpublish`)
 }
