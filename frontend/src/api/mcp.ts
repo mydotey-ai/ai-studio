@@ -8,6 +8,15 @@ import type {
   TestConnectionResult
 } from '@/types/mcp'
 
+export type {
+  McpServer,
+  McpServerListItem,
+  CreateMcpServerRequest,
+  UpdateMcpServerRequest,
+  McpTool,
+  TestConnectionResult
+}
+
 export function getMcpServers(): Promise<McpServerListItem[]> {
   return get<McpServerListItem[]>('/mcp/servers')
 }
