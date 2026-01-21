@@ -21,6 +21,7 @@
       </el-table-column>
       <el-table-column prop="name" label="名称" min-width="180" />
       <el-table-column prop="description" label="描述" min-width="250" show-overflow-tooltip />
+      <el-table-column prop="agentName" label="绑定 Agent" min-width="150" />
       <el-table-column label="状态" width="120" align="center">
         <template #default="{ row }">
           <el-tag :type="row.isPublished ? 'success' : 'info'" size="small">
@@ -38,28 +39,10 @@
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" :icon="View" @click.stop="handleView(row)">
             查看
-          </el-button>
-          <el-button
-            v-if="!row.isPublished"
-            link
-            type="success"
-            :icon="Upload"
-            @click.stop="handlePublish(row)"
-          >
-            发布
-          </el-button>
-          <el-button
-            v-else
-            link
-            type="warning"
-            :icon="Download"
-            @click.stop="handleUnpublish(row)"
-          >
-            取消发布
           </el-button>
           <el-button link type="danger" :icon="Delete" @click.stop="handleDelete(row)">
             删除
@@ -81,33 +64,14 @@
     </div>
 
     <!-- Create Dialog -->
-    <el-dialog
-      v-model="showCreateDialog"
-      title="创建聊天机器人"
-      width="700px"
-      @close="resetForm"
-    >
+    <el-dialog v-model="showCreateDialog" title="创建聊天机器人" width="700px" @close="resetForm">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入聊天机器人名称" />
         </el-form-item>
 
         <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入描述"
-          />
-        </el-form-item>
-
-        <el-form-item label="系统提示词" prop="systemPrompt">
-          <el-input
-            v-model="form.systemPrompt"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入系统提示词，定义聊天机器人的角色和行为"
-          />
+          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入描述" />
         </el-form-item>
 
         <el-form-item label="绑定 Agent" prop="agentId">
@@ -133,7 +97,7 @@
 
         <el-form-item label="欢迎语" prop="welcomeMessage">
           <el-input
-            v-model="form.settings!.welcomeMessage"
+            v-model="form.welcomeMessage"
             type="textarea"
             :rows="2"
             placeholder="请输入欢迎语"
@@ -142,42 +106,15 @@
 
         <el-form-item label="头像 URL" prop="avatarUrl">
           <el-input
-            v-model="form.styleConfig!.avatarUrl"
+            v-model="form.avatarUrl"
             placeholder="请输入头像图片 URL"
             clearable
           />
         </el-form-item>
-
-        <el-form-item label="模型配置" prop="modelConfig">
-          <el-input
-            v-model="form.modelConfig"
-            type="textarea"
-            :rows="3"
-            placeholder='JSON 格式，例如: {"model": "gpt-4", "temperature": 0.7}'
-          />
-        </el-form-item>
-
-        <el-form-item label="可见性" prop="isPublic">
-          <el-switch v-model="form.isPublic" active-text="公开" inactive-text="私有" />
-        </el-form-item>
-
-        <el-form-item label="启用记忆" prop="enableMemory">
-          <el-switch v-model="form.settings!.enableMemory" />
-        </el-form-item>
-
-        <el-form-item label="启用知识库" prop="enableKnowledgeBase">
-          <el-switch v-model="form.settings!.enableKnowledgeBase" />
-        </el-form-item>
-
-        <el-form-item label="启用工具" prop="enableTools">
-          <el-switch v-model="form.settings!.enableTools" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          创建
-        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 创建 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -187,16 +124,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Plus, View, Delete, Upload, Download, UserFilled } from '@element-plus/icons-vue'
-import {
-  getChatbots,
-  createChatbot,
-  deleteChatbot,
-  publishChatbot,
-  unpublishChatbot
-} from '@/api/chatbot'
+import { Plus, View, Delete, UserFilled } from '@element-plus/icons-vue'
+import { getChatbots, createChatbot, deleteChatbot } from '@/api/chatbot'
 import { getAgents } from '@/api/agent'
-import type { Chatbot, CreateChatbotRequest } from '@/types/chatbot'
+import type { Chatbot } from '@/types/chatbot'
 import type { Agent } from '@/types/agent'
 import dayjs from 'dayjs'
 
@@ -215,55 +146,17 @@ const pagination = reactive({
   total: 0
 })
 
-const form = reactive<CreateChatbotRequest & { agentId?: number }>({
+const form = reactive({
   name: '',
   description: '',
-  systemPrompt: '',
-  modelConfig: '{"model": "gpt-4", "temperature": 0.7}',
-  isPublic: false,
-  settings: {
-    welcomeMessage: '您好！有什么我可以帮助您的吗？',
-    enableMemory: true,
-    enableKnowledgeBase: false,
-    enableTools: false,
-    temperature: 0.7,
-    maxTokens: 2000,
-    topP: 0.9,
-    topK: 40
-  },
-  styleConfig: {
-    avatarUrl: '',
-    primaryColor: '#409EFF',
-    backgroundColor: '#ffffff',
-    fontFamily: 'Arial, sans-serif',
-    position: 'bottom-right',
-    showBranding: true
-  }
+  agentId: undefined as number | undefined,
+  welcomeMessage: '你好，有什么可以帮助你的吗？',
+  avatarUrl: ''
 })
 
 const rules: FormRules = {
-  name: [
-    { required: true, message: '请输入聊天机器人名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '名称长度为 2-50 位', trigger: 'blur' }
-  ],
-  systemPrompt: [
-    { required: true, message: '请输入系统提示词', trigger: 'blur' },
-    { min: 10, message: '系统提示词至少 10 个字符', trigger: 'blur' }
-  ],
-  modelConfig: [
-    { required: true, message: '请输入模型配置', trigger: 'blur' },
-    {
-      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-        try {
-          JSON.parse(value)
-          callback()
-        } catch {
-          callback(new Error('模型配置必须是有效的 JSON 格式'))
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
+  name: [{ required: true, message: '请输入聊天机器人名称', trigger: 'blur' }],
+  agentId: [{ required: true, message: '请选择 Agent', trigger: 'change' }]
 }
 
 async function loadChatbots() {
@@ -301,15 +194,23 @@ async function handleSubmit() {
 
     submitting.value = true
     try {
-      // Validate modelConfig JSON
-      try {
-        JSON.parse(form.modelConfig)
-      } catch {
-        ElMessage.error('模型配置必须是有效的 JSON 格式')
-        return
+      // Prepare request data with defaults for fields not in form
+      const requestData = {
+        name: form.name,
+        description: form.description,
+        agentId: form.agentId!,
+        settings: {
+          welcomeMessage: form.welcomeMessage
+        },
+        styleConfig: {
+          avatarUrl: form.avatarUrl
+        },
+        // Required by API but not in form - use defaults
+        systemPrompt: '',
+        modelConfig: '{}'
       }
 
-      await createChatbot(form)
+      await createChatbot(requestData)
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
@@ -326,19 +227,9 @@ async function handleSubmit() {
 function resetForm() {
   form.name = ''
   form.description = ''
-  form.systemPrompt = ''
-  form.modelConfig = '{"model": "gpt-4", "temperature": 0.7}'
-  form.isPublic = false
   form.agentId = undefined
-  form.settings = {
-    welcomeMessage: '您好！有什么我可以帮助您的吗？',
-    enableMemory: true,
-    enableKnowledgeBase: false,
-    enableTools: false
-  }
-  form.styleConfig = {
-    avatarUrl: ''
-  }
+  form.welcomeMessage = '你好，有什么可以帮助你的吗？'
+  form.avatarUrl = ''
   formRef.value?.resetFields()
 }
 
@@ -348,28 +239,6 @@ function handleRowClick(row: Chatbot) {
 
 function handleView(row: Chatbot) {
   router.push(`/chatbots/${row.id}`)
-}
-
-async function handlePublish(row: Chatbot) {
-  try {
-    await publishChatbot(row.id)
-    ElMessage.success('发布成功')
-    loadChatbots()
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '发布失败，请稍后重试'
-    ElMessage.error(errorMessage)
-  }
-}
-
-async function handleUnpublish(row: Chatbot) {
-  try {
-    await unpublishChatbot(row.id)
-    ElMessage.success('取消发布成功')
-    loadChatbots()
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '取消发布失败，请稍后重试'
-    ElMessage.error(errorMessage)
-  }
 }
 
 async function handleDelete(row: Chatbot) {
