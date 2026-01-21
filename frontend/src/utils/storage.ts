@@ -32,7 +32,7 @@ export const storage = {
   getUser(): AuthUserInfo | null {
     try {
       const user = localStorage.getItem(USER_KEY)
-      return user ? JSON.parse(user) as AuthUserInfo : null
+      return user ? (JSON.parse(user) as AuthUserInfo) : null
     } catch {
       return null
     }

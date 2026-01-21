@@ -74,23 +74,13 @@
       width="700px"
       @close="resetForm"
     >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入 Agent 名称" />
         </el-form-item>
 
         <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入描述"
-          />
+          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入描述" />
         </el-form-item>
 
         <el-form-item label="系统提示词" prop="systemPrompt">
@@ -129,12 +119,7 @@
             placeholder="请选择知识库"
             style="width: 100%"
           >
-            <el-option
-              v-for="kb in knowledgeBases"
-              :key="kb.id"
-              :label="kb.name"
-              :value="kb.id"
-            />
+            <el-option v-for="kb in knowledgeBases" :key="kb.id" :label="kb.name" :value="kb.id" />
           </el-select>
         </el-form-item>
 
@@ -157,12 +142,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, View, Edit, Delete } from '@element-plus/icons-vue'
-import {
-  getAgents,
-  createAgent,
-  updateAgent,
-  deleteAgent as deleteAgentApi
-} from '@/api/agent'
+import { getAgents, createAgent, updateAgent, deleteAgent as deleteAgentApi } from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
 import type { Agent, CreateAgentRequest, UpdateAgentRequest } from '@/types/agent'
 import type { KnowledgeBase } from '@/types/knowledge-base'

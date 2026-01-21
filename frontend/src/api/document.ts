@@ -1,5 +1,10 @@
 import { get, post, del } from './request'
-import type { Document, WebCrawlTask, CreateWebCrawlTaskRequest, WebCrawlProgressResponse } from '@/types/knowledge-base'
+import type {
+  Document,
+  WebCrawlTask,
+  CreateWebCrawlTaskRequest,
+  WebCrawlProgressResponse
+} from '@/types/knowledge-base'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
 
 export function getDocuments(kbId: number, params?: PaginationParams) {

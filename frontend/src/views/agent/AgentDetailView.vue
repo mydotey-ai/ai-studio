@@ -1,7 +1,7 @@
 <template>
-  <div class="agent-detail" v-loading="loading">
+  <div v-loading="loading" class="agent-detail">
     <div class="page-header">
-      <el-button @click="goBack" :icon="ArrowLeft">返回</el-button>
+      <el-button :icon="ArrowLeft" @click="goBack">返回</el-button>
       <div class="header-actions">
         <el-button type="primary" @click="showEditDialog = true">
           <el-icon><Edit /></el-icon>
@@ -49,11 +49,7 @@
           <div class="prompt-text">{{ agent.systemPrompt }}</div>
         </el-descriptions-item>
         <el-descriptions-item label="知识库" :span="2">
-          <el-tag
-            v-for="kbId in agent.knowledgeBaseIds"
-            :key="kbId"
-            style="margin-right: 8px"
-          >
+          <el-tag v-for="kbId in agent.knowledgeBaseIds" :key="kbId" style="margin-right: 8px">
             {{ getKnowledgeBaseName(kbId) }}
           </el-tag>
           <span v-if="agent.knowledgeBaseIds.length === 0">未绑定</span>
@@ -86,12 +82,7 @@
 
       <el-form @submit.prevent="executeTest">
         <el-form-item label="测试查询">
-          <el-input
-            v-model="testQuery"
-            type="textarea"
-            :rows="3"
-            placeholder="输入测试查询..."
-          />
+          <el-input v-model="testQuery" type="textarea" :rows="3" placeholder="输入测试查询..." />
         </el-form-item>
         <el-form-item>
           <el-button
@@ -102,9 +93,7 @@
           >
             执行测试
           </el-button>
-          <el-button @click="clearResult" :disabled="!executionResult">
-            清空结果
-          </el-button>
+          <el-button :disabled="!executionResult" @click="clearResult"> 清空结果 </el-button>
         </el-form-item>
       </el-form>
 
@@ -139,8 +128,14 @@
             class="tool-call-item"
           >
             <div><strong>工具:</strong> {{ call.toolName }}</div>
-            <div><strong>参数:</strong> <pre>{{ call.arguments }}</pre></div>
-            <div><strong>结果:</strong> <pre>{{ call.result }}</pre></div>
+            <div>
+              <strong>参数:</strong>
+              <pre>{{ call.arguments }}</pre>
+            </div>
+            <div>
+              <strong>结果:</strong>
+              <pre>{{ call.result }}</pre>
+            </div>
             <el-tag :type="call.success ? 'success' : 'danger'" size="small">
               {{ call.success ? '成功' : '失败' }}
             </el-tag>
@@ -156,18 +151,8 @@
     </el-card>
 
     <!-- Edit Dialog -->
-    <el-dialog
-      v-model="showEditDialog"
-      title="编辑 Agent"
-      width="600px"
-      @close="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="120px"
-      >
+    <el-dialog v-model="showEditDialog" title="编辑 Agent" width="600px" @close="resetForm">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入 Agent 名称" />
         </el-form-item>
@@ -211,12 +196,7 @@
             placeholder="选择知识库"
             style="width: 100%"
           >
-            <el-option
-              v-for="kb in knowledgeBases"
-              :key="kb.id"
-              :label="kb.name"
-              :value="kb.id"
-            />
+            <el-option v-for="kb in knowledgeBases" :key="kb.id" :label="kb.name" :value="kb.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="是否公开" prop="isPublic">
@@ -225,9 +205,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showEditDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          确定
-        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 确定 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -268,12 +246,8 @@ const formData = reactive<UpdateAgentRequest>({
 })
 
 const formRules: FormRules = {
-  name: [
-    { required: true, message: '请输入 Agent 名称', trigger: 'blur' }
-  ],
-  systemPrompt: [
-    { required: true, message: '请输入系统提示词', trigger: 'blur' }
-  ]
+  name: [{ required: true, message: '请输入 Agent 名称', trigger: 'blur' }],
+  systemPrompt: [{ required: true, message: '请输入系统提示词', trigger: 'blur' }]
 }
 
 async function fetchAgent() {

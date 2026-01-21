@@ -72,7 +72,7 @@ export function sendMessageStream(
   })
 
   // Register event listeners
-  eventSource.addEventListener('message', (event) => {
+  eventSource.addEventListener('message', event => {
     try {
       const data = JSON.parse(event.data) as ChatResponse
       onMessage(data)

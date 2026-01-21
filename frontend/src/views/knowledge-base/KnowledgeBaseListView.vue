@@ -11,8 +11,8 @@
       :data="knowledgeBases"
       :loading="loading"
       stripe
-      @row-click="handleRowClick"
       style="cursor: pointer"
+      @row-click="handleRowClick"
     >
       <el-table-column prop="name" label="名称" min-width="200" />
       <el-table-column prop="description" label="描述" min-width="300" show-overflow-tooltip />
@@ -58,28 +58,13 @@
     </div>
 
     <!-- Create Dialog -->
-    <el-dialog
-      v-model="showCreateDialog"
-      title="创建知识库"
-      width="500px"
-      @close="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+    <el-dialog v-model="showCreateDialog" title="创建知识库" width="500px" @close="resetForm">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入知识库名称" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入描述"
-          />
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
         <el-form-item label="可见性" prop="isPublic">
           <el-switch v-model="form.isPublic" active-text="公开" inactive-text="私有" />
@@ -87,9 +72,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleCreate">
-          创建
-        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleCreate"> 创建 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -100,7 +83,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, View, Delete } from '@element-plus/icons-vue'
-import { getKnowledgeBases, createKnowledgeBase, deleteKnowledgeBase as deleteKbApi } from '@/api/knowledge-base'
+import {
+  getKnowledgeBases,
+  createKnowledgeBase,
+  deleteKnowledgeBase as deleteKbApi
+} from '@/api/knowledge-base'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 
@@ -145,7 +132,7 @@ async function loadKnowledgeBases() {
 async function handleCreate() {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
 
     submitting.value = true

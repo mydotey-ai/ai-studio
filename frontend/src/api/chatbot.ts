@@ -1,9 +1,5 @@
 import { get, post, put, del } from './request'
-import type {
-  Chatbot,
-  CreateChatbotRequest,
-  UpdateChatbotRequest
-} from '@/types/chatbot'
+import type { Chatbot, CreateChatbotRequest, UpdateChatbotRequest } from '@/types/chatbot'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
 
 export function getChatbots(params?: PaginationParams) {

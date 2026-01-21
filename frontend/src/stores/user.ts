@@ -10,7 +10,9 @@ export const useUserStore = defineStore('user', () => {
   const userInfo = ref<AuthUserInfo | null>(storage.getUser() || null)
 
   const isLogin = computed(() => !!token.value)
-  const isAdmin = computed(() => userInfo.value?.role === 'ADMIN' || userInfo.value?.role === 'SUPER_ADMIN')
+  const isAdmin = computed(
+    () => userInfo.value?.role === 'ADMIN' || userInfo.value?.role === 'SUPER_ADMIN'
+  )
 
   function setTokens(data: { accessToken: string; refreshToken: string }) {
     token.value = data.accessToken
