@@ -7,11 +7,7 @@
       </el-button>
     </div>
 
-    <el-table
-      :data="tasks"
-      :loading="loading"
-      stripe
-    >
+    <el-table :data="tasks" :loading="loading" stripe>
       <el-table-column prop="startUrl" label="起始URL" min-width="300" show-overflow-tooltip />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
@@ -44,39 +40,19 @@
           >
             启动
           </el-button>
-          <el-button
-            link
-            :icon="Delete"
-            type="danger"
-            @click="handleDelete(row)"
-          >
-            删除
-          </el-button>
+          <el-button link :icon="Delete" type="danger" @click="handleDelete(row)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- Create Dialog -->
-    <el-dialog
-      v-model="showCreateDialog"
-      title="创建网页抓取任务"
-      width="600px"
-      @close="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
+    <el-dialog v-model="showCreateDialog" title="创建网页抓取任务" width="600px" @close="resetForm">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="起始URL" prop="startUrl">
           <el-input v-model="form.startUrl" placeholder="https://example.com" />
         </el-form-item>
         <el-form-item label="URL模式" prop="urlPattern">
-          <el-input
-            v-model="form.urlPattern"
-            placeholder="正则表达式，如: .*\\.example\\.com/.*"
-          />
+          <el-input v-model="form.urlPattern" placeholder="正则表达式，如: .*\\.example\\.com/.*" />
         </el-form-item>
         <el-form-item label="最大深度" prop="maxDepth">
           <el-input-number v-model="form.maxDepth" :min="1" :max="10" />
@@ -93,9 +69,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleCreate">
-          创建
-        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleCreate"> 创建 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -105,7 +79,12 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, VideoPlay, Delete } from '@element-plus/icons-vue'
-import { getWebCrawlTasks, createWebCrawlTask, startWebCrawlTask, deleteWebCrawlTask } from '@/api/document'
+import {
+  getWebCrawlTasks,
+  createWebCrawlTask,
+  startWebCrawlTask,
+  deleteWebCrawlTask
+} from '@/api/document'
 import type { WebCrawlTask } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 
@@ -151,7 +130,7 @@ async function loadTasks() {
 async function handleCreate() {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
 
     submitting.value = true
@@ -206,7 +185,7 @@ function resetForm() {
 }
 
 function getStatusType(status: string) {
-  const map: Record<string, any> = {
+  const map: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     PENDING: 'info',
     RUNNING: 'warning',
     COMPLETED: 'success',

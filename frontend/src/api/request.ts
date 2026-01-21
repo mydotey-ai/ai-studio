@@ -13,14 +13,14 @@ const service: AxiosInstance = axios.create({
 
 // Request interceptor
 service.interceptors.request.use(
-  (config) => {
+  config => {
     const userStore = useUserStore()
     if (userStore.token) {
       config.headers.Authorization = `Bearer ${userStore.token}`
     }
     return config
   },
-  (error) => {
+  error => {
     return Promise.reject(error)
   }
 )
@@ -51,19 +51,20 @@ service.interceptors.response.use(
     ElMessage.error(message || '请求失败')
     return Promise.reject(new Error(message || '请求失败'))
   },
-  (error) => {
+  error => {
     const { response } = error
 
     if (response) {
       const { status, data } = response
 
       switch (status) {
-        case ErrorCode.UNAUTHORIZED:
+        case ErrorCode.UNAUTHORIZED: {
           ElMessage.error('登录已过期，请重新登录')
           const userStore = useUserStore()
           userStore.logout()
           router.push('/login')
           break
+        }
         case ErrorCode.FORBIDDEN:
           ElMessage.error('没有权限访问')
           break
@@ -87,22 +88,30 @@ service.interceptors.response.use(
 export default service
 
 // Export generic request method
-export function request<T = any>(config: AxiosRequestConfig): Promise<T> {
+export function request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
   return service.request(config)
 }
 
-export function get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+export function get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
   return service.get(url, config)
 }
 
-export function post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+export function post<T = unknown>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
   return service.post(url, data, config)
 }
 
-export function put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+export function put<T = unknown>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
   return service.put(url, data, config)
 }
 
-export function del<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+export function del<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
   return service.delete(url, config)
 }

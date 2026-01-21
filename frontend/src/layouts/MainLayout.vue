@@ -57,9 +57,9 @@
       </el-header>
 
       <el-main class="main-content">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component: RouteComponent }">
           <transition name="fade-transform" mode="out-in">
-            <component :is="Component" />
+            <component :is="RouteComponent" />
           </transition>
         </router-view>
       </el-main>

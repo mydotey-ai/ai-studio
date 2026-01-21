@@ -14,16 +14,10 @@
           <el-button type="primary" :icon="Upload" @click="showUploadDialog = true">
             上传文档
           </el-button>
-          <el-button :icon="Link" @click="showWebCrawlDialog = true">
-            网页抓取
-          </el-button>
+          <el-button :icon="Link" @click="showWebCrawlDialog = true"> 网页抓取 </el-button>
         </div>
 
-        <el-table
-          :data="documents"
-          :loading="documentsLoading"
-          stripe
-        >
+        <el-table :data="documents" :loading="documentsLoading" stripe>
           <el-table-column prop="filename" label="文件名" min-width="200" />
           <el-table-column label="文件大小" width="120">
             <template #default="{ row }">
@@ -45,12 +39,7 @@
           </el-table-column>
           <el-table-column label="操作" width="100" fixed="right">
             <template #default="{ row }">
-              <el-button
-                link
-                type="danger"
-                :icon="Delete"
-                @click="handleDeleteDocument(row)"
-              >
+              <el-button link type="danger" :icon="Delete" @click="handleDeleteDocument(row)">
                 删除
               </el-button>
             </template>
@@ -76,11 +65,7 @@
     </el-tabs>
 
     <!-- Upload Dialog -->
-    <el-dialog
-      v-model="showUploadDialog"
-      title="上传文档"
-      width="500px"
-    >
+    <el-dialog v-model="showUploadDialog" title="上传文档" width="500px">
       <el-upload
         drag
         :auto-upload="false"
@@ -89,20 +74,14 @@
         accept=".pdf,.doc,.docx,.txt"
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">
-          将文件拖到此处，或<em>点击上传</em>
-        </div>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <template #tip>
-          <div class="el-upload__tip">
-            支持 PDF、Word、TXT 格式，文件大小不超过 100MB
-          </div>
+          <div class="el-upload__tip">支持 PDF、Word、TXT 格式，文件大小不超过 100MB</div>
         </template>
       </el-upload>
       <template #footer>
         <el-button @click="showUploadDialog = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUpload">
-          上传
-        </el-button>
+        <el-button type="primary" :loading="uploading" @click="handleUpload"> 上传 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -140,13 +119,17 @@ const docPagination = reactive({
 })
 
 // Watch for route parameter changes
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    kbId.value = parseInt(newId as string)
-    loadKnowledgeBase()
-    loadDocuments()
-  }
-}, { immediate: true })
+watch(
+  () => route.params.id,
+  newId => {
+    if (newId) {
+      kbId.value = parseInt(newId as string)
+      loadKnowledgeBase()
+      loadDocuments()
+    }
+  },
+  { immediate: true }
+)
 
 async function loadKnowledgeBase() {
   knowledgeBase.value = await getKnowledgeBase(kbId.value)
@@ -207,7 +190,7 @@ async function handleDeleteDocument(doc: Document) {
 }
 
 function getStatusType(status: string) {
-  const map: Record<string, any> = {
+  const map: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
     PENDING: 'info',
     PROCESSING: 'warning',
     COMPLETED: 'success',
