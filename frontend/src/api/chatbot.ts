@@ -30,3 +30,11 @@ export function updateChatbot(id: number, data: UpdateChatbotRequest) {
 export function deleteChatbot(id: number) {
   return del(`/chatbots/${id}`)
 }
+
+export function publishChatbot(id: number) {
+  return post(`/chatbots/${id}/publish`)
+}
+
+export function unpublishChatbot(id: number) {
+  return post(`/chatbots/${id}/unpublish`)
+}
