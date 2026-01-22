@@ -1,7 +1,7 @@
 <template>
   <div class="chat-panel">
     <div ref="messagesContainer" class="messages-container">
-      <div v-for="message in messages" :key="message.id" :class="['message', message.role]">
+      <div v-for="message in parsedMessages" :key="message.id" :class="['message', message.role]">
         <div class="message-avatar">
           <el-avatar v-if="message.role === 'assistant'" :size="32" :src="chatbotAvatar">
             {{ chatbotName.charAt(0) }}
@@ -22,11 +22,11 @@
               <el-collapse-item
                 v-for="(source, index) in message.sources"
                 :key="index"
-                :title="source.name"
+                :title="source.documentName"
               >
                 <div class="source-content">{{ source.content }}</div>
-                <div v-if="source.relevance" class="source-score">
-                  相似度: {{ (source.relevance * 100).toFixed(1) }}%
+                <div v-if="source.score" class="source-score">
+                  相似度: {{ (source.score * 100).toFixed(1) }}%
                 </div>
               </el-collapse-item>
             </el-collapse>
@@ -37,10 +37,10 @@
               <el-timeline-item
                 v-for="(tool, index) in message.toolCalls"
                 :key="index"
-                :timestamp="tool.name"
+                :timestamp="tool.toolName"
                 placement="top"
               >
-                <div class="tool-name">{{ tool.name }}</div>
+                <div class="tool-name">{{ tool.toolName }}</div>
                 <div class="tool-args">
                   <el-text type="info" size="small"> 参数: {{ tool.arguments }} </el-text>
                 </div>
@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import type { Message } from '@/types/chatbot'
 import { renderMarkdown } from '@/utils/markdown'
 import dayjs from 'dayjs'
@@ -109,11 +109,38 @@ interface Emits {
   (e: 'send', message: string): void
 }
 
+interface ToolCallResult {
+  toolName: string
+  arguments: string
+  result?: string
+  error?: string
+}
+
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const messagesContainer = ref<HTMLElement>()
 const inputMessage = ref('')
+
+// Parse toolCalls from JSON string to array
+const parsedMessages = computed(() => {
+  return props.messages.map(msg => ({
+    ...msg,
+    toolCalls: msg.toolCalls ? parseToolCalls(msg.toolCalls) : undefined
+  }))
+})
+
+function parseToolCalls(toolCalls: string | any[]): ToolCallResult[] {
+  if (typeof toolCalls === 'string') {
+    try {
+      const parsed = JSON.parse(toolCalls)
+      return Array.isArray(parsed) ? parsed : [parsed]
+    } catch {
+      return []
+    }
+  }
+  return toolCalls as any
+}
 
 function handleSend() {
   if (!inputMessage.value.trim() || props.isStreaming) return

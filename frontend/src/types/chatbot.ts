@@ -91,14 +91,13 @@ export interface Source {
   documentName: string
   chunkIndex: number
   content: string
-  similarityScore: number
+  score: number
 }
 
 export interface ToolCall {
-  toolId: number
   toolName: string
-  arguments: Record<string, any>
-  result?: any
+  arguments: string
+  result?: string
   error?: string
 }
 

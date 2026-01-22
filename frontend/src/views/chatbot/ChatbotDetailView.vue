@@ -17,7 +17,7 @@
       <ChatPanel
         :messages="messages"
         :chatbot-name="chatbot?.name || 'Assistant'"
-        :chatbot-avatar="chatbot?.styleConfig?.avatarUrl"
+        :chatbot-avatar="chatbot?.avatarUrl"
         :is-streaming="isStreaming"
         :streaming-text="streamingText"
         :user-initial="userInitial"
@@ -148,8 +148,8 @@ const displayChatbot = computed(() => {
   return {
     ...chatbot.value,
     agentName: 'Agent', // Default, should come from backend
-    welcomeMessage: chatbot.value.settings?.welcomeMessage || '',
-    avatarUrl: chatbot.value.styleConfig?.avatarUrl || '',
+    welcomeMessage: chatbot.value.welcomeMessage || '',
+    avatarUrl: chatbot.value.avatarUrl || '',
     accessCount: 0 // Default, should come from backend
   }
 })
@@ -170,8 +170,8 @@ async function loadChatbot() {
   if (chatbot.value) {
     form.name = chatbot.value.name
     form.description = chatbot.value.description || ''
-    form.welcomeMessage = chatbot.value.settings?.welcomeMessage || ''
-    form.avatarUrl = chatbot.value.styleConfig?.avatarUrl || ''
+    form.welcomeMessage = chatbot.value.welcomeMessage || ''
+    form.avatarUrl = chatbot.value.avatarUrl || ''
   }
 }
 
@@ -260,13 +260,14 @@ async function handleSendMessage(messageText: string) {
     eventSourceRef.value = sendMessageStream(
       request,
       data => {
-        // Extract content from ChatResponse
-        if (data.message && data.message.content) {
-          streamingText.value += data.message.content
+        // Backend sends plain text chunks via SSE
+        // data is a string, not an object
+        if (typeof data === 'string' && data !== '[DONE]') {
+          streamingText.value += data
           if (!assistantMessage) {
             assistantMessage = {
-              id: data.messageId || Date.now() + 1,
-              conversationId: data.conversationId || currentConversationId.value || 0,
+              id: Date.now() + 1,
+              conversationId: currentConversationId.value || 0,
               role: 'assistant',
               content: streamingText.value,
               createdAt: new Date().toISOString()
