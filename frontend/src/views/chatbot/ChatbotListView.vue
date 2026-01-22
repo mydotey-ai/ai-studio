@@ -134,8 +134,9 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, ChatDotSquare, View, Delete } from '@element-plus/icons-vue'
 import { getChatbots, createChatbot, deleteChatbot as deleteChatbotApi } from '@/api/chatbot'
-import { getAgents } from '@/api/agent'
-import type { Chatbot, Agent } from '@/types/chatbot'
+import { getAgents, type Agent } from '@/api/agent'
+import type { ChatbotResponse } from '@/types/chatbot'
+import type { PaginationResponse } from '@/types/common'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -152,7 +153,7 @@ function openCreateDialog() {
   }
   showCreateDialog.value = true
 }
-const chatbots = ref<Chatbot[]>([])
+const chatbots = ref<ChatbotResponse[]>([])
 const agents = ref<Agent[]>([])
 
 const pagination = reactive({
@@ -181,9 +182,14 @@ async function loadChatbots() {
       page: pagination.page,
       pageSize: pagination.pageSize
     })
-    chatbots.value = data.records || data
-    if (data.total) {
-      pagination.total = data.total
+
+    // Handle both paginated and non-paginated responses
+    const paginatedData = data as unknown as PaginationResponse<ChatbotResponse>
+    if (paginatedData.records !== undefined) {
+      chatbots.value = paginatedData.records
+      pagination.total = paginatedData.total
+    } else {
+      chatbots.value = data as ChatbotResponse[]
     }
   } catch (error) {
     console.error('Failed to load chatbots:', error)
@@ -196,7 +202,7 @@ async function loadChatbots() {
 async function loadAgents() {
   try {
     const data = await getAgents()
-    agents.value = data.records || data
+    agents.value = data.records
   } catch (error) {
     console.error('Failed to load agents:', error)
     ElMessage.error('加载 Agent 列表失败，请稍后重试')
@@ -209,9 +215,21 @@ async function handleCreate() {
   await formRef.value.validate(async (valid) => {
     if (!valid) return
 
+    // Ensure agentId is defined (validation should have already checked this)
+    if (form.agentId === undefined) {
+      ElMessage.error('请选择 Agent')
+      return
+    }
+
     submitting.value = true
     try {
-      await createChatbot(form)
+      await createChatbot({
+        agentId: form.agentId,
+        name: form.name,
+        description: form.description,
+        welcomeMessage: form.welcomeMessage,
+        avatarUrl: form.avatarUrl || undefined
+      })
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
@@ -231,19 +249,19 @@ function resetForm() {
   form.welcomeMessage = '你好，有什么可以帮助你的吗？'
 }
 
-function handleRowClick(row: Chatbot) {
+function handleRowClick(row: ChatbotResponse) {
   router.push(`/chatbots/${row.id}`)
 }
 
-function handleChat(row: Chatbot) {
+function handleChat(row: ChatbotResponse) {
   router.push(`/chatbots/${row.id}?mode=chat`)
 }
 
-function handleView(row: Chatbot) {
+function handleView(row: ChatbotResponse) {
   router.push(`/chatbots/${row.id}`)
 }
 
-async function handleDelete(row: Chatbot) {
+async function handleDelete(row: ChatbotResponse) {
   try {
     await ElMessageBox.confirm(`确定要删除聊天机器人"${row.name}"吗？`, '提示', {
       confirmButtonText: '确定',
