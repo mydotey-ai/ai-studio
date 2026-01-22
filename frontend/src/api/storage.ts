@@ -1,5 +1,9 @@
 import { get, post, put, del } from './request'
-import type { StorageConfig, CreateStorageConfigRequest, UpdateStorageConfigRequest } from '@/types/storage'
+import type {
+  StorageConfig,
+  CreateStorageConfigRequest,
+  UpdateStorageConfigRequest
+} from '@/types/storage'
 
 export const storageApi = {
   getAllConfigs() {
