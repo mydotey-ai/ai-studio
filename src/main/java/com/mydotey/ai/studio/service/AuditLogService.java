@@ -1,5 +1,9 @@
 package com.mydotey.ai.studio.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mydotey.ai.studio.dto.audit.AuditLogQueryRequest;
+import com.mydotey.ai.studio.dto.audit.AuditLogResponse;
 import com.mydotey.ai.studio.entity.AuditLog;
 import com.mydotey.ai.studio.mapper.AuditLogMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,5 +64,10 @@ public class AuditLogService {
             ip = request.getRemoteAddr();
         }
         return ip;
+    }
+
+    public IPage<AuditLogResponse> queryAuditLogs(AuditLogQueryRequest query) {
+        Page<AuditLogResponse> page = new Page<>(query.getPage(), query.getPageSize());
+        return auditLogMapper.queryAuditLogs(page, query);
     }
 }

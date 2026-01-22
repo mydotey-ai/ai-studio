@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mydotey.ai.studio.mapper.AuditLogMapper">
+
+    <select id="queryAuditLogs" resultType="com.mydotey.ai.studio.dto.audit.AuditLogResponse">
+        SELECT
+            al.id,
+            al.user_id,
+            u.username,
+            al.action,
+            al.resource_type,
+            al.resource_id,
+            al.details,
+            al.ip_address,
+            al.user_agent,
+            al.created_at
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        <where>
+            <if test="query.userId != null">
+                AND al.user_id = #{query.userId}
+            </if>
+            <if test="query.action != null and query.action != ''">
+                AND al.action = #{query.action}
+            </if>
+            <if test="query.resourceType != null and query.resourceType != ''">
+                AND al.resource_type = #{query.resourceType}
+            </if>
+            <if test="query.resourceId != null">
+                AND al.resource_id = #{query.resourceId}
+            </if>
+            <if test="query.startDate != null">
+                AND al.created_at &gt;= #{query.startDate}
+            </if>
+            <if test="query.endDate != null">
+                AND al.created_at &lt;= #{query.endDate}
+            </if>
+        </where>
+        ORDER BY al.created_at DESC
+    </select>
+
+</mapper>
