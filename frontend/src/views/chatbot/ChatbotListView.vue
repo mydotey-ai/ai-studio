@@ -11,18 +11,20 @@
       :data="chatbots"
       :loading="loading"
       stripe
-      style="cursor: pointer"
       @row-click="handleRowClick"
+      style="cursor: pointer"
     >
-      <el-table-column label="头像" width="80" align="center">
+      <el-table-column label="头像" width="80">
         <template #default="{ row }">
-          <el-avatar :src="row.styleConfig?.avatarUrl" :icon="UserFilled" />
+          <el-avatar :size="50" :src="row.avatarUrl">
+            {{ row.name.charAt(0) }}
+          </el-avatar>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="名称" min-width="180" />
-      <el-table-column prop="description" label="描述" min-width="250" show-overflow-tooltip />
+      <el-table-column prop="name" label="名称" min-width="150" />
       <el-table-column prop="agentName" label="绑定 Agent" min-width="150" />
-      <el-table-column label="状态" width="120" align="center">
+      <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+      <el-table-column label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="row.isPublished ? 'success' : 'info'" size="small">
             {{ row.isPublished ? '已发布' : '草稿' }}
@@ -39,8 +41,11 @@
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
+          <el-button link type="primary" :icon="ChatDotSquare" @click.stop="handleChat(row)">
+            对话
+          </el-button>
           <el-button link type="primary" :icon="View" @click.stop="handleView(row)">
             查看
           </el-button>
@@ -64,38 +69,44 @@
     </div>
 
     <!-- Create Dialog -->
-    <el-dialog v-model="showCreateDialog" title="创建聊天机器人" width="700px" @close="resetForm">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+    <el-dialog
+      v-model="showCreateDialog"
+      title="创建聊天机器人"
+      width="600px"
+      @close="resetForm"
+    >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="120px"
+      >
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入聊天机器人名称" />
         </el-form-item>
-
         <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入描述" />
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入描述"
+          />
         </el-form-item>
-
         <el-form-item label="绑定 Agent" prop="agentId">
           <el-select
             v-model="form.agentId"
-            placeholder="请选择绑定的 Agent"
+            placeholder="请选择 Agent"
             style="width: 100%"
-            clearable
           >
             <el-option
               v-for="agent in agents"
               :key="agent.id"
               :label="agent.name"
               :value="agent.id"
-            >
-              <span>{{ agent.name }}</span>
-              <span style="color: #8492a6; font-size: 13px; margin-left: 10px">
-                {{ agent.description }}
-              </span>
-            </el-option>
+            />
           </el-select>
         </el-form-item>
-
-        <el-form-item label="欢迎语" prop="welcomeMessage">
+        <el-form-item label="欢迎语">
           <el-input
             v-model="form.welcomeMessage"
             type="textarea"
@@ -103,14 +114,15 @@
             placeholder="请输入欢迎语"
           />
         </el-form-item>
-
-        <el-form-item label="头像 URL" prop="avatarUrl">
-          <el-input v-model="form.avatarUrl" placeholder="请输入头像图片 URL" clearable />
+        <el-form-item label="头像 URL">
+          <el-input v-model="form.avatarUrl" placeholder="请输入头像 URL (可选)" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 创建 </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleCreate">
+          创建
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -120,10 +132,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Plus, View, Delete, UserFilled } from '@element-plus/icons-vue'
-import { getChatbots, createChatbot, deleteChatbot } from '@/api/chatbot'
-import { getAgents, type Agent } from '@/api/agent'
-import type { ChatbotListItem } from '@/types/chatbot'
+import { Plus, ChatDotSquare, View, Delete } from '@element-plus/icons-vue'
+import { getChatbots, createChatbot, deleteChatbot as deleteChatbotApi } from '@/api/chatbot'
+import { getAgents } from '@/api/agent'
+import type { Chatbot, Agent } from '@/types/chatbot'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -132,7 +144,7 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateDialog = ref(false)
-const chatbots = ref<ChatbotListItem[]>([])
+const chatbots = ref<Chatbot[]>([])
 const agents = ref<Agent[]>([])
 
 const pagination = reactive({
@@ -161,11 +173,10 @@ async function loadChatbots() {
       page: pagination.page,
       pageSize: pagination.pageSize
     })
-    chatbots.value = data.records
-    pagination.total = data.total
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '加载聊天机器人列表失败'
-    ElMessage.error(errorMessage)
+    chatbots.value = data.records || data
+    if (data.total) {
+      pagination.total = data.total
+    }
   } finally {
     loading.value = false
   }
@@ -173,45 +184,26 @@ async function loadChatbots() {
 
 async function loadAgents() {
   try {
-    const data = await getAgents({ page: 1, pageSize: 1000 })
-    agents.value = data.records
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '加载 Agent 列表失败'
-    ElMessage.error(errorMessage)
+    const data = await getAgents()
+    agents.value = data.records || data
+  } catch (error) {
+    console.error('Failed to load agents:', error)
   }
 }
 
-async function handleSubmit() {
+async function handleCreate() {
   if (!formRef.value) return
 
-  await formRef.value.validate(async valid => {
+  await formRef.value.validate(async (valid) => {
     if (!valid) return
 
     submitting.value = true
     try {
-      // Prepare request data with sensible defaults for required fields
-      const requestData = {
-        name: form.name,
-        description: form.description,
-        settings: {
-          welcomeMessage: form.welcomeMessage
-        },
-        styleConfig: {
-          avatarUrl: form.avatarUrl || undefined
-        },
-        // Use sensible defaults instead of empty values
-        systemPrompt: `你是一个友好的AI助手。欢迎语: ${form.welcomeMessage}`,
-        modelConfig: JSON.stringify({ temperature: 0.7, max_tokens: 2000 })
-      }
-
-      await createChatbot(requestData)
+      await createChatbot(form)
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
       loadChatbots()
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试'
-      ElMessage.error(errorMessage)
     } finally {
       submitting.value = false
     }
@@ -227,29 +219,30 @@ function resetForm() {
   formRef.value?.resetFields()
 }
 
-function handleRowClick(row: ChatbotListItem) {
+function handleRowClick(row: Chatbot) {
   router.push(`/chatbots/${row.id}`)
 }
 
-function handleView(row: ChatbotListItem) {
+function handleChat(row: Chatbot) {
+  router.push(`/chatbots/${row.id}?mode=chat`)
+}
+
+function handleView(row: Chatbot) {
   router.push(`/chatbots/${row.id}`)
 }
 
-async function handleDelete(row: ChatbotListItem) {
+async function handleDelete(row: Chatbot) {
   try {
-    await ElMessageBox.confirm(`确定要删除聊天机器人"${row.name}"吗？此操作不可恢复。`, '提示', {
+    await ElMessageBox.confirm(`确定要删除聊天机器人"${row.name}"吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteChatbot(row.id)
+    await deleteChatbotApi(row.id)
     ElMessage.success('删除成功')
     loadChatbots()
-  } catch (error: unknown) {
-    if (error !== 'cancel') {
-      const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试'
-      ElMessage.error(errorMessage)
-    }
+  } catch {
+    // User cancelled
   }
 }
 
