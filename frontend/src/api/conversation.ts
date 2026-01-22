@@ -1,15 +1,12 @@
 import { get, post, del } from './request'
-import type { Conversation, Message, ChatRequest, ChatResponse } from '@/types/chatbot'
-import type { PaginationParams, PaginationResponse } from '@/types/common'
+import type { Conversation, Message, ChatRequest } from '@/types/chatbot'
 
-export function getConversations(chatbotId: number, params?: PaginationParams) {
-  return get<PaginationResponse<Conversation>>(`/chatbots/${chatbotId}/conversations`, { params })
+export function getConversations(chatbotId: number, params?: { page?: number; pageSize?: number }) {
+  return get<{ records: Conversation[]; total: number }>(`/chatbots/${chatbotId}/conversations`, { params })
 }
 
 export function getConversation(chatbotId: number, conversationId: number) {
-  return get<{ conversation: Conversation; messages: Message[] }>(
-    `/chatbots/${chatbotId}/conversations/${conversationId}`
-  )
+  return get<Conversation & { messages: Message[] }>(`/chatbots/conversations/${conversationId}`)
 }
 
 export function createConversation(chatbotId: number) {
@@ -17,85 +14,54 @@ export function createConversation(chatbotId: number) {
 }
 
 export function deleteConversation(conversationId: number) {
-  return del(`/conversations/${conversationId}`)
+  return del(`/chatbots/conversations/${conversationId}`)
 }
 
 export function sendMessage(data: ChatRequest) {
-  return post<ChatResponse>('/chat', data)
+  return post('/chatbots/chat', data)
 }
 
-export interface MessageCallback {
-  (data: ChatResponse): void
-}
-
-export interface CompleteCallback {
-  (): void
-}
-
-export interface ErrorCallback {
-  (error: Error): void
-}
-
-export function sendMessageStream(
-  data: ChatRequest,
-  onMessage: MessageCallback,
-  onComplete?: CompleteCallback,
-  onError?: ErrorCallback
-): EventSource {
+export function sendMessageStream(data: ChatRequest, onMessage: (message: string) => void, onComplete: () => void, onError: (error: Error) => void): EventSource {
+  const url = `${import.meta.env.VITE_API_BASE_URL}/chatbots/chat/stream`
   const token = localStorage.getItem('ai_studio_token')
-  const baseURL = import.meta.env.VITE_API_BASE_URL
-
-  // Build query parameters for SSE endpoint
-  const params = new URLSearchParams()
-  params.append('chatbotId', data.chatbotId.toString())
-  if (data.conversationId) {
-    params.append('conversationId', data.conversationId.toString())
-  }
-  params.append('message', data.message)
-  params.append('stream', 'true')
-
-  // Add context if provided
-  if (data.context) {
-    params.append('context', JSON.stringify(data.context))
-  }
-
-  // Add token to URL for authentication (EventSource doesn't support custom headers)
-  if (token) {
-    params.append('token', token)
-  }
-
-  const url = `${baseURL}/chat/stream?${params.toString()}`
-
-  // Create EventSource
-  const eventSource = new EventSource(url, {
-    withCredentials: true
+  const params = new URLSearchParams({
+    chatbotId: String(data.chatbotId),
+    message: data.message,
+    ...(data.conversationId && { conversationId: String(data.conversationId) })
   })
 
-  // Register event listeners
-  eventSource.addEventListener('message', event => {
-    try {
-      const data = JSON.parse(event.data) as ChatResponse
-      onMessage(data)
-    } catch (err) {
-      if (onError) {
-        onError(err as Error)
-      }
+  const eventSource = new EventSource(`${url}?${params.toString()}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
     }
-  })
+  } as any)
 
-  eventSource.addEventListener('error', () => {
-    eventSource.close()
-    if (onError) {
-      onError(new Error('Stream connection error'))
-    }
-  })
-
-  eventSource.addEventListener('complete', () => {
-    eventSource.close()
-    if (onComplete) {
+  eventSource.onmessage = (event) => {
+    if (event.data === '[DONE]') {
       onComplete()
+      eventSource.close()
+      return
     }
-  })
+
+    try {
+      const data = JSON.parse(event.data)
+      if (data.content) {
+        onMessage(data.content)
+      }
+      if (data.finished) {
+        onComplete()
+        eventSource.close()
+      }
+    } catch (error) {
+      onError(error as Error)
+      eventSource.close()
+    }
+  }
+
+  eventSource.onerror = (error) => {
+    onError(new Error('Stream connection error'))
+    eventSource.close()
+  }
 
   return eventSource
 }

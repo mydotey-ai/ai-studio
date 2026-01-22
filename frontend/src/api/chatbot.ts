@@ -1,30 +1,29 @@
 import { get, post, put, del } from './request'
 import type {
   Chatbot,
-  ChatbotListItem,
+  ChatbotResponse,
   CreateChatbotRequest,
   UpdateChatbotRequest
 } from '@/types/chatbot'
-import type { PaginationParams, PaginationResponse } from '@/types/common'
 
-export function getChatbots(params?: PaginationParams) {
-  return get<PaginationResponse<ChatbotListItem>>('/chatbots', { params })
+export function getChatbots(params?: { page?: number; pageSize?: number }) {
+  return get('/chatbots/my', { params })
 }
 
-export function getPublishedChatbots(params?: PaginationParams) {
-  return get<PaginationResponse<ChatbotListItem>>('/chatbots/published', { params })
+export function getPublishedChatbots(params?: { page?: number; pageSize?: number }) {
+  return get('/chatbots/published', { params })
 }
 
 export function getChatbot(id: number) {
-  return get<Chatbot>(`/chatbots/${id}`)
+  return get<ChatbotResponse>(`/chatbots/${id}`)
 }
 
 export function createChatbot(data: CreateChatbotRequest) {
-  return post<Chatbot>('/chatbots', data)
+  return post<ChatbotResponse>('/chatbots', data)
 }
 
 export function updateChatbot(id: number, data: UpdateChatbotRequest) {
-  return put<Chatbot>(`/chatbots/${id}`, data)
+  return put<ChatbotResponse>(`/chatbots/${id}`, data)
 }
 
 export function deleteChatbot(id: number) {
@@ -32,9 +31,9 @@ export function deleteChatbot(id: number) {
 }
 
 export function publishChatbot(id: number) {
-  return post(`/chatbots/${id}/publish`)
+  return post<ChatbotResponse>(`/chatbots/${id}/publish`)
 }
 
 export function unpublishChatbot(id: number) {
-  return post(`/chatbots/${id}/unpublish`)
+  return post<ChatbotResponse>(`/chatbots/${id}/unpublish`)
 }

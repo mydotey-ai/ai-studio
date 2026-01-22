@@ -1,82 +1,67 @@
-export interface ChatbotSettings {
-  temperature?: number
-  maxTokens?: number
-  topP?: number
-  topK?: number
-  enableMemory?: boolean
-  enableKnowledgeBase?: boolean
-  knowledgeBaseIds?: number[]
-  enableTools?: boolean
-  toolIds?: number[]
-  welcomeMessage?: string
-  suggestedQuestions?: string[]
-}
-
-export interface ChatbotStyleConfig {
-  primaryColor?: string
-  backgroundColor?: string
-  fontFamily?: string
-  position?: 'bottom-right' | 'bottom-left' | 'custom'
-  customPosition?: { x: number; y: number }
-  headerTitle?: string
-  headerSubtitle?: string
-  avatarUrl?: string
-  showBranding?: boolean
-}
-
 export interface Chatbot {
   id: number
+  agentId: number
   name: string
   description?: string
-  systemPrompt: string
+  welcomeMessage: string
+  avatarUrl?: string
   ownerId: number
-  orgId: number
-  isPublic: boolean
-  isPublished: boolean
   settings: ChatbotSettings
   styleConfig: ChatbotStyleConfig
-  modelConfig: string
+  isPublished: boolean
+  accessCount: number
   createdAt: string
   updatedAt: string
 }
 
+export interface ChatbotSettings {
+  maxHistoryTurns: number
+  showSources: boolean
+  enableStreaming: boolean
+  temperature: number
+  maxTokens: number
+}
+
+export interface ChatbotStyleConfig {
+  themeColor: string
+  backgroundColor: string
+  headerText: string
+  logoUrl?: string
+}
+
 export interface CreateChatbotRequest {
+  agentId: number
   name: string
   description?: string
-  systemPrompt: string
-  isPublic?: boolean
-  settings?: ChatbotSettings
-  styleConfig?: ChatbotStyleConfig
-  modelConfig: string
+  welcomeMessage?: string
+  avatarUrl?: string
+  settings?: Partial<ChatbotSettings>
+  styleConfig?: Partial<ChatbotStyleConfig>
 }
 
 export interface UpdateChatbotRequest {
   name?: string
   description?: string
-  systemPrompt?: string
-  isPublic?: boolean
-  settings?: ChatbotSettings
-  styleConfig?: ChatbotStyleConfig
-  modelConfig?: string
-}
-
-export interface ChatbotListItem extends Chatbot {
-  agentName: string
-  accessCount: number
+  welcomeMessage?: string
+  avatarUrl?: string
+  settings?: Partial<ChatbotSettings>
+  styleConfig?: Partial<ChatbotStyleConfig>
+  isPublished?: boolean
 }
 
 export interface ChatbotResponse {
   id: number
+  agentId: number
+  agentName: string
   name: string
   description?: string
-  systemPrompt: string
+  welcomeMessage: string
+  avatarUrl?: string
   ownerId: number
-  orgId: number
-  isPublic: boolean
-  isPublished: boolean
   settings: ChatbotSettings
   styleConfig: ChatbotStyleConfig
-  modelConfig: string
+  isPublished: boolean
+  accessCount: number
   createdAt: string
   updatedAt: string
 }
@@ -88,25 +73,6 @@ export interface Conversation {
   title?: string
   createdAt: string
   updatedAt: string
-  messageCount?: number
-}
-
-export interface Source {
-  type: 'knowledge_base' | 'tool' | 'url'
-  id?: string
-  name: string
-  content?: string
-  url?: string
-  relevance?: number
-}
-
-export interface ToolCall {
-  id: string
-  name: string
-  arguments: string
-  result?: string
-  status: 'pending' | 'success' | 'error'
-  error?: string
 }
 
 export interface Message {
@@ -116,8 +82,24 @@ export interface Message {
   content: string
   sources?: Source[]
   toolCalls?: ToolCall[]
+  metadata?: Record<string, any>
   createdAt: string
-  metadata?: Record<string, unknown>
+}
+
+export interface Source {
+  documentId: number
+  documentName: string
+  chunkIndex: number
+  content: string
+  similarityScore: number
+}
+
+export interface ToolCall {
+  toolId: number
+  toolName: string
+  arguments: Record<string, any>
+  result?: any
+  error?: string
 }
 
 export interface ChatRequest {
@@ -125,12 +107,15 @@ export interface ChatRequest {
   conversationId?: number
   message: string
   stream?: boolean
-  context?: Record<string, unknown>
 }
 
 export interface ChatResponse {
   conversationId: number
   messageId: number
-  message: Message
-  isComplete: boolean
+  answer: string
+  sources?: Source[]
+  toolCalls?: ToolCall[]
+  model: string
+  totalTokens: number
+  finished: boolean
 }
