@@ -1,5 +1,5 @@
 import { get, post, del } from './request'
-import { storage } from './storage'
+import { storage } from '@/utils/storage'
 import type { Conversation, Message, ChatRequest } from '@/types/chatbot'
 
 export function getConversations(chatbotId: number, params?: { page?: number; pageSize?: number }) {
@@ -58,7 +58,7 @@ export function sendMessageStream(data: ChatRequest, onMessage: (message: string
     }
   }
 
-  eventSource.onerror = (error) => {
+  eventSource.onerror = () => {
     onError(new Error('Stream connection error'))
     eventSource.close()
   }
