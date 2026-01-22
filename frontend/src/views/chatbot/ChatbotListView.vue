@@ -2,7 +2,7 @@
   <div class="chatbot-list">
     <div class="header">
       <h2>聊天机器人</h2>
-      <el-button type="primary" :icon="Plus" @click="showCreateDialog = true">
+      <el-button type="primary" :icon="Plus" @click="openCreateDialog">
         创建聊天机器人
       </el-button>
     </div>
@@ -144,6 +144,14 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateDialog = ref(false)
+
+function openCreateDialog() {
+  if (agents.value.length === 0) {
+    ElMessage.warning('暂无可用的 Agent，请先创建 Agent')
+    return
+  }
+  showCreateDialog.value = true
+}
 const chatbots = ref<Chatbot[]>([])
 const agents = ref<Agent[]>([])
 
@@ -177,6 +185,9 @@ async function loadChatbots() {
     if (data.total) {
       pagination.total = data.total
     }
+  } catch (error) {
+    console.error('Failed to load chatbots:', error)
+    ElMessage.error('加载聊天机器人列表失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -188,6 +199,7 @@ async function loadAgents() {
     agents.value = data.records || data
   } catch (error) {
     console.error('Failed to load agents:', error)
+    ElMessage.error('加载 Agent 列表失败，请稍后重试')
   }
 }
 
@@ -203,7 +215,10 @@ async function handleCreate() {
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
-      loadChatbots()
+      await loadChatbots()
+    } catch (error) {
+      console.error('Failed to create chatbot:', error)
+      ElMessage.error('创建聊天机器人失败，请稍后重试')
     } finally {
       submitting.value = false
     }
@@ -211,12 +226,9 @@ async function handleCreate() {
 }
 
 function resetForm() {
-  form.name = ''
-  form.description = ''
-  form.agentId = undefined
-  form.welcomeMessage = '你好，有什么可以帮助你的吗？'
-  form.avatarUrl = ''
   formRef.value?.resetFields()
+  // Reset to default values
+  form.welcomeMessage = '你好，有什么可以帮助你的吗？'
 }
 
 function handleRowClick(row: Chatbot) {
