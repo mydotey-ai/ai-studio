@@ -1521,14 +1521,18 @@ JWT Secret：环境变量 JWT_SECRET
 
 ### Phase 11: 前端实现 (进行中) ✅
 
-**完成时间：2026-01-21**
+**完成时间：2026-01-22**
 
 **实现内容:**
 - Vue 3 + TypeScript + Vite 项目初始化
 - 基础架构搭建 (路由、状态管理、API 层)
 - 认证界面 (登录、注册、主布局)
 - 知识库管理界面 (列表、详情、文档上传、网页抓取)
+- Agent 管理界面 (列表、详情、测试执行)
+- 聊天机器人界面 (列表、详情、实时聊天)
+- MCP 服务器管理界面 (列表、详情、工具管理)
 - 完整代码质量审查流程
+- 后端 JWT 认证增强 (SSE 支持)
 
 **新增文件:**
 ```
@@ -1561,14 +1565,19 @@ frontend/
     │   ├── auth.ts
     │   ├── knowledge-base.ts
     │   ├── document.ts
-    │   └── agent.ts
+    │   ├── agent.ts
+    │   ├── chatbot.ts
+    │   ├── conversation.ts
+    │   └── mcp.ts
     ├── types/
     │   ├── common.ts
     │   ├── user.ts
     │   ├── knowledge-base.ts
-    │   └── agent.ts
+    │   ├── agent.ts
+    │   └── chatbot.ts
     ├── utils/
-    │   └── storage.ts
+    │   ├── storage.ts
+    │   └── markdown.ts
     ├── layouts/
     │   └── MainLayout.vue
     ├── views/
@@ -1582,9 +1591,21 @@ frontend/
     │   └── agent/
     │       ├── AgentListView.vue
     │       └── AgentDetailView.vue
+    │   ├── chatbot/
+    │   │   ├── ChatbotListView.vue
+    │   │   └── ChatbotDetailView.vue
+    │   └── mcp/
+    │       ├── McpServerListView.vue
+    │       └── McpServerDetailView.vue
     └── components/
-        └── knowledge-base/
-            └── WebCrawlConfig.vue
+        ├── knowledge-base/
+        │   └── WebCrawlConfig.vue
+        ├── chatbot/
+        │   ├── ChatPanel.vue
+        │   └── ConversationsList.vue
+        └── mcp/
+            ├── McpServerForm.vue
+            └── McpToolList.vue
 ```
 
 **技术栈:**
@@ -1610,6 +1631,11 @@ frontend/
 - 网页抓取配置 (任务管理、进度显示)
 - Agent 管理 (列表、详情、CRUD)
 - Agent 测试 (执行面板、思考步骤可视化)
+- 聊天机器人管理 (列表、详情、发布/取消发布)
+- 实时聊天界面 (SSE 流式响应、Markdown 渲染)
+- 对话历史管理 (多会话、历史记录)
+- MCP 服务器管理 (列表、详情、工具同步)
+- MCP 工具可视化 (Schema 查看器)
 
 **代码质量:**
 - ✅ 零 TypeScript 错误
@@ -1660,11 +1686,34 @@ frontend/
    - 知识库绑定 (多选下拉框)
    - 表单验证 (JSON 格式验证、必填字段)
 
+6. ✅ **聊天机器人界面** (Commits: 86f8963, d1ec066, 59ceefa, fc08a4c, 431f62a, 01e48df, d375d8c, 53f7c8d)
+   - Chatbot 类型定义 (Chatbot, Conversation, Message, Source, ToolCall)
+   - Chatbot API 函数 (CRUD + 发布/取消发布)
+   - Conversation API 函数 (列表、创建、删除、发送消息)
+   - SSE 流式响应支持 (EventSource 集成)
+   - Markdown 渲染工具 (markdown-it + highlight.js)
+   - Chatbot 列表视图 (分页、创建对话框、删除确认)
+   - Chatbot 详情视图 (信息展示、编辑、发布管理)
+   - 聊天面板组件 (消息显示、Markdown 渲染、来源引用、工具调用)
+   - 对话历史组件 (列表、创建、删除)
+   - 实时聊天界面 (流式响应、光标动画、自动滚动)
+   - 后端 JWT 过滤器增强 (支持 query parameter 认证)
+   - 类型对齐修复 (前端类型匹配后端 API)
+   - 完整错误处理和边缘情况处理
+
+7. ✅ **MCP 服务器管理界面** (Commits: 3fe0559, 733c34e, c198a26, d53b8d0, ebebdc6, 00db636, 2098d09, 892091c)
+   - MCP 类型定义 (McpServer, McpTool, 连接类型)
+   - MCP API 函数 (CRUD + 同步 + 测试连接)
+   - MCP 服务器列表视图 (分页、创建、删除)
+   - MCP 服务器表单组件 (动态字段、STDIO/HTTP 配置)
+   - MCP 工具列表组件 (Schema 可视化、属性显示)
+   - MCP 服务器详情视图 (标签页、工具列表)
+   - 完整代码质量审查流程
+
 **下一步计划:**
-- 聊天机器人界面
-- MCP 服务器配置界面
 - 系统设置界面
 - 仪表盘完善
+- 数据可视化仪表盘
 
 **前端技术特点:**
 - 响应式设计
@@ -1681,9 +1730,9 @@ frontend/
 - 类型安全检查: ✅ 100%
 
 **提交统计:**
-- 9 个主要提交
-- 28+ 个源文件
-- ~3,500 行代码
+- 30+ 个主要提交
+- 50+ 个源文件
+- ~6,000 行代码
 - 构建大小: ~1.17 MB (gzip: ~364 KB)
 
 ---
