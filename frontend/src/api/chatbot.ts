@@ -1,16 +1,15 @@
 import { get, post, put, del } from './request'
 import type {
-  Chatbot,
   ChatbotResponse,
   CreateChatbotRequest,
   UpdateChatbotRequest
 } from '@/types/chatbot'
 
-export function getChatbots(params?: { page?: number; pageSize?: number }) {
+export function getChatbots(params?: { page?: number; pageSize?: number }): Promise<ChatbotResponse[]> {
   return get('/chatbots/my', { params })
 }
 
-export function getPublishedChatbots(params?: { page?: number; pageSize?: number }) {
+export function getPublishedChatbots(params?: { page?: number; pageSize?: number }): Promise<ChatbotResponse[]> {
   return get('/chatbots/published', { params })
 }
 

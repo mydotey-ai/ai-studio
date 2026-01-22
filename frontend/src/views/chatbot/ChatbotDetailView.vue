@@ -298,7 +298,7 @@ async function handleSendMessage(messageText: string) {
 async function handleSelectConversation(conversationId: number) {
   currentConversationId.value = conversationId
   try {
-    const data = await getConversation(chatbotId.value, conversationId)
+    const data = await getConversation(conversationId)
     messages.value = data.messages || []
   } catch (error) {
     ElMessage.error('加载对话失败')

@@ -1,11 +1,12 @@
 import { get, post, del } from './request'
+import { storage } from './storage'
 import type { Conversation, Message, ChatRequest } from '@/types/chatbot'
 
 export function getConversations(chatbotId: number, params?: { page?: number; pageSize?: number }) {
   return get<{ records: Conversation[]; total: number }>(`/chatbots/${chatbotId}/conversations`, { params })
 }
 
-export function getConversation(chatbotId: number, conversationId: number) {
+export function getConversation(conversationId: number) {
   return get<Conversation & { messages: Message[] }>(`/chatbots/conversations/${conversationId}`)
 }
 
@@ -23,18 +24,21 @@ export function sendMessage(data: ChatRequest) {
 
 export function sendMessageStream(data: ChatRequest, onMessage: (message: string) => void, onComplete: () => void, onError: (error: Error) => void): EventSource {
   const url = `${import.meta.env.VITE_API_BASE_URL}/chatbots/chat/stream`
-  const token = localStorage.getItem('ai_studio_token')
+  let token: string | null = null
+  try {
+    token = storage.getToken()
+  } catch (error) {
+    console.warn('Failed to get token from storage:', error)
+  }
+
   const params = new URLSearchParams({
     chatbotId: String(data.chatbotId),
     message: data.message,
-    ...(data.conversationId && { conversationId: String(data.conversationId) })
+    ...(data.conversationId && { conversationId: String(data.conversationId) }),
+    ...(token && { token })
   })
 
-  const eventSource = new EventSource(`${url}?${params.toString()}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  } as any)
+  const eventSource = new EventSource(`${url}?${params.toString()}`)
 
   eventSource.onmessage = (event) => {
     if (event.data === '[DONE]') {
@@ -44,13 +48,9 @@ export function sendMessageStream(data: ChatRequest, onMessage: (message: string
     }
 
     try {
-      const data = JSON.parse(event.data)
-      if (data.content) {
-        onMessage(data.content)
-      }
-      if (data.finished) {
-        onComplete()
-        eventSource.close()
+      const data = event.data
+      if (data) {
+        onMessage(data)
       }
     } catch (error) {
       onError(error as Error)

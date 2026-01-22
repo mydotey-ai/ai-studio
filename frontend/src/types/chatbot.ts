@@ -115,7 +115,5 @@ export interface ChatResponse {
   answer: string
   sources?: Source[]
   toolCalls?: ToolCall[]
-  model: string
-  totalTokens: number
-  finished: boolean
+  isComplete?: boolean
 }
