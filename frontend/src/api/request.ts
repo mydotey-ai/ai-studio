@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import router from '@/router'
 import { ErrorCode } from '@/types/common'
+import { apiCache } from '@/utils/cache'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL
 
@@ -14,8 +15,33 @@ const service: AxiosInstance = axios.create({
 // Request interceptor
 service.interceptors.request.use(
   config => {
+    // Skip cache for non-GET requests
+    if (config.method?.toLowerCase() !== 'get') {
+      config.headers = config.headers || {}
+      config.headers['X-Skip-Cache'] = 'true'
+      const userStore = useUserStore()
+      if (userStore.token) {
+        config.headers.Authorization = `Bearer ${userStore.token}`
+      }
+      return config
+    }
+
+    // Check cache
+    const cacheKey = `${config.url}?${JSON.stringify(config.params || {})}`
+    const cachedData = apiCache.get(cacheKey)
+
+    if (cachedData && !config.headers?.['X-Skip-Cache']) {
+      // Return cached data immediately
+      return Promise.reject({
+        __cached: true,
+        data: cachedData,
+        config
+      })
+    }
+
     const userStore = useUserStore()
     if (userStore.token) {
+      config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${userStore.token}`
     }
     return config
@@ -38,6 +64,18 @@ service.interceptors.response.use(
 
     const { code, message, result } = data
 
+    // Cache GET requests
+    if (response.config.method?.toLowerCase() === 'get' &&
+        response.status === 200 &&
+        !response.config.headers?.['X-Skip-Cache']) {
+      const cacheKey = `${response.config.url}?${JSON.stringify(response.config.params || {})}`
+      const ttl = (response.config as any).cacheTTL || 5 * 60 * 1000 // 5 minutes default
+
+      // Cache the result if it exists, otherwise cache the whole data
+      const dataToCache = result !== undefined ? result : data
+      apiCache.set(cacheKey, dataToCache, ttl)
+    }
+
     // Check if response uses { code, message, result } format
     if (code === ErrorCode.SUCCESS || code === 0) {
       return result ?? data
@@ -52,6 +90,17 @@ service.interceptors.response.use(
     return Promise.reject(new Error(message || '请求失败'))
   },
   error => {
+    // Handle cached responses
+    if (error.__cached) {
+      return Promise.resolve({
+        data: error.data,
+        status: 200,
+        statusText: 'OK (Cached)',
+        config: error.config,
+        headers: {}
+      })
+    }
+
     const { response } = error
 
     if (response) {
