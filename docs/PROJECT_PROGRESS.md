@@ -1570,7 +1570,8 @@ frontend/
     │   ├── conversation.ts
     │   ├── mcp.ts
     │   ├── storage.ts
-    │   └── dashboard.ts
+    │   ├── dashboard.ts
+    │   └── file.ts
     ├── types/
     │   ├── common.ts
     │   ├── user.ts
@@ -1578,10 +1579,12 @@ frontend/
     │   ├── agent.ts
     │   ├── chatbot.ts
     │   ├── storage.ts
-    │   └── dashboard.ts
+    │   ├── dashboard.ts
+    │   └── file.ts
     ├── utils/
     │   ├── storage.ts
-    │   └── markdown.ts
+    │   ├── markdown.ts
+    │   └── file.ts
     ├── layouts/
     │   └── MainLayout.vue
     ├── views/
@@ -1592,15 +1595,19 @@ frontend/
     │   ├── knowledge-base/
     │   │   ├── KnowledgeBaseListView.vue
     │   │   └── KnowledgeBaseDetailView.vue
-    │   └── agent/
-    │       ├── AgentListView.vue
-    │       └── AgentDetailView.vue
+    │   ├── agent/
+    │   │   ├── AgentListView.vue
+    │   │   └── AgentDetailView.vue
     │   ├── chatbot/
     │   │   ├── ChatbotListView.vue
     │   │   └── ChatbotDetailView.vue
-    │   └── mcp/
-    │       ├── McpServerListView.vue
-    │       └── McpServerDetailView.vue
+    │   ├── mcp/
+    │   │   ├── McpServerListView.vue
+    │   │   └── McpServerDetailView.vue
+    │   ├── file/
+    │   │   └── FileListView.vue
+    │   └── settings/
+    │       └── SettingsView.vue
     └── components/
         ├── knowledge-base/
         │   └── WebCrawlConfig.vue
@@ -1610,10 +1617,14 @@ frontend/
         ├── mcp/
         │   ├── McpServerForm.vue
         │   └── McpToolList.vue
-        └── dashboard/
-            ├── StatCard.vue
-            ├── ResourcePieChart.vue
-            └── ActivityTimeline.vue
+        ├── dashboard/
+        │   ├── StatCard.vue
+        │   ├── ResourcePieChart.vue
+        │   ├── ActivityTimeline.vue
+        │   └── TrendChart.vue
+        └── file/
+            ├── FileUploadDialog.vue
+            └── FilePreviewDialog.vue
 ```
 
 **后端新增文件:**
@@ -1669,7 +1680,8 @@ src/main/java/com/mydotey/ai/studio/
 - MCP 服务器管理 (列表、详情、工具同步)
 - MCP 工具可视化 (Schema 查看器)
 - 系统设置界面 (审计日志、存储配置)
-- 数据可视化仪表盘 (统计卡片、资源分布图、活动时间线)
+- 数据可视化仪表盘 (统计卡片、资源分布图、活动时间线、趋势图表)
+- 文件管理界面 (列表、上传、预览、下载、批量操作)
 
 **代码质量:**
 - ✅ 零 TypeScript 错误
@@ -1783,9 +1795,19 @@ src/main/java/com/mydotey/ai/studio/
    - 超级管理员专属权限控制
    - 防止修改自己角色的保护机制
 
+12. ✅ **文件管理界面** (Commits: b7093cf, be9e597, d36613d, 5c2a6db, eb020d9, 114469e)
+   - 文件管理类型定义 (FileMetadata, FileUploadResponse, FileUploadRequest, FileListQuery)
+   - 文件管理 API 客户端 (7 个方法: uploadFile, getFileMetadata, getMyFiles, getRelatedFiles, getFileUrl, getDownloadUrl, deleteFile)
+   - 文件列表视图 (搜索、过滤、批量操作、分页)
+   - 文件上传对话框 (拖拽上传、进度显示、关联实体选择)
+   - 文件预览对话框 (图片、PDF、文本预览支持)
+   - 文件工具函数 (formatFileSize, formatDate, getFileIcon, canPreview, validateFileSize, validateFileType)
+   - 文件管理路由集成 (/files 路径)
+   - 变量命名冲突修复 (previewFile → openPreviewDialog)
+   - API 响应处理修复 (移除 .data 访问)
+
 **下一步计划:**
 - 性能优化和缓存
-- 文件管理界面
 - 数据导入导出功能
 
 **前端技术特点:**
@@ -1803,9 +1825,9 @@ src/main/java/com/mydotey/ai/studio/
 - 类型安全检查: ✅ 100%
 
 **提交统计:**
-- 50+ 个主要提交
-- 70+ 个源文件
-- ~8,000 行代码
+- 60+ 个主要提交
+- 80+ 个源文件
+- ~9,000 行代码
 - 构建大小: ~1.22 MB (gzip: ~391 KB)
 
 ---
