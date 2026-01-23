@@ -4,8 +4,10 @@ import type { User, UserStatus } from '@/types/user'
 export interface UpdateUserRequest {
   username?: string
   email?: string
-  currentPassword?: string
+  avatarUrl?: string
+  role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN'
   newPassword?: string
+  currentPassword?: string
 }
 
 export const userApi = {
