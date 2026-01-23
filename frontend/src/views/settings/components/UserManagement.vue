@@ -63,6 +63,25 @@
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="editForm.email" />
         </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-select
+            v-model="editForm.role"
+            placeholder="请选择角色"
+            :disabled="!canModifyRole"
+            style="width: 100%"
+          >
+            <el-option label="普通用户" value="USER" />
+            <el-option label="管理员" value="ADMIN" />
+            <el-option
+              label="超级管理员"
+              value="SUPER_ADMIN"
+              :disabled="!canAssignSuperAdmin"
+            />
+          </el-select>
+          <el-text v-if="!canModifyRole" type="info" size="small">
+            只有管理员才能修改角色
+          </el-text>
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -74,12 +93,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { userApi } from '@/api/user'
 import type { User } from '@/types/user'
-import { UserStatus } from '@/types/user'
+import { UserStatus, UserRole } from '@/types/user'
 import dayjs from 'dayjs'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+
+// 检查是否可以修改为超级管理员
+const canAssignSuperAdmin = computed(() => {
+  return userStore.userInfo?.role === 'SUPER_ADMIN'
+})
+
+// 检查是否可以修改角色
+const canModifyRole = computed(() => {
+  const currentUserRole = userStore.userInfo?.role
+  return currentUserRole === 'ADMIN' || currentUserRole === 'SUPER_ADMIN'
+})
 
 const users = ref<User[]>([])
 const loading = ref(false)
@@ -90,7 +123,8 @@ const editFormRef = ref<FormInstance>()
 const editForm = ref<Partial<User>>({
   id: 0,
   username: '',
-  email: ''
+  email: '',
+  role: UserRole.USER
 })
 
 const editRules: FormRules = {
@@ -126,7 +160,8 @@ const handleSave = async () => {
     saving.value = true
     try {
       await userApi.updateUser(editForm.value.id!, {
-        email: editForm.value.email
+        email: editForm.value.email,
+        role: editForm.value.role
       })
       ElMessage.success('更新成功')
       editDialogVisible.value = false
@@ -231,5 +266,10 @@ onMounted(() => {
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
+}
+
+.el-text {
+  margin-top: 4px;
+  display: block;
 }
 </style>
