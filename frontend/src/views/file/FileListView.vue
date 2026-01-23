@@ -76,7 +76,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button-group>
-              <el-button size="small" @click="previewFile(row)">
+              <el-button size="small" @click="openPreviewDialog(row)">
                 预览
               </el-button>
               <el-button size="small" @click="downloadFile(row)">
@@ -112,7 +112,7 @@
     <!-- 预览对话框 -->
     <FilePreviewDialog
       v-model="showPreviewDialog"
-      :file="previewFile"
+      :file="selectedPreviewFile"
     />
   </div>
 </template>
@@ -134,7 +134,7 @@ const storageTypeFilter = ref('')
 const selectedFiles = ref<FileMetadata[]>([])
 const showUploadDialog = ref(false)
 const showPreviewDialog = ref(false)
-const previewFile = ref<FileMetadata | null>(null)
+const selectedPreviewFile = ref<FileMetadata | null>(null)
 
 // 过滤后的文件列表
 const filteredFiles = computed(() => {
@@ -173,8 +173,8 @@ const handleSelectionChange = (selection: FileMetadata[]) => {
 }
 
 // 预览文件
-const previewFile = (file: FileMetadata) => {
-  previewFile.value = file
+const openPreviewDialog = (file: FileMetadata) => {
+  selectedPreviewFile.value = file
   showPreviewDialog.value = true
 }
 
