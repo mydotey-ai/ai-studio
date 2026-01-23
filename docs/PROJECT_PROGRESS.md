@@ -1,6 +1,6 @@
 # AI Studio 项目进度
 
-> 最后更新：2026-01-21
+> 最后更新：2026-01-23
 
 ## 项目概述
 
@@ -1568,13 +1568,17 @@ frontend/
     │   ├── agent.ts
     │   ├── chatbot.ts
     │   ├── conversation.ts
-    │   └── mcp.ts
+    │   ├── mcp.ts
+    │   ├── storage.ts
+    │   └── dashboard.ts
     ├── types/
     │   ├── common.ts
     │   ├── user.ts
     │   ├── knowledge-base.ts
     │   ├── agent.ts
-    │   └── chatbot.ts
+    │   ├── chatbot.ts
+    │   ├── storage.ts
+    │   └── dashboard.ts
     ├── utils/
     │   ├── storage.ts
     │   └── markdown.ts
@@ -1603,9 +1607,35 @@ frontend/
         ├── chatbot/
         │   ├── ChatPanel.vue
         │   └── ConversationsList.vue
-        └── mcp/
-            ├── McpServerForm.vue
-            └── McpToolList.vue
+        ├── mcp/
+        │   ├── McpServerForm.vue
+        │   └── McpToolList.vue
+        └── dashboard/
+            ├── StatCard.vue
+            ├── ResourcePieChart.vue
+            └── ActivityTimeline.vue
+```
+
+**后端新增文件:**
+```
+src/main/java/com/mydotey/ai/studio/
+├── dto/dashboard/
+│   ├── KnowledgeBaseStats.java
+│   ├── AgentStats.java
+│   ├── ChatbotStats.java
+│   ├── DocumentStats.java
+│   ├── UserStats.java
+│   ├── StorageStats.java
+│   ├── DashboardStatisticsDTO.java
+│   ├── TrendDataDTO.java
+│   ├── ActivityDTO.java
+│   └── HealthStatusDTO.java
+├── service/
+│   ├── DashboardService.java
+│   └── dashboard/
+│       └── StatCalculator.java
+└── controller/
+    └── DashboardController.java
 ```
 
 **技术栈:**
@@ -1617,6 +1647,8 @@ frontend/
 - Vue Router 4.6+ (路由)
 - Axios 1.13+ (HTTP 客户端)
 - Dayjs (日期格式化)
+- ECharts 5.5+ (数据可视化)
+- vue-echarts 6.6+ (Vue 3 集成)
 
 **核心功能:**
 - 项目配置和构建系统
@@ -1636,6 +1668,8 @@ frontend/
 - 对话历史管理 (多会话、历史记录)
 - MCP 服务器管理 (列表、详情、工具同步)
 - MCP 工具可视化 (Schema 查看器)
+- 系统设置界面 (审计日志、存储配置)
+- 数据可视化仪表盘 (统计卡片、资源分布图、活动时间线)
 
 **代码质量:**
 - ✅ 零 TypeScript 错误
@@ -1710,10 +1744,32 @@ frontend/
    - MCP 服务器详情视图 (标签页、工具列表)
    - 完整代码质量审查流程
 
+8. ✅ **系统设置界面** (Commits: e2afc16, f788df2, 17d7bde)
+   - 审计日志和存储配置类型定义
+   - 审计日志查询 API (分页、过滤、时间范围)
+   - 审计日志 API 函数 (类型对齐)
+   - 系统设置界面 (审计日志列表、存储配置管理)
+   - 验证和错误处理改进
+   - 完整代码质量审查流程
+
+9. ✅ **数据可视化仪表盘** (Commits: 614cbed, 8add2cc, bb0968f, 11bde28, c755acb, f30bbf8, 6295228, 35732f2, f60bde3, 102a64a)
+   - 后端 Dashboard DTOs (10 个统计 DTO 类)
+   - DashboardService (统计计算服务)
+   - StatCalculator (辅助计算类)
+   - DashboardController (4 个 REST API 端点)
+   - 前端依赖安装 (ECharts 5.5 + vue-echarts 6.6)
+   - Dashboard 类型定义 (TypeScript)
+   - Dashboard API 客户端
+   - StatCard 组件 (可重用统计卡片)
+   - ResourcePieChart 组件 (ECharts 环形图)
+   - ActivityTimeline 组件 (活动时间线)
+   - DashboardView 主视图 (6 个统计卡片 + 图表 + 自动刷新)
+   - 完整测试覆盖 (前端构建 ✅, 后端编译 ✅)
+
 **下一步计划:**
-- 系统设置界面
-- 仪表盘完善
-- 数据可视化仪表盘
+- 仪表盘完善（趋势图表）
+- 性能优化和缓存
+- 用户权限界面
 
 **前端技术特点:**
 - 响应式设计
@@ -1730,9 +1786,9 @@ frontend/
 - 类型安全检查: ✅ 100%
 
 **提交统计:**
-- 30+ 个主要提交
-- 50+ 个源文件
-- ~6,000 行代码
-- 构建大小: ~1.17 MB (gzip: ~364 KB)
+- 50+ 个主要提交
+- 70+ 个源文件
+- ~8,000 行代码
+- 构建大小: ~1.22 MB (gzip: ~391 KB)
 
 ---
