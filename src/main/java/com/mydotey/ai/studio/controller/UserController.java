@@ -33,6 +33,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @AuditLog(action = "USER_UPDATE", resourceType = "User", resourceIdParam = "id")
     public ApiResponse<Void> updateUser(
             @PathVariable Long id,
