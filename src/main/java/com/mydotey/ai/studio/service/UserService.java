@@ -103,6 +103,31 @@ public class UserService {
             user.setPasswordHash(passwordUtil.encode(request.getNewPassword()));
         }
 
+        // 更新角色 - 需要管理员权限
+        if (request.getRole() != null && !request.getRole().isEmpty()) {
+            // 验证角色值
+            if (!"USER".equals(request.getRole()) &&
+                !"ADMIN".equals(request.getRole()) &&
+                !"SUPER_ADMIN".equals(request.getRole())) {
+                throw new BusinessException("Invalid role value");
+            }
+
+            // 只有超级管理员可以分配/修改超级管理员角色
+            if ("SUPER_ADMIN".equals(request.getRole())) {
+                String operatorRole = getUserRole(currentUserId);
+                if (!"SUPER_ADMIN".equals(operatorRole)) {
+                    throw new BusinessException("Only super admin can assign super admin role");
+                }
+            }
+
+            // 管理员不能将自己的角色降级
+            if (userId.equals(currentUserId) && !"SUPER_ADMIN".equals(getUserRole(currentUserId))) {
+                throw new BusinessException("Cannot modify your own role");
+            }
+
+            user.setRole(request.getRole());
+        }
+
         userMapper.updateById(user);
     }
 
