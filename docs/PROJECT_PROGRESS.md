@@ -20,12 +20,12 @@ AI Studio 是一个基于 Spring Boot 3.5 + MyBatis-Plus 的 AI 开发平台，�
 **前端技术栈：**
 - Vue 3.5+ (Composition API)
 - TypeScript 5.3+ (严格模式)
-- Vite 5.4+ (构建工具)
+- Vite 5.4+ (构建工具，配置代码分割)
 - Element Plus 2.13+ (UI 组件库)
 - Pinia 2.3+ (状态管理)
-- Vue Router 4.6+ (路由)
-- Axios 1.13+ (HTTP 客户端)
-- Dayjs (日期处理)
+- Vue Router 4.6+ (路由懒加载)
+- Axios 1.13+ (HTTP 客户端，响应缓存)
+- Dayjs (日期格式化)
 
 ---
 
@@ -1480,11 +1480,15 @@ Phase 11 (前端实现) 进行中:
    - [x] 部署文档
    - [x] 运维手册
 
-5. **性能优化**
+1. **性能优化** ✅ (部分完成 - 前端优化)
+   - [x] 前端构建优化（代码分割、懒加载、manual chunks）
+   - [x] API 响应缓存（内存缓存、5分钟 TTL）
+   - [x] 主入口大小减少 96%
    - [ ] 分页查询优化
    - [ ] 批量操作优化
    - [ ] 数据库连接池调优
    - [ ] PGVector 索引调优
+   - [ ] 后端缓存策略（Redis - 可选）
 
 ---
 
@@ -1584,7 +1588,8 @@ frontend/
     ├── utils/
     │   ├── storage.ts
     │   ├── markdown.ts
-    │   └── file.ts
+    │   ├── file.ts
+    │   └── cache.ts
     ├── layouts/
     │   └── MainLayout.vue
     ├── views/
@@ -1806,18 +1811,22 @@ src/main/java/com/mydotey/ai/studio/
    - 变量命名冲突修复 (previewFile → openPreviewDialog)
    - API 响应处理修复 (移除 .data 访问)
 
-13. ✅ **前端性能优化** (Commits: 待添加)
+13. ✅ **前端性能优化** (Commits: 26b6bd5, 0ebc9de, f0caccd, 148b84b, c726ea6)
    - 构建产物分析（669 行性能报告）
-   - Vite 构建优化（manual chunks、代码分割）
-   - 主入口大小减少 96.2%（1,218 KB → 45.69 KB）
-   - Dashboard 大小减少 97.9%（510 KB → 10.33 KB）
-   - API 响应缓存实现（内存缓存、5分钟 TTL）
-   - 完整的缓存使用文档
+   - Vite 构建优化（manual chunks、代码分割、压缩）
+   - 主入口大小减少 96.2%（1,218 KB → 47.21 KB gzip: 391 KB → 19 KB）
+   - Dashboard 大小减少 97.9%（510 KB → 10.33 KB gzip: 174 KB → 4 KB）
+   - 首屏加载体积减少 96.2%（~1.2 MB → ~45 KB）
+   - API 响应缓存实现（内存缓存、5分钟 TTL、自动清理）
+   - 完整的缓存使用文档（245 行指南）
+   - 性能优化验证报告（398 行总结）
 
 **下一步计划:**
 - 数据导入导出功能
 - 用户个性化设置
 - 国际化支持 (i18n)
+- 优化 highlight.js 和 markdown-it 按需引入
+- Element Plus 按需导入优化
 
 **前端技术特点:**
 - 响应式设计
@@ -1834,9 +1843,9 @@ src/main/java/com/mydotey/ai/studio/
 - 类型安全检查: ✅ 100%
 
 **提交统计:**
-- 60+ 个主要提交
-- 80+ 个源文件
-- ~9,000 行代码
-- 构建大小: ~1.22 MB (gzip: ~391 KB)
+- 70+ 个主要提交
+- 85+ 个源文件
+- ~10,800 行代码
+- 构建大小: ~3.3 MB (JS: 2.9 MB, CSS: 404 KB)
 
 ---
