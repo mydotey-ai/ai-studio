@@ -1,11 +1,6 @@
 <template>
   <div class="resource-pie-chart">
-    <v-chart
-      class="chart"
-      :option="chartOption"
-      :loading="loading"
-      autoresize
-    />
+    <v-chart class="chart" :option="chartOption" :loading="loading" autoresize />
   </div>
 </template>
 

@@ -73,7 +73,7 @@ const trendIcon = computed(() => {
 
 .card-hoverable:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   cursor: pointer;
 }
 
@@ -118,16 +118,16 @@ const trendIcon = computed(() => {
 }
 
 .trend-up {
-  color: #67C23A;
+  color: #67c23a;
 }
 
 .trend-down {
-  color: #F56C6C;
+  color: #f56c6c;
 }
 
 .stat-subtitle {
   font-size: 12px;
-  color: #C0C4CC;
+  color: #c0c4cc;
   margin-top: 4px;
 }
 </style>

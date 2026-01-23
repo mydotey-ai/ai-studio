@@ -1,10 +1,5 @@
 import { get } from './request'
-import type {
-  DashboardStatistics,
-  TrendData,
-  Activity,
-  HealthStatus
-} from '@/types/dashboard'
+import type { DashboardStatistics, TrendData, Activity, HealthStatus } from '@/types/dashboard'
 
 export const dashboardApi = {
   // 获取统计数据汇总

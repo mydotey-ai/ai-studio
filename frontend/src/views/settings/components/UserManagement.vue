@@ -72,15 +72,9 @@
           >
             <el-option label="普通用户" value="USER" />
             <el-option label="管理员" value="ADMIN" />
-            <el-option
-              label="超级管理员"
-              value="SUPER_ADMIN"
-              :disabled="!canAssignSuperAdmin"
-            />
+            <el-option label="超级管理员" value="SUPER_ADMIN" :disabled="!canAssignSuperAdmin" />
           </el-select>
-          <el-text v-if="!canModifyRole" type="info" size="small">
-            只有管理员才能修改角色
-          </el-text>
+          <el-text v-if="!canModifyRole" type="info" size="small"> 只有管理员才能修改角色 </el-text>
         </el-form-item>
       </el-form>
 

@@ -53,14 +53,14 @@
           <template #header>
             <div class="card-header">
               <span>趋势分析</span>
-              <el-radio-group v-model="trendDays" @change="loadTrends" size="small">
+              <el-radio-group v-model="trendDays" size="small" @change="loadTrends">
                 <el-radio-button :label="7">近 7 天</el-radio-button>
                 <el-radio-button :label="14">近 14 天</el-radio-button>
                 <el-radio-button :label="30">近 30 天</el-radio-button>
               </el-radio-group>
             </div>
           </template>
-          <TrendChart :data="trends" :loading="trendsLoading" v-if="trends.length > 0" />
+          <TrendChart v-if="trends.length > 0" :data="trends" :loading="trendsLoading" />
           <el-empty v-else description="暂无趋势数据" />
         </el-card>
       </el-col>

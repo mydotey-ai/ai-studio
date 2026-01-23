@@ -157,8 +157,7 @@ const filteredFiles = computed(() => {
 const loadFiles = async () => {
   loading.value = true
   try {
-    const response = await fileApi.getMyFiles()
-    files.value = response.data
+    files.value = await fileApi.getMyFiles()
   } catch (error) {
     ElMessage.error('加载文件列表失败')
     console.error(error)

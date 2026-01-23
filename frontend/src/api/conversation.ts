@@ -3,7 +3,9 @@ import { storage } from '@/utils/storage'
 import type { Conversation, Message, ChatRequest } from '@/types/chatbot'
 
 export function getConversations(chatbotId: number, params?: { page?: number; pageSize?: number }) {
-  return get<{ records: Conversation[]; total: number }>(`/chatbots/${chatbotId}/conversations`, { params })
+  return get<{ records: Conversation[]; total: number }>(`/chatbots/${chatbotId}/conversations`, {
+    params
+  })
 }
 
 export function getConversation(conversationId: number) {
@@ -22,7 +24,12 @@ export function sendMessage(data: ChatRequest) {
   return post('/chatbots/chat', data)
 }
 
-export function sendMessageStream(data: ChatRequest, onMessage: (message: string) => void, onComplete: () => void, onError: (error: Error) => void): EventSource {
+export function sendMessageStream(
+  data: ChatRequest,
+  onMessage: (message: string) => void,
+  onComplete: () => void,
+  onError: (error: Error) => void
+): EventSource {
   const url = `${import.meta.env.VITE_API_BASE_URL}/chatbots/chat/stream`
   let token: string | null = null
   try {
@@ -40,7 +47,7 @@ export function sendMessageStream(data: ChatRequest, onMessage: (message: string
 
   const eventSource = new EventSource(`${url}?${params.toString()}`)
 
-  eventSource.onmessage = (event) => {
+  eventSource.onmessage = event => {
     if (event.data === '[DONE]') {
       onComplete()
       eventSource.close()

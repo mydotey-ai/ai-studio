@@ -2,17 +2,15 @@
   <div class="chatbot-list">
     <div class="header">
       <h2>聊天机器人</h2>
-      <el-button type="primary" :icon="Plus" @click="openCreateDialog">
-        创建聊天机器人
-      </el-button>
+      <el-button type="primary" :icon="Plus" @click="openCreateDialog"> 创建聊天机器人 </el-button>
     </div>
 
     <el-table
       :data="chatbots"
       :loading="loading"
       stripe
-      @row-click="handleRowClick"
       style="cursor: pointer"
+      @row-click="handleRowClick"
     >
       <el-table-column label="头像" width="80">
         <template #default="{ row }">
@@ -69,35 +67,16 @@
     </div>
 
     <!-- Create Dialog -->
-    <el-dialog
-      v-model="showCreateDialog"
-      title="创建聊天机器人"
-      width="600px"
-      @close="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
+    <el-dialog v-model="showCreateDialog" title="创建聊天机器人" width="600px" @close="resetForm">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入聊天机器人名称" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入描述"
-          />
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
         <el-form-item label="绑定 Agent" prop="agentId">
-          <el-select
-            v-model="form.agentId"
-            placeholder="请选择 Agent"
-            style="width: 100%"
-          >
+          <el-select v-model="form.agentId" placeholder="请选择 Agent" style="width: 100%">
             <el-option
               v-for="agent in agents"
               :key="agent.id"
@@ -120,9 +99,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleCreate">
-          创建
-        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleCreate"> 创建 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -212,7 +189,7 @@ async function loadAgents() {
 async function handleCreate() {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
 
     // Ensure agentId is defined (validation should have already checked this)

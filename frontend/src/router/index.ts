@@ -75,6 +75,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'MCP服务器详情', hidden: true }
       },
       {
+        path: 'files',
+        name: 'Files',
+        component: () => import('@/views/file/FileListView.vue'),
+        meta: { title: '文件管理', icon: 'Folder' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/SettingsView.vue'),

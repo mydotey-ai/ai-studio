@@ -104,8 +104,7 @@ const loadPreview = async () => {
 
   try {
     // 获取文件 URL
-    const response = await fileApi.getFileUrl(props.file.id, 3600)
-    previewUrl.value = response.data
+    previewUrl.value = await fileApi.getFileUrl(props.file.id, 3600)
 
     // 如果是文本文件，加载内容
     if (isText.value) {

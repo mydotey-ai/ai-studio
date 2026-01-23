@@ -143,7 +143,7 @@ const handleUpload = async () => {
 }
 
 // 上传成功
-const handleSuccess = (response: any) => {
+const handleSuccess = () => {
   ElMessage.success('上传成功')
   emit('uploaded')
   visible.value = false

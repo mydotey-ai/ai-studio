@@ -9,11 +9,7 @@ export const fileApi = {
    * @param relatedEntityId Optional related entity ID
    * @returns Upload response with file metadata and URL
    */
-  uploadFile(
-    file: File,
-    relatedEntityType?: string,
-    relatedEntityId?: number
-  ) {
+  uploadFile(file: File, relatedEntityType?: string, relatedEntityId?: number) {
     const formData = new FormData()
     formData.append('file', file)
     if (relatedEntityType) {
@@ -64,7 +60,9 @@ export const fileApi = {
    * @returns Signed URL for file access
    */
   getFileUrl(id: number, expirationSeconds: number = 3600) {
-    return get<string>(`/files/${id}/url?expirationSeconds=${expirationSeconds}`)
+    return get<string>(`/files/${id}/url`, {
+      params: { expirationSeconds }
+    })
   },
 
   /**

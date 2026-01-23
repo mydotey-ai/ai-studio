@@ -1,11 +1,6 @@
 <template>
   <div class="trend-chart">
-    <v-chart
-      class="chart"
-      :option="chartOption"
-      :loading="loading"
-      autoresize
-    />
+    <v-chart class="chart" :option="chartOption" :loading="loading" autoresize />
   </div>
 </template>
 
@@ -22,13 +17,7 @@ import {
 } from 'echarts/components'
 import type { TrendData } from '@/types/dashboard'
 
-use([
-  LineChart,
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent
-])
+use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent])
 
 interface Props {
   data: TrendData[]
