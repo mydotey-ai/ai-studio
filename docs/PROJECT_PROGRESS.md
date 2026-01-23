@@ -1774,9 +1774,17 @@ src/main/java/com/mydotey/ai/studio/
    - DashboardView 集成和刷新支持
    - 响应式布局适配
 
+11. ✅ **用户角色分配功能** (Commits: d1bd359, b70bad4, 2614e0f, a515fe0, 1101784)
+   - 后端 UpdateUserRequest 添加角色字段
+   - UserService 角色更新逻辑和权限验证
+   - UserController 添加权限注解
+   - 前端 UpdateUserRequest 类型同步
+   - 用户编辑对话框添加角色选择
+   - 超级管理员专属权限控制
+   - 防止修改自己角色的保护机制
+
 **下一步计划:**
 - 性能优化和缓存
-- 用户权限界面增强（添加角色分配功能）
 - 文件管理界面
 - 数据导入导出功能
 
