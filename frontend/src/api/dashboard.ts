@@ -1,4 +1,4 @@
-import request from './request'
+import { get } from './request'
 import type {
   DashboardStatistics,
   TrendData,
@@ -8,34 +8,22 @@ import type {
 
 export const dashboardApi = {
   // 获取统计数据汇总
-  getStatistics() {
-    return request<DashboardStatistics>({
-      url: '/dashboard/statistics',
-      method: 'get'
-    })
+  getStatistics(): Promise<DashboardStatistics> {
+    return get('/dashboard/statistics')
   },
 
   // 获取趋势数据
-  getTrends(days: number = 7) {
-    return request<TrendData[]>({
-      url: `/dashboard/trends?days=${days}`,
-      method: 'get'
-    })
+  getTrends(days: number = 7): Promise<TrendData[]> {
+    return get(`/dashboard/trends?days=${days}`)
   },
 
   // 获取最近活动
-  getRecentActivities(limit: number = 10) {
-    return request<Activity[]>({
-      url: `/dashboard/activities?limit=${limit}`,
-      method: 'get'
-    })
+  getRecentActivities(limit: number = 10): Promise<Activity[]> {
+    return get(`/dashboard/activities?limit=${limit}`)
   },
 
   // 获取系统健康状态
-  getHealthStatus() {
-    return request<HealthStatus>({
-      url: '/dashboard/health',
-      method: 'get'
-    })
+  getHealthStatus(): Promise<HealthStatus> {
+    return get('/dashboard/health')
   }
 }

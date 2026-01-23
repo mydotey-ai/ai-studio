@@ -177,7 +177,7 @@ const loadStatistics = async () => {
     statistics.value[4].subtitle =
       `管理员 ${data.users.adminCount} / 普通用户 ${data.users.regularCount}`
 
-    statistics.value[5].value = (data.storage.totalSizeBytes / (1024 * 1024 * 1024)).toFixed(1)
+    statistics.value[5].value = Number((data.storage.totalSizeBytes / (1024 * 1024 * 1024)).toFixed(1))
     statistics.value[5].subtitle =
       `文件 ${data.storage.fileCount} 个`
   } catch (error) {

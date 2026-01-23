@@ -47,10 +47,6 @@ const props = withDefaults(defineProps<Props>(), {
   hoverable: true
 })
 
-const emit = defineEmits<{
-  click: []
-}>()
-
 const formattedValue = computed(() => {
   if (typeof props.value === 'number') {
     return props.value.toLocaleString()
@@ -59,11 +55,12 @@ const formattedValue = computed(() => {
 })
 
 const trendClass = computed(() => {
-  if (!props.trend) return ''
+  if (props.trend === undefined || !props.trend) return ''
   return props.trend >= 0 ? 'trend-up' : 'trend-down'
 })
 
 const trendIcon = computed(() => {
+  if (props.trend === undefined) return TrendCharts
   return props.trend >= 0 ? TrendCharts : 'ArrowDown'
 })
 </script>
