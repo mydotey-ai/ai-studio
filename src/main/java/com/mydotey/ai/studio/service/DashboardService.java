@@ -170,7 +170,7 @@ public class DashboardService {
         stats.setActiveCount(statCalculator.getActiveUserCount());
         stats.setAdminCount(userMapper.selectCount(
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
-                .in(User::getRole, java.util.List.of(User.UserRole.ADMIN, User.UserRole.SUPER_ADMIN))
+                .in(User::getRole, java.util.List.of("ADMIN", "SUPER_ADMIN"))
         ));
         stats.setRegularCount(total - stats.getAdminCount());
         stats.setWeeklyNewCount(statCalculator.getWeeklyNewCount("users"));
@@ -182,7 +182,7 @@ public class DashboardService {
         StorageStats stats = new StorageStats();
 
         stats.setTotalSizeBytes(fileMetadataMapper.selectList(null).stream()
-            .mapToLong(FileMetadata::getSize)
+            .mapToLong(FileMetadata::getFileSize)
             .sum());
 
         stats.setFileCount(fileMetadataMapper.selectCount(null));
