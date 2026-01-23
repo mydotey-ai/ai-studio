@@ -15,4 +15,7 @@ public class UpdateUserRequest {
     private String newPassword;
 
     private String currentPassword;
+
+    // 新增：角色字段（仅管理员可修改）
+    private String role;
 }
