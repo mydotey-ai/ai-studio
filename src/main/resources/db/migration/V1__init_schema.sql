@@ -298,6 +298,6 @@ CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 CREATE INDEX idx_audit_logs_resource ON audit_logs(resource_type, resource_id);
 
--- Insert default admin user (password: admin123, will be changed in production)
+-- Insert default admin user (password: 123456, will be changed in production)
 INSERT INTO users (username, email, password_hash, role)
-VALUES ('admin', 'admin@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', 'SUPER_ADMIN');
+VALUES ('admin', 'admin@example.com', '$2a$10$GESIPZZpdIEdSrn9ic6FWuF54dPbTOWRP1YFcb3auMPerRewveboq', 'SUPER_ADMIN');

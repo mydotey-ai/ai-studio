@@ -15,9 +15,10 @@ import {
   LegendComponent,
   GridComponent
 } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { TrendData } from '@/types/dashboard'
 
-use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent])
+use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 
 interface Props {
   data: TrendData[]

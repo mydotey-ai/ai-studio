@@ -54,9 +54,9 @@
             <div class="card-header">
               <span>趋势分析</span>
               <el-radio-group v-model="trendDays" size="small" @change="loadTrends">
-                <el-radio-button :label="7">近 7 天</el-radio-button>
-                <el-radio-button :label="14">近 14 天</el-radio-button>
-                <el-radio-button :label="30">近 30 天</el-radio-button>
+                <el-radio-button :value="7">近 7 天</el-radio-button>
+                <el-radio-button :value="14">近 14 天</el-radio-button>
+                <el-radio-button :value="30">近 30 天</el-radio-button>
               </el-radio-group>
             </div>
           </template>
@@ -78,6 +78,7 @@ import ActivityTimeline from '@/components/dashboard/ActivityTimeline.vue'
 import TrendChart from '@/components/dashboard/TrendChart.vue'
 import { dashboardApi } from '@/api/dashboard'
 import type { DashboardStatistics, Activity, TrendData } from '@/types/dashboard'
+import { markRaw } from 'vue'
 import { FolderOpened, User, ChatDotSquare, Document, Files } from '@element-plus/icons-vue'
 
 const statisticsData = ref<DashboardStatistics | null>(null)
@@ -94,7 +95,7 @@ const statistics = ref([
   {
     key: 'knowledgeBases',
     label: '知识库',
-    icon: FolderOpened,
+    icon: markRaw(FolderOpened),
     value: 0,
     unit: '个',
     trend: 12,
@@ -106,7 +107,7 @@ const statistics = ref([
   {
     key: 'agents',
     label: 'Agent',
-    icon: User,
+    icon: markRaw(User),
     value: 0,
     unit: '个',
     trend: 3,
@@ -118,7 +119,7 @@ const statistics = ref([
   {
     key: 'chatbots',
     label: '聊天机器人',
-    icon: ChatDotSquare,
+    icon: markRaw(ChatDotSquare),
     value: 0,
     unit: '个',
     trend: -5,
@@ -130,7 +131,7 @@ const statistics = ref([
   {
     key: 'documents',
     label: '文档',
-    icon: Document,
+    icon: markRaw(Document),
     value: 0,
     unit: '个',
     trend: 8,
@@ -142,7 +143,7 @@ const statistics = ref([
   {
     key: 'users',
     label: '用户',
-    icon: User,
+    icon: markRaw(User),
     value: 0,
     unit: '人',
     trend: 15,
@@ -154,7 +155,7 @@ const statistics = ref([
   {
     key: 'storage',
     label: '存储',
-    icon: Files,
+    icon: markRaw(Files),
     value: 0,
     unit: 'GB',
     trend: 2,

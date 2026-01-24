@@ -199,8 +199,8 @@ public class DashboardService {
         // 从审计日志统计当天活跃用户
         return auditLogMapper.selectList(
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AuditLog>()
-                .ge(AuditLog::getCreatedAt, date.atStartOfDay(ZoneId.systemDefault()))
-                .lt(AuditLog::getCreatedAt, date.plusDays(1).atStartOfDay(ZoneId.systemDefault()))
+                .ge(AuditLog::getCreatedAt, date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .lt(AuditLog::getCreatedAt, date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant())
         ).stream()
         .map(AuditLog::getUserId)
         .distinct()
@@ -211,8 +211,8 @@ public class DashboardService {
         // 从审计日志统计当天 API 调用次数
         return auditLogMapper.selectCount(
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AuditLog>()
-                .ge(AuditLog::getCreatedAt, date.atStartOfDay(ZoneId.systemDefault()))
-                .lt(AuditLog::getCreatedAt, date.plusDays(1).atStartOfDay(ZoneId.systemDefault()))
+                .ge(AuditLog::getCreatedAt, date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .lt(AuditLog::getCreatedAt, date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant())
         );
     }
 

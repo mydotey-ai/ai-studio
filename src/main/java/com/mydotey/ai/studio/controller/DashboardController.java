@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -19,6 +21,17 @@ import java.util.List;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+
+    @GetMapping("")
+    @Operation(summary = "获取所有仪表板数据", description = "获取统计数据、趋势、最近活动和系统健康状态")
+    public ApiResponse<Map<String, Object>> getAllDashboardData() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("statistics", dashboardService.getStatistics());
+        data.put("trends", dashboardService.getTrends(7));
+        data.put("activities", dashboardService.getRecentActivities(10));
+        data.put("health", dashboardService.getHealthStatus());
+        return ApiResponse.success(data);
+    }
 
     @GetMapping("/statistics")
     @Operation(summary = "获取统计数据汇总", description = "获取知识库、Agent、聊天机器人、文档、用户、存储的统计数据")

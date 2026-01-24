@@ -62,7 +62,7 @@ service.interceptors.response.use(
       return Promise.reject(new Error('Invalid response'))
     }
 
-    const { code, message, result } = data
+    const { code, message, result, data: apiData } = data
 
     // Cache GET requests
     if (
@@ -74,13 +74,13 @@ service.interceptors.response.use(
       const ttl = (response.config as any).cacheTTL || 5 * 60 * 1000 // 5 minutes default
 
       // Cache the result if it exists, otherwise cache the whole data
-      const dataToCache = result !== undefined ? result : data
+      const dataToCache = result !== undefined ? result : (apiData !== undefined ? apiData : data)
       apiCache.set(cacheKey, dataToCache, ttl)
     }
 
-    // Check if response uses { code, message, result } format
+    // Check if response uses { code, message, result } or { code, message, data } format
     if (code === ErrorCode.SUCCESS || code === 0) {
-      return result ?? data
+      return result ?? apiData ?? data
     }
 
     // Otherwise assume direct data return
