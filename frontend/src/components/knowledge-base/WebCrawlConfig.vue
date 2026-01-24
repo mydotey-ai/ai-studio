@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, VideoPlay, Delete } from '@element-plus/icons-vue'
 import {
@@ -221,6 +221,16 @@ function formatDate(date: string) {
 onMounted(() => {
   loadTasks()
 })
+
+// Watch for kbId changes to reload tasks
+watch(
+  () => props.kbId,
+  newKbId => {
+    if (newKbId) {
+      loadTasks()
+    }
+  }
+)
 </script>
 
 <style scoped lang="scss">
