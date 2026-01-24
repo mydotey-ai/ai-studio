@@ -96,3 +96,4 @@ Desktop.ini
 
 # Process ID files
 *.pid
+/frontend/node/
