@@ -9,9 +9,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.core.io.ClassPathResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.resource.PathResourceResolver;
+
+import java.io.IOException;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -19,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    private static final Logger log = LoggerFactory.getLogger(WebConfig.class);
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -74,7 +78,8 @@ public class WebConfig implements WebMvcConfigurer {
 
                             // 其他情况返回 null（404）
                             return null;
-                        } catch (Exception e) {
+                        } catch (IOException e) {
+                            log.error("Error resolving resource for path: {}", resourcePath, e);
                             return null;
                         }
                     }
