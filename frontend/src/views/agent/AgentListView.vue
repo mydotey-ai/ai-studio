@@ -92,6 +92,28 @@
           />
         </el-form-item>
 
+        <el-form-item label="LLM 模型" prop="modelConfigId">
+          <el-select
+            v-model="form.modelConfigId"
+            placeholder="请选择 LLM 模型"
+            style="width: 100%"
+            clearable
+            @change="handleModelConfigChange"
+          >
+            <el-option
+              v-for="model in llmModels"
+              :key="model.id"
+              :label="model.name"
+              :value="model.id"
+            >
+              <div style="display: flex; justify-content: space-between">
+                <span>{{ model.name }}</span>
+                <el-tag v-if="model.isDefault" size="small" type="success">默认</el-tag>
+              </div>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="知识库" prop="knowledgeBaseIds">
           <el-select
             v-model="form.knowledgeBaseIds"
@@ -104,7 +126,7 @@
         </el-form-item>
 
         <el-form-item label="可见性" prop="isPublic">
-          <el-switch v-model="form.isPublic" active-text="公开" inactive-text="私有" />
+          <el-switch v-model="form.isPublic" active="公开" inactive="私有" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -132,6 +154,7 @@ import {
   type UpdateAgentRequest
 } from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
+import { getModelConfigs, type ModelConfig, type ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 
@@ -145,6 +168,7 @@ const isEdit = ref(false)
 const editingId = ref<number | null>(null)
 const agents = ref<Agent[]>([])
 const knowledgeBases = ref<KnowledgeBase[]>([])
+const llmModels = ref<ModelConfig[]>([])
 
 const pagination = reactive({
   page: 1,
@@ -152,10 +176,11 @@ const pagination = reactive({
   total: 0
 })
 
-const form = reactive<CreateAgentRequest>({
+const form = reactive<CreateAgentRequest & { modelConfigId?: number }>({
   name: '',
   description: '',
   systemPrompt: '',
+  modelConfigId: undefined,
   modelConfig: {
     model: 'gpt-4',
     temperature: 0.7,
@@ -205,6 +230,50 @@ async function loadKnowledgeBases() {
   }
 }
 
+async function loadLlmModels() {
+  try {
+    const models = await getModelConfigs(ModelConfigType.LLM)
+    llmModels.value = models
+
+    // Auto-select default model if available
+    if (models.length > 0 && !form.modelConfigId) {
+      const defaultModel = models.find(m => m.isDefault)
+      if (defaultModel) {
+        form.modelConfigId = defaultModel.id
+        handleModelConfigChange(defaultModel.id)
+      } else {
+        form.modelConfigId = models[0].id
+        handleModelConfigChange(models[0].id)
+      }
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '加载 LLM 模型列表失败'
+    ElMessage.error(errorMessage)
+  }
+}
+
+function handleModelConfigChange(modelConfigId: number | undefined) {
+  if (!modelConfigId) {
+    form.modelConfig = {
+      model: 'gpt-4',
+      temperature: 0.7,
+      maxTokens: 2000,
+      topP: 0.9
+    }
+    return
+  }
+
+  const selectedModel = llmModels.value.find(m => m.id === modelConfigId)
+  if (selectedModel) {
+    form.modelConfig = {
+      model: selectedModel.model,
+      temperature: selectedModel.temperature || 0.7,
+      maxTokens: selectedModel.maxTokens || 2000,
+      topP: 0.9
+    }
+  }
+}
+
 async function handleSubmit() {
   if (!formRef.value) return
 
@@ -218,6 +287,7 @@ async function handleSubmit() {
           name: form.name,
           description: form.description,
           systemPrompt: form.systemPrompt,
+          modelConfig: form.modelConfig,
           knowledgeBaseIds: form.knowledgeBaseIds,
           isPublic: form.isPublic
         }
@@ -246,6 +316,7 @@ function resetForm() {
   form.name = ''
   form.description = ''
   form.systemPrompt = ''
+  form.modelConfigId = undefined
   form.modelConfig = {
     model: 'gpt-4',
     temperature: 0.7,
@@ -255,6 +326,19 @@ function resetForm() {
   form.knowledgeBaseIds = []
   form.toolIds = []
   form.isPublic = false
+
+  // Auto-select default model if available
+  if (llmModels.value.length > 0) {
+    const defaultModel = llmModels.value.find(m => m.isDefault)
+    if (defaultModel) {
+      form.modelConfigId = defaultModel.id
+      handleModelConfigChange(defaultModel.id)
+    } else {
+      form.modelConfigId = llmModels.value[0].id
+      handleModelConfigChange(llmModels.value[0].id)
+    }
+  }
+
   formRef.value?.resetFields()
 }
 
@@ -272,9 +356,13 @@ function handleEdit(row: Agent) {
   form.name = row.name
   form.description = row.description || ''
   form.systemPrompt = row.systemPrompt
+  form.modelConfig = row.modelConfig
   form.knowledgeBaseIds = []
   form.toolIds = []
   form.isPublic = row.isPublic
+  // Try to find matching model config id based on model name
+  const matchingModel = llmModels.value.find(m => m.model === row.modelConfig.model)
+  form.modelConfigId = matchingModel ? matchingModel.id : undefined
   showCreateDialog.value = true
 }
 
@@ -303,6 +391,7 @@ function formatDate(date: string) {
 onMounted(() => {
   loadAgents()
   loadKnowledgeBases()
+  loadLlmModels()
 })
 </script>
 
