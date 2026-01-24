@@ -1,9 +1,13 @@
 package com.mydotey.ai.studio.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mydotey.ai.studio.common.exception.BusinessException;
+import com.mydotey.ai.studio.dto.AgentResponse;
 import com.mydotey.ai.studio.dto.CreateAgentRequest;
 import com.mydotey.ai.studio.dto.UpdateAgentRequest;
+import com.mydotey.ai.studio.dto.WorkflowType;
 import com.mydotey.ai.studio.entity.Agent;
 import com.mydotey.ai.studio.entity.AgentKnowledgeBase;
 import com.mydotey.ai.studio.entity.AgentTool;
@@ -190,5 +194,40 @@ public class AgentService {
         queryWrapper.eq(AgentTool::getAgentId, agentId);
         List<AgentTool> agentTools = agentToolMapper.selectList(queryWrapper);
         return agentTools.stream().map(AgentTool::getToolId).toList();
+    }
+
+    /**
+     * 获取 Agent 列表（分页）
+     */
+    public IPage<AgentResponse> list(Long userId, int page, int size) {
+        Page<Agent> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Agent> wrapper = new LambdaQueryWrapper<Agent>()
+                .and(w -> w.eq(Agent::getOwnerId, userId)
+                        .or().eq(Agent::getIsPublic, true))
+                .orderByDesc(Agent::getCreatedAt);
+
+        IPage<Agent> result = agentMapper.selectPage(pageParam, wrapper);
+        return result.convert(this::toResponse);
+    }
+
+    /**
+     * 转换 Agent 实体到响应 DTO
+     */
+    private AgentResponse toResponse(Agent agent) {
+        return AgentResponse.builder()
+                .id(agent.getId())
+                .name(agent.getName())
+                .description(agent.getDescription())
+                .systemPrompt(agent.getSystemPrompt())
+                .isPublic(agent.getIsPublic())
+                .modelConfig(agent.getModelConfig())
+                .workflowType(WorkflowType.valueOf(agent.getWorkflowType()))
+                .maxIterations(agent.getMaxIterations())
+                .workflowConfig(agent.getWorkflowConfig())
+                .knowledgeBaseIds(getAgentKnowledgeBaseIds(agent.getId()))
+                .toolIds(getAgentToolIds(agent.getId()))
+                .createdAt(agent.getCreatedAt())
+                .updatedAt(agent.getUpdatedAt())
+                .build();
     }
 }

@@ -13,6 +13,7 @@ import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/compo
 import { CanvasRenderer } from 'echarts/renderers'
 import type { DashboardStatistics } from '@/types/dashboard'
 
+// 注册所需的组件和渲染器
 use([PieChart, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
 interface Props {

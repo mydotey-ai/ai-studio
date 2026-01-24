@@ -1,30 +1,21 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    title="数据导出"
-    width="600px"
-    @closed="handleClosed"
-  >
+  <el-dialog v-model="visible" title="数据导出" width="600px" @closed="handleClosed">
     <el-form :model="form" label-width="100px">
       <!-- 导出范围 -->
       <el-form-item label="导出范围">
         <el-radio-group v-model="form.scope">
-          <el-radio :label="ExportScope.ALL">全部数据</el-radio>
-          <el-radio :label="ExportScope.KNOWLEDGE_BASES">知识库</el-radio>
-          <el-radio :label="ExportScope.AGENTS">Agent</el-radio>
-          <el-radio :label="ExportScope.CHATBOTS">聊天机器人</el-radio>
-          <el-radio :label="ExportScope.MCP_SERVERS">MCP服务器</el-radio>
+          <el-radio :value="ExportScope.ALL">全部数据</el-radio>
+          <el-radio :value="ExportScope.KNOWLEDGE_BASES">知识库</el-radio>
+          <el-radio :value="ExportScope.AGENTS">Agent</el-radio>
+          <el-radio :value="ExportScope.CHATBOTS">聊天机器人</el-radio>
+          <el-radio :value="ExportScope.MCP_SERVERS">MCP服务器</el-radio>
         </el-radio-group>
       </el-form-item>
 
       <!-- 导出选项 -->
       <el-form-item label="导出选项">
-        <el-checkbox v-model="form.includeDocumentContent">
-          包含文档内容
-        </el-checkbox>
-        <el-checkbox v-model="form.includeConversations">
-          包含对话记录
-        </el-checkbox>
+        <el-checkbox v-model="form.includeDocumentContent"> 包含文档内容 </el-checkbox>
+        <el-checkbox v-model="form.includeConversations"> 包含对话记录 </el-checkbox>
       </el-form-item>
 
       <!-- 高级选项 -->
@@ -33,8 +24,8 @@
           <el-collapse-item title="高级选项" name="advanced">
             <el-form-item label="导出方式">
               <el-radio-group v-model="form.exportType">
-                <el-radio :label="'sync'">同步导出（直接下载）</el-radio>
-                <el-radio :label="'async'">异步导出（后台任务）</el-radio>
+                <el-radio :value="'sync'">同步导出（直接下载）</el-radio>
+                <el-radio :value="'async'">异步导出（后台任务）</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-collapse-item>
@@ -45,7 +36,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleExport" :loading="loading">
+        <el-button type="primary" :loading="loading" @click="handleExport">
           {{ form.exportType === 'sync' ? '立即导出' : '创建导出任务' }}
         </el-button>
       </div>
@@ -120,7 +111,9 @@ const handleSyncExport = async () => {
     let filename = 'data-export.json'
 
     if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename\*?=['"]?(?:UTF-8'')?([^;\r\n"']*)['"]?/)
+      const filenameMatch = contentDisposition.match(
+        /filename\*?=['"]?(?:UTF-8'')?([^;\r\n"']*)['"]?/
+      )
       if (filenameMatch) {
         filename = decodeURIComponent(filenameMatch[1])
       }
@@ -144,18 +137,13 @@ const handleSyncExport = async () => {
 
 const handleAsyncExport = async () => {
   try {
-    const response = await createExportTask({
+    await createExportTask({
       scope: form.scope,
       includeDocumentContent: form.includeDocumentContent,
       includeConversations: form.includeConversations
     })
-
-    if (response.data) {
-      ElMessage.success('导出任务创建成功')
-      visible.value = false
-    } else {
-      throw new Error('创建导出任务失败')
-    }
+    ElMessage.success('导出任务创建成功')
+    visible.value = false
   } catch (error) {
     console.error('异步导出失败:', error)
     ElMessage.error('创建导出任务失败')

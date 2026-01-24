@@ -59,8 +59,8 @@
         </el-form-item>
         <el-form-item label="抓取策略" prop="crawlStrategy">
           <el-radio-group v-model="form.crawlStrategy">
-            <el-radio label="BFS">广度优先</el-radio>
-            <el-radio label="DFS">深度优先</el-radio>
+            <el-radio value="BFS">广度优先</el-radio>
+            <el-radio value="DFS">深度优先</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="并发限制" prop="concurrentLimit">

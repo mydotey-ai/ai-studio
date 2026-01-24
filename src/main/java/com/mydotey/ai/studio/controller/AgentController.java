@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mydotey.ai.studio.annotation.AuditLog;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.*;
@@ -123,6 +124,21 @@ public class AgentController {
             @RequestAttribute("userId") Long userId) {
         agentService.deleteAgent(id, userId);
         return ApiResponse.success(null);
+    }
+
+    /**
+     * 获取 Agent 列表（分页）
+     */
+    @GetMapping
+    @Operation(summary = "获取 Agent 列表", description = "分页获取用户的 Agent 列表")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    public ApiResponse<IPage<AgentResponse>> list(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestAttribute("userId") Long userId) {
+        IPage<AgentResponse> response = agentService.list(userId, page, size);
+        return ApiResponse.success(response);
     }
 
     /**

@@ -93,3 +93,6 @@ Desktop.ini
 
 # Docker volumes data
 /var/lib/ai-studio/
+
+# Process ID files
+*.pid

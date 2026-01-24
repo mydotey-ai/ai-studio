@@ -74,7 +74,7 @@ service.interceptors.response.use(
       const ttl = (response.config as any).cacheTTL || 5 * 60 * 1000 // 5 minutes default
 
       // Cache the result if it exists, otherwise cache the whole data
-      const dataToCache = result !== undefined ? result : (apiData !== undefined ? apiData : data)
+      const dataToCache = result !== undefined ? result : apiData !== undefined ? apiData : data
       apiCache.set(cacheKey, dataToCache, ttl)
     }
 

@@ -1,10 +1,5 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    title="数据导入"
-    width="500px"
-    @closed="handleClosed"
-  >
+  <el-dialog v-model="visible" title="数据导入" width="500px" @closed="handleClosed">
     <el-form :model="form" label-width="100px">
       <!-- 文件上传 -->
       <el-form-item label="选择文件">
@@ -21,9 +16,7 @@
           <el-icon class="el-icon--upload"><upload-filled /></el-icon>
           <div class="el-upload__text">将文件拖到此处，或<em>点击选择文件</em></div>
           <template #tip>
-            <div class="el-upload__tip">
-              仅支持 .json 格式文件，文件大小不超过 100MB
-            </div>
+            <div class="el-upload__tip">仅支持 .json 格式文件，文件大小不超过 100MB</div>
           </template>
         </el-upload>
 
@@ -37,17 +30,15 @@
       <!-- 导入策略 -->
       <el-form-item label="导入策略">
         <el-radio-group v-model="form.strategy">
-          <el-radio :label="ImportStrategy.SKIP_EXISTING">跳过已存在</el-radio>
-          <el-radio :label="ImportStrategy.OVERWRITE">覆盖已存在</el-radio>
-          <el-radio :label="ImportStrategy.RENAME_CONFLICT">重命名冲突</el-radio>
+          <el-radio :value="ImportStrategy.SKIP_EXISTING">跳过已存在</el-radio>
+          <el-radio :value="ImportStrategy.OVERWRITE">覆盖已存在</el-radio>
+          <el-radio :value="ImportStrategy.RENAME_CONFLICT">重命名冲突</el-radio>
         </el-radio-group>
       </el-form-item>
 
       <!-- 验证选项 -->
       <el-form-item>
-        <el-checkbox v-model="form.validateOnly">
-          仅验证文件（不执行导入）
-        </el-checkbox>
+        <el-checkbox v-model="form.validateOnly"> 仅验证文件（不执行导入） </el-checkbox>
       </el-form-item>
     </el-form>
 
@@ -56,9 +47,9 @@
         <el-button @click="handleCancel">取消</el-button>
         <el-button
           type="primary"
-          @click="handleImport"
           :loading="loading"
           :disabled="!selectedFile"
+          @click="handleImport"
         >
           {{ form.validateOnly ? '验证文件' : '开始导入' }}
         </el-button>
@@ -132,21 +123,10 @@ const handleImport = async () => {
 
   loading.value = true
   try {
-    const response = await createImportTask(
-      selectedFile.value,
-      form.strategy,
-      form.validateOnly
-    )
-
-    if (response.data) {
-      const message = form.validateOnly
-        ? '文件验证成功'
-        : '导入任务创建成功'
-      ElMessage.success(message)
-      visible.value = false
-    } else {
-      throw new Error('操作失败')
-    }
+    await createImportTask(selectedFile.value, form.strategy, form.validateOnly)
+    const message = form.validateOnly ? '文件验证成功' : '导入任务创建成功'
+    ElMessage.success(message)
+    visible.value = false
   } catch (error) {
     console.error('导入失败:', error)
     ElMessage.error('操作失败')

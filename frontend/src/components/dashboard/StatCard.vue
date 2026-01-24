@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrendCharts } from '@element-plus/icons-vue'
+import { TrendCharts, ArrowDown } from '@element-plus/icons-vue'
 
 interface Props {
   icon: any
@@ -61,7 +61,7 @@ const trendClass = computed(() => {
 
 const trendIcon = computed(() => {
   if (props.trend === undefined) return TrendCharts
-  return props.trend >= 0 ? TrendCharts : 'ArrowDown'
+  return props.trend >= 0 ? TrendCharts : ArrowDown
 })
 </script>
 

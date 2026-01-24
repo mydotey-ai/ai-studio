@@ -46,8 +46,8 @@
           <div class="card-header">
             <span>任务记录</span>
             <el-radio-group v-model="activeTab" size="small">
-              <el-radio-button label="export">导出任务</el-radio-button>
-              <el-radio-button label="import">导入任务</el-radio-button>
+              <el-radio-button value="export">导出任务</el-radio-button>
+              <el-radio-button value="import">导入任务</el-radio-button>
             </el-radio-group>
           </div>
         </template>
@@ -90,13 +90,7 @@
               >
                 下载
               </el-button>
-              <el-button
-                type="text"
-                size="small"
-                @click="handleViewDetail"
-              >
-                详情
-              </el-button>
+              <el-button type="text" size="small" @click="handleViewDetail"> 详情 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -126,9 +120,7 @@
           <el-table-column prop="completedAt" label="完成时间" width="180" />
           <el-table-column label="操作" width="100" fixed="right">
             <template #default>
-              <el-button type="text" size="small" @click="handleViewDetail">
-                详情
-              </el-button>
+              <el-button type="text" size="small" @click="handleViewDetail"> 详情 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -153,10 +145,7 @@ import {
   ExportTask,
   ImportTask
 } from '@/types/data-management'
-import {
-  getExportTasks,
-  getImportTasks
-} from '@/api/data-management'
+import { getExportTasks, getImportTasks } from '@/api/data-management'
 
 // 组件引用
 const exportDialogRef = ref()
@@ -241,8 +230,8 @@ const handleViewDetail = () => {
 const loadExportTasks = async () => {
   loading.value.export = true
   try {
-    const response = await getExportTasks()
-    exportTasks.value = response.data || []
+    const data = await getExportTasks()
+    exportTasks.value = data || []
   } catch (error) {
     console.error('加载导出任务失败:', error)
     ElMessage.error('加载导出任务失败')
@@ -254,8 +243,8 @@ const loadExportTasks = async () => {
 const loadImportTasks = async () => {
   loading.value.import = true
   try {
-    const response = await getImportTasks()
-    importTasks.value = response.data || []
+    const data = await getImportTasks()
+    importTasks.value = data || []
   } catch (error) {
     console.error('加载导入任务失败:', error)
     ElMessage.error('加载导入任务失败')

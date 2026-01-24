@@ -18,6 +18,7 @@ import {
 import { CanvasRenderer } from 'echarts/renderers'
 import type { TrendData } from '@/types/dashboard'
 
+// 注册所需的组件和渲染器
 use([LineChart, TitleComponent, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 
 interface Props {

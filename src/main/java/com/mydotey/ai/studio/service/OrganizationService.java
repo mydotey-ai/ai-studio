@@ -66,7 +66,7 @@ public class OrganizationService {
     public OrganizationResponse getUserOrganization(Long userId) {
         User user = userMapper.selectById(userId);
         if (user == null || user.getOrgId() == null) {
-            throw new BusinessException("User organization not found");
+            return null;
         }
         return getById(user.getOrgId());
     }

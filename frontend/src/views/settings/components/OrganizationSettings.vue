@@ -78,12 +78,23 @@ const loadOrganization = async () => {
   loading.value = true
   try {
     const data = await organizationApi.getMyOrganization()
-    organization.value = data as Organization
-    form.value = {
-      name: data.name,
-      description: data.description
+    if (data) {
+      organization.value = data as Organization
+      form.value = {
+        name: data.name,
+        description: data.description
+      }
+      originalForm.value = { ...form.value }
+    } else {
+      // 用户还没有组织，显示默认值或提示信息
+      organization.value = undefined
+      form.value = {
+        name: '',
+        description: ''
+      }
+      originalForm.value = { ...form.value }
+      ElMessage.info('您还没有加入任何组织')
     }
-    originalForm.value = { ...form.value }
   } catch (error) {
     ElMessage.error('加载组织信息失败')
   } finally {
