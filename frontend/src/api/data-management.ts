@@ -19,7 +19,8 @@ export function createExportTask(data: DataExportRequest) {
  */
 export function exportDataSync(data: DataExportRequest) {
   const token = localStorage.getItem('token')
-  return fetch('/api/data-management/export/sync', {
+  const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+  return fetch(`${baseURL}/data-management/export/sync`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

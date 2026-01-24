@@ -1,7 +1,9 @@
 package com.mydotey.ai.studio.config;
 
 import java.io.IOException;
+import java.util.List;
 
+import com.mydotey.ai.studio.enums.ModelConfigType;
 import com.mydotey.ai.studio.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -9,11 +11,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.Resource;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -50,6 +54,21 @@ public class WebConfig implements WebMvcConfigurer {
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
+    }
+
+    @Bean
+    public Converter<String, ModelConfigType> modelConfigTypeConverter() {
+        return new Converter<>() {
+            @Override
+            public ModelConfigType convert(String source) {
+                return ModelConfigType.fromCode(source);
+            }
+        };
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(modelConfigTypeConverter());
     }
 
     @Override

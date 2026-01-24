@@ -1,8 +1,10 @@
 package com.mydotey.ai.studio.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.mydotey.ai.studio.handler.JsonbTypeHandler;
 import lombok.Data;
 
 import java.time.Instant;
@@ -21,6 +23,7 @@ public class AuditLog {
 
     private Long resourceId;
 
+    @TableField(typeHandler = JsonbTypeHandler.class)
     private String details;
 
     private String ipAddress;

@@ -1,5 +1,8 @@
 package com.mydotey.ai.studio.filter;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mydotey.ai.studio.entity.User;
+import com.mydotey.ai.studio.mapper.UserMapper;
 import com.mydotey.ai.studio.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,6 +19,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -29,6 +33,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             request.setAttribute("userId", userId);
             request.setAttribute("userRole", role);
+
+            // Fetch user to get orgId
+            User user = userMapper.selectById(userId);
+            if (user != null && user.getOrgId() != null) {
+                request.setAttribute("orgId", user.getOrgId());
+            }
         }
 
         filterChain.doFilter(request, response);

@@ -64,38 +64,38 @@ export interface UpdateModelConfigRequest {
 export const modelConfigApi = {
   // 获取模型配置列表
   getList: (type?: ModelConfigType) => {
-    return get('/api/model-configs', {
+    return get('/model-configs', {
       params: { type }
     }) as Promise<ModelConfig[]>
   },
 
   // 获取模型配置详情
   getById: (id: number) => {
-    return get(`/api/model-configs/${id}`) as Promise<ModelConfig>
+    return get(`/model-configs/${id}`) as Promise<ModelConfig>
   },
 
   // 创建模型配置
   create: (data: CreateModelConfigRequest) => {
-    return post('/api/model-configs', data) as Promise<ModelConfig>
+    return post('/model-configs', data) as Promise<ModelConfig>
   },
 
   // 更新模型配置
   update: (id: number, data: UpdateModelConfigRequest) => {
-    return put(`/api/model-configs/${id}`, data) as Promise<ModelConfig>
+    return put(`/model-configs/${id}`, data) as Promise<ModelConfig>
   },
 
   // 删除模型配置
   delete: (id: number) => {
-    return del(`/api/model-configs/${id}`)
+    return del(`/model-configs/${id}`)
   },
 
   // 设置默认配置
   setDefault: (id: number) => {
-    return put(`/api/model-configs/${id}/set-default`)
+    return put(`/model-configs/${id}/set-default`)
   },
 
   // 测试配置
   test: (id: number) => {
-    return post(`/api/model-configs/${id}/test`) as Promise<{ data: boolean }>
+    return post(`/model-configs/${id}/test`) as Promise<{ data: boolean }>
   }
 }
