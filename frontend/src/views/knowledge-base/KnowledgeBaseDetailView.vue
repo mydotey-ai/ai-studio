@@ -181,7 +181,7 @@ async function handleDeleteDocument(doc: Document) {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteDocument(kbId.value, doc.id)
+    await deleteDocument(doc.id)
     ElMessage.success('删除成功')
     loadDocuments()
   } catch (error) {

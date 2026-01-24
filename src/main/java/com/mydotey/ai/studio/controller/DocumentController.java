@@ -1,5 +1,8 @@
 package com.mydotey.ai.studio.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.DocumentUploadResponse;
 import com.mydotey.ai.studio.entity.Document;
@@ -96,6 +99,30 @@ public class DocumentController {
     }
 
     /**
+     * 获取文档列表
+     */
+    @GetMapping
+    @Operation(summary = "获取文档列表", description = "分页获取指定知识库的文档列表")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    public ResponseEntity<ApiResponse<IPage<Document>>> listDocuments(
+            @Parameter(description = "知识库ID", required = true)
+            @RequestParam Long kbId,
+            @Parameter(description = "页码", required = false)
+            @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页数量", required = false)
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Document> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Document> queryWrapper = new LambdaQueryWrapper<Document>()
+            .eq(Document::getKbId, kbId)
+            .orderByDesc(Document::getCreatedAt);
+
+        IPage<Document> result = documentMapper.selectPage(pageParam, queryWrapper);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
      * 获取文档状态
      */
     @GetMapping("/{id}/status")
@@ -119,6 +146,26 @@ public class DocumentController {
         status.put("errorMessage", document.getErrorMessage());
 
         return ResponseEntity.ok(ApiResponse.success(status));
+    }
+
+    /**
+     * 删除文档
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除文档", description = "删除指定的文档")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "删除成功")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "文档不存在")
+    public ResponseEntity<ApiResponse<Void>> deleteDocument(
+            @Parameter(description = "文档ID", required = true)
+            @PathVariable Long id) {
+        Document document = documentMapper.selectById(id);
+        if (document == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        documentMapper.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success("Document deleted", null));
     }
 
     /**

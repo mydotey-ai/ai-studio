@@ -8,8 +8,8 @@ import type {
 import type { PaginationParams, PaginationResponse } from '@/types/common'
 
 export function getDocuments(kbId: number, params?: PaginationParams) {
-  return get<PaginationResponse<Document>>(`/knowledge-bases/${kbId}/documents`, {
-    params
+  return get<PaginationResponse<Document>>('/documents', {
+    params: { kbId, ...params }
   })
 }
 
@@ -21,8 +21,8 @@ export function uploadDocument(kbId: number, file: File) {
   })
 }
 
-export function deleteDocument(kbId: number, docId: number) {
-  return del(`/knowledge-bases/${kbId}/documents/${docId}`)
+export function deleteDocument(docId: number) {
+  return del(`/documents/${docId}`)
 }
 
 export function getWebCrawlTasks(kbId: number) {
