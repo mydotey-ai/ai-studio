@@ -33,7 +33,7 @@ public class AuthService {
         // 检查是否被锁定
         if (loginAttemptService.isLocked(username)) {
             long remainingSeconds = loginAttemptService.getRemainingLockTime(username);
-            throw new BusinessException(
+            throw new BusinessException(401,
                     String.format("Account is locked. Try again in %d minutes",
                             remainingSeconds / 60 + 1)
             );
@@ -44,12 +44,12 @@ public class AuthService {
 
         if (user == null || !"ACTIVE".equals(user.getStatus())) {
             loginAttemptService.recordFailedAttempt(username, user != null ? user.getId() : null);
-            throw new BusinessException("Invalid username or password");
+            throw new BusinessException(401, "Invalid username or password");
         }
 
         if (!passwordUtil.matches(request.getPassword(), user.getPasswordHash())) {
             loginAttemptService.recordFailedAttempt(username, user.getId());
-            throw new BusinessException("Invalid username or password");
+            throw new BusinessException(401, "Invalid username or password");
         }
 
         // 登录成功，重置尝试次数

@@ -68,9 +68,12 @@ class GlobalExceptionHandlerTest {
         BusinessException exception = new BusinessException(400, "Invalid business logic");
 
         // When
-        ApiResponse<Void> response = exceptionHandler.handleBusinessException(exception, request);
+        ResponseEntity<ApiResponse<Void>> responseEntity = exceptionHandler.handleBusinessException(exception, request);
+        ApiResponse<Void> response = responseEntity.getBody();
 
         // Then
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertNotNull(response);
         assertEquals(400, response.getCode());
         assertEquals("Invalid business logic", response.getMessage());
         assertNotNull(response.getTimestamp());
@@ -90,9 +93,12 @@ class GlobalExceptionHandlerTest {
         BusinessException exception = new BusinessException(409, "Resource conflict");
 
         // When
-        ApiResponse<Void> response = exceptionHandler.handleBusinessException(exception, request);
+        ResponseEntity<ApiResponse<Void>> responseEntity = exceptionHandler.handleBusinessException(exception, request);
+        ApiResponse<Void> response = responseEntity.getBody();
 
         // Then
+        assertEquals(HttpStatus.valueOf(409), responseEntity.getStatusCode());
+        assertNotNull(response);
         assertEquals(409, response.getCode());
         assertEquals("Resource conflict", response.getMessage());
 

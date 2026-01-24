@@ -59,8 +59,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleBusinessException(BusinessException e, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e, HttpServletRequest request) {
         String traceId = getTraceId(request);
         int status = e.getCode();
 
@@ -69,7 +68,7 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = ErrorDetails.builder()
                 .timestamp(java.time.Instant.now())
                 .status(status)
-                .error("Bad Request")
+                .error(status == 401 ? "Unauthorized" : "Bad Request")
                 .message(e.getMessage())
                 .path(request.getRequestURI())
                 .traceId(traceId)
@@ -79,7 +78,8 @@ public class GlobalExceptionHandler {
         log.warn("Business exception: traceId={}, path={}, error={}",
                 traceId, request.getRequestURI(), errorDetails);
 
-        return ApiResponse.error(e.getCode(), e.getMessage());
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(status, e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
