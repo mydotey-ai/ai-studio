@@ -81,6 +81,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '文件管理', icon: 'Folder' }
       },
       {
+        path: 'data-management',
+        name: 'DataManagement',
+        component: () => import('@/views/data-management/DataManagementView.vue'),
+        meta: { title: '数据管理', icon: 'Document' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/SettingsView.vue'),

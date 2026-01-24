@@ -26,9 +26,7 @@
       <div v-else class="no-preview">
         <el-icon><Document /></el-icon>
         <p>此文件类型不支持预览</p>
-        <el-button type="primary" @click="downloadFile">
-          下载文件
-        </el-button>
+        <el-button type="primary" @click="downloadFile"> 下载文件 </el-button>
       </div>
 
       <!-- 文件信息 -->
@@ -81,7 +79,7 @@ const textContent = ref('')
 
 const visible = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const isImage = computed(() => {
@@ -132,11 +130,14 @@ const handleClose = () => {
   textContent.value = ''
 }
 
-watch(() => props.file, (newFile) => {
-  if (newFile && props.modelValue) {
-    loadPreview()
+watch(
+  () => props.file,
+  newFile => {
+    if (newFile && props.modelValue) {
+      loadPreview()
+    }
   }
-})
+)
 </script>
 
 <style scoped>

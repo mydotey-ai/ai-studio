@@ -36,7 +36,7 @@ export default defineConfig({
           // 将 Element Plus 单独打包
           'element-plus': ['element-plus', '@element-plus/icons-vue'],
           // 将 ECharts 单独打包
-          'echarts': ['echarts', 'vue-echarts']
+          echarts: ['echarts', 'vue-echarts']
         },
         // 文件名包含 hash
         chunkFileNames: 'js/[name]-[hash].js',

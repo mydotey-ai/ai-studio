@@ -65,9 +65,11 @@ service.interceptors.response.use(
     const { code, message, result } = data
 
     // Cache GET requests
-    if (response.config.method?.toLowerCase() === 'get' &&
-        response.status === 200 &&
-        !response.config.headers?.['X-Skip-Cache']) {
+    if (
+      response.config.method?.toLowerCase() === 'get' &&
+      response.status === 200 &&
+      !response.config.headers?.['X-Skip-Cache']
+    ) {
       const cacheKey = `${response.config.url}?${JSON.stringify(response.config.params || {})}`
       const ttl = (response.config as any).cacheTTL || 5 * 60 * 1000 // 5 minutes default
 

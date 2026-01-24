@@ -27,12 +27,7 @@
           </el-input>
         </el-form-item>
         <el-form-item label="存储类型">
-          <el-select
-            v-model="storageTypeFilter"
-            placeholder="全部"
-            clearable
-            @change="loadFiles"
-          >
+          <el-select v-model="storageTypeFilter" placeholder="全部" clearable @change="loadFiles">
             <el-option label="本地存储" value="LOCAL" />
             <el-option label="阿里云 OSS" value="OSS" />
             <el-option label="AWS S3" value="S3" />
@@ -41,11 +36,7 @@
       </el-form>
 
       <!-- 文件列表 -->
-      <el-table
-        :data="filteredFiles"
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
+      <el-table v-loading="loading" :data="filteredFiles" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column prop="originalFileName" label="文件名" min-width="200">
           <template #default="{ row }">
@@ -76,19 +67,9 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button-group>
-              <el-button size="small" @click="openPreviewDialog(row)">
-                预览
-              </el-button>
-              <el-button size="small" @click="downloadFile(row)">
-                下载
-              </el-button>
-              <el-button
-                size="small"
-                type="danger"
-                @click="handleDelete(row)"
-              >
-                删除
-              </el-button>
+              <el-button size="small" @click="openPreviewDialog(row)"> 预览 </el-button>
+              <el-button size="small" @click="downloadFile(row)"> 下载 </el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row)"> 删除 </el-button>
             </el-button-group>
           </template>
         </el-table-column>
@@ -97,23 +78,15 @@
       <!-- 批量操作 -->
       <div v-if="selectedFiles.length > 0" class="batch-actions">
         <span>已选择 {{ selectedFiles.length }} 个文件</span>
-        <el-button type="danger" @click="handleBatchDelete">
-          批量删除
-        </el-button>
+        <el-button type="danger" @click="handleBatchDelete"> 批量删除 </el-button>
       </div>
     </el-card>
 
     <!-- 上传对话框 -->
-    <FileUploadDialog
-      v-model="showUploadDialog"
-      @uploaded="loadFiles"
-    />
+    <FileUploadDialog v-model="showUploadDialog" @uploaded="loadFiles" />
 
     <!-- 预览对话框 -->
-    <FilePreviewDialog
-      v-model="showPreviewDialog"
-      :file="selectedPreviewFile"
-    />
+    <FilePreviewDialog v-model="showPreviewDialog" :file="selectedPreviewFile" />
   </div>
 </template>
 
@@ -191,11 +164,9 @@ const downloadFile = async (file: FileMetadata) => {
 // 删除文件
 const handleDelete = async (file: FileMetadata) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除文件 "${file.originalFileName}" 吗？`,
-      '确认删除',
-      { type: 'warning' }
-    )
+    await ElMessageBox.confirm(`确定要删除文件 "${file.originalFileName}" 吗？`, '确认删除', {
+      type: 'warning'
+    })
 
     await fileApi.deleteFile(file.id)
     ElMessage.success('删除成功')
@@ -217,9 +188,7 @@ const handleBatchDelete = async () => {
       { type: 'warning' }
     )
 
-    await Promise.all(
-      selectedFiles.value.map(f => fileApi.deleteFile(f.id))
-    )
+    await Promise.all(selectedFiles.value.map(f => fileApi.deleteFile(f.id)))
 
     ElMessage.success('批量删除成功')
     selectedFiles.value = []

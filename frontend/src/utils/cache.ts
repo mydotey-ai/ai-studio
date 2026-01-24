@@ -5,7 +5,8 @@ class ApiCache {
   private cache: Map<string, { data: any; timestamp: number; ttl: number }>
   private defaultTTL: number
 
-  constructor(defaultTTL: number = 5 * 60 * 1000) { // 5 minutes default
+  constructor(defaultTTL: number = 5 * 60 * 1000) {
+    // 5 minutes default
     this.cache = new Map()
     this.defaultTTL = defaultTTL
   }
@@ -70,6 +71,9 @@ class ApiCache {
 export const apiCache = new ApiCache()
 
 // Auto clear expired cache every 10 minutes
-setInterval(() => {
-  apiCache.clearExpired()
-}, 10 * 60 * 1000)
+setInterval(
+  () => {
+    apiCache.clearExpired()
+  },
+  10 * 60 * 1000
+)

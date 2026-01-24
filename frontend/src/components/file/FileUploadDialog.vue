@@ -1,10 +1,5 @@
 <template>
-  <el-dialog
-    v-model="visible"
-    title="上传文件"
-    width="600px"
-    @close="handleClose"
-  >
+  <el-dialog v-model="visible" title="上传文件" width="600px" @close="handleClose">
     <el-upload
       ref="uploadRef"
       class="upload-demo"
@@ -20,13 +15,9 @@
       multiple
     >
       <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-      <div class="el-upload__text">
-        拖拽文件到此处或 <em>点击上传</em>
-      </div>
+      <div class="el-upload__text">拖拽文件到此处或 <em>点击上传</em></div>
       <template #tip>
-        <div class="el-upload__tip">
-          支持任意类型文件，单个文件不超过 100MB
-        </div>
+        <div class="el-upload__tip">支持任意类型文件，单个文件不超过 100MB</div>
       </template>
     </el-upload>
 
@@ -46,9 +37,7 @@
 
     <template #footer>
       <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="handleUpload" :loading="uploading">
-        开始上传
-      </el-button>
+      <el-button type="primary" :loading="uploading" @click="handleUpload"> 开始上传 </el-button>
     </template>
   </el-dialog>
 </template>
@@ -87,7 +76,7 @@ const entityForm = ref({
 
 const visible = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const uploadUrl = computed(() => {
@@ -101,7 +90,7 @@ const uploadHeaders = computed(() => {
 })
 
 // 上传前验证
-const beforeUpload: UploadProps['beforeUpload'] = (file) => {
+const beforeUpload: UploadProps['beforeUpload'] = file => {
   const maxSize = 100 * 1024 * 1024 // 100MB
   if (file.size > maxSize) {
     ElMessage.error('文件大小不能超过 100MB')
@@ -167,7 +156,7 @@ const handleClose = () => {
   entityForm.value = { type: '', id: undefined }
 }
 
-watch(visible, (newVal) => {
+watch(visible, newVal => {
   if (!newVal) {
     handleClose()
   }
