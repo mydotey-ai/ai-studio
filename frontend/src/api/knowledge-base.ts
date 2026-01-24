@@ -6,8 +6,11 @@ import type {
 } from '@/types/knowledge-base'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
 
-export function getKnowledgeBases(params?: PaginationParams) {
-  return get<PaginationResponse<KnowledgeBase>>('/knowledge-bases', { params })
+export function getKnowledgeBases(params?: PaginationParams, skipCache: boolean = false) {
+  return get<PaginationResponse<KnowledgeBase>>('/knowledge-bases', {
+    params,
+    headers: skipCache ? { 'X-Skip-Cache': 'true' } : undefined
+  })
 }
 
 export function getKnowledgeBase(id: number) {

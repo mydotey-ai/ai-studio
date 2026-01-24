@@ -123,9 +123,12 @@ watch(
   () => route.params.id,
   newId => {
     if (newId) {
-      kbId.value = parseInt(newId as string)
-      loadKnowledgeBase()
-      loadDocuments()
+      const id = parseInt(newId as string)
+      if (!isNaN(id)) {
+        kbId.value = id
+        loadKnowledgeBase()
+        loadDocuments()
+      }
     }
   },
   { immediate: true }

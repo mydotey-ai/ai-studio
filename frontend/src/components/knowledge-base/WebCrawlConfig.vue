@@ -119,6 +119,9 @@ const rules: FormRules = {
 }
 
 async function loadTasks() {
+  if (isNaN(props.kbId)) {
+    return
+  }
   loading.value = true
   try {
     tasks.value = await getWebCrawlTasks(props.kbId)

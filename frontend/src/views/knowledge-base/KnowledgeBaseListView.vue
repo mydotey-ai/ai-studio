@@ -141,7 +141,13 @@ async function handleCreate() {
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
-      loadKnowledgeBases()
+      // Skip cache to get fresh data after creation
+      const data = await getKnowledgeBases(
+        { page: pagination.page, pageSize: pagination.pageSize },
+        true
+      )
+      knowledgeBases.value = data.records
+      pagination.total = data.total
     } finally {
       submitting.value = false
     }
@@ -172,7 +178,13 @@ async function handleDelete(row: KnowledgeBase) {
     })
     await deleteKbApi(row.id)
     ElMessage.success('删除成功')
-    loadKnowledgeBases()
+    // Skip cache to get fresh data after deletion
+    const data = await getKnowledgeBases(
+      { page: pagination.page, pageSize: pagination.pageSize },
+      true
+    )
+    knowledgeBases.value = data.records
+    pagination.total = data.total
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Delete failed:', error)
