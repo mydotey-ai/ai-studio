@@ -284,6 +284,69 @@ stop_services() {
     log_success "所有服务已停止"
 }
 
+# 重启服务
+restart_services() {
+    log_cyan "正在重启 AI Studio 开发环境..."
+    echo "==========================================="
+    stop_services
+    sleep 3
+    check_dependencies
+    check_java_version
+    check_postgres
+    check_redis
+    setup_env
+    start_backend
+    start_frontend_dev
+    show_access_info
+}
+
+# 重启后端服务
+restart_backend() {
+    log_cyan "正在重启后端服务..."
+    # 停止后端
+    if [ -f "backend.pid" ]; then
+        local backend_pid=$(cat "backend.pid" 2>/dev/null)
+        if [ -n "$backend_pid" ]; then
+            log_info "停止后端服务（PID: $backend_pid）"
+            kill $backend_pid 2>/dev/null || true
+            sleep 2
+            rm "backend.pid" 2>/dev/null || true
+        fi
+    fi
+    pkill -f "mvn spring-boot:run" 2>/dev/null || true
+
+    # 启动后端
+    check_dependencies
+    check_java_version
+    check_postgres
+    check_redis
+    setup_env
+    start_backend
+    log_info "后端服务访问地址：http://localhost:8080"
+}
+
+# 重启前端服务
+restart_frontend() {
+    log_cyan "正在重启前端开发服务器..."
+    # 停止前端
+    if [ -f "frontend.pid" ]; then
+        local frontend_pid=$(cat "frontend.pid" 2>/dev/null)
+        if [ -n "$frontend_pid" ]; then
+            log_info "停止前端服务（PID: $frontend_pid）"
+            kill $frontend_pid 2>/dev/null || true
+            sleep 2
+            rm "frontend.pid" 2>/dev/null || true
+        fi
+    fi
+    pkill -f "vite" 2>/dev/null || true
+
+    # 启动前端
+    check_dependencies
+    setup_env
+    start_frontend_dev
+    log_info "前端访问地址：http://localhost:3000"
+}
+
 # 显示访问信息
 show_access_info() {
     echo
@@ -318,6 +381,9 @@ show_help() {
     echo "  start            启动后端和前端开发服务器"
     echo "  start-backend    只启动后端服务"
     echo "  start-frontend   只启动前端开发服务器"
+    echo "  restart          重启所有服务"
+    echo "  restart-backend  只重启后端服务"
+    echo "  restart-frontend 只重启前端开发服务器"
     echo "  build            编译后端（跳过测试）"
     echo "  stop             停止所有服务"
     echo "  status           检查服务状态"
@@ -326,6 +392,8 @@ show_help() {
     echo
     echo "示例:"
     echo "  $0 start              启动所有服务"
+    echo "  $0 restart            重启所有服务"
+    echo "  $0 restart-backend    只重启后端"
     echo "  $0 stop               停止所有服务"
     echo "  $0 logs backend       查看后端日志"
     echo "  $0 logs frontend      查看前端日志"
@@ -394,6 +462,15 @@ main() {
             setup_env
             start_frontend_dev
             log_info "前端访问地址：http://localhost:3000"
+            ;;
+        restart)
+            restart_services
+            ;;
+        restart-backend)
+            restart_backend
+            ;;
+        restart-frontend)
+            restart_frontend
             ;;
         build)
             log_cyan "正在编译后端..."

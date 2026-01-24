@@ -132,8 +132,8 @@ show_help() {
     echo
     echo "选项:"
     echo "  start [dev|prod]  启动服务（默认 dev 环境）"
-    echo "  stop              停止服务"
-    echo "  restart           重启服务"
+    echo "  stop [dev|prod]   停止服务（默认 dev 环境）"
+    echo "  restart [dev|prod]  重启服务（默认 dev 环境）"
     echo "  status            检查服务状态"
     echo "  logs              查看服务日志"
     echo "  build             构建生产镜像"
@@ -149,17 +149,30 @@ show_help() {
 
 # 停止服务
 stop_services() {
-    log_info "停止服务..."
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+    local env="${1:-dev}"
+    log_info "停止 $env 环境服务..."
+
+    local compose_files="-f docker-compose.yml"
+    if [ "$env" = "dev" ]; then
+        compose_files="$compose_files -f docker-compose.dev.yml"
+    elif [ "$env" = "prod" ]; then
+        compose_files="$compose_files -f docker-compose.prod.yml"
+    else
+        log_error "不支持的环境: $env，只支持 dev 或 prod"
+        exit 1
+    fi
+
+    docker-compose $compose_files down
     log_success "服务已停止"
 }
 
 # 重启服务
 restart_services() {
-    log_info "重启服务..."
+    local env="${1:-dev}"
+    log_info "重启 $env 环境服务..."
     stop_services
     sleep 3
-    start_services dev
+    start_services "$env"
 }
 
 # 检查服务状态
@@ -197,12 +210,12 @@ main() {
             ;;
         stop)
             check_dependencies
-            stop_services
+            stop_services "${2:-dev}"
             ;;
         restart)
             check_dependencies
             check_env_file
-            restart_services
+            restart_services "${2:-dev}"
             ;;
         status)
             check_dependencies
