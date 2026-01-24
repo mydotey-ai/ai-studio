@@ -123,8 +123,7 @@ function toggleCollapse() {
 async function handleCommand(command: string) {
   switch (command) {
     case 'profile':
-      // TODO: Navigate to profile page
-      ElMessage.info('个人信息功能开发中')
+      router.push('/profile')
       break
     case 'logout':
       try {

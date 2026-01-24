@@ -1,0 +1,4 @@
+-- Add profile fields to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'zh-CN';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS timezone VARCHAR(50) DEFAULT 'Asia/Shanghai';

@@ -91,6 +91,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Settings',
         component: () => import('@/views/settings/SettingsView.vue'),
         meta: { title: '设置', icon: 'Setting', requiresAdmin: true }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile/index.vue'),
+        meta: { title: '个人信息', icon: 'User', hidden: true }
       }
     ]
   }

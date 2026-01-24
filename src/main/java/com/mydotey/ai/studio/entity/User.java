@@ -27,6 +27,12 @@ public class User {
 
     private String avatarUrl;
 
+    private String bio;
+
+    private String language;
+
+    private String timezone;
+
     private Instant lastLoginAt;
 
     private Instant createdAt;

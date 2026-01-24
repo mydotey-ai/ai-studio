@@ -2,7 +2,10 @@ package com.mydotey.ai.studio.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mydotey.ai.studio.common.exception.BusinessException;
+import com.mydotey.ai.studio.dto.ChangePasswordRequest;
+import com.mydotey.ai.studio.dto.UpdateProfileRequest;
 import com.mydotey.ai.studio.dto.UpdateUserRequest;
+import com.mydotey.ai.studio.dto.UserProfileResponse;
 import com.mydotey.ai.studio.dto.UserResponse;
 import com.mydotey.ai.studio.entity.User;
 import com.mydotey.ai.studio.mapper.UserMapper;
@@ -196,6 +199,93 @@ public class UserService {
         response.setStatus(user.getStatus());
         response.setAvatarUrl(user.getAvatarUrl());
         response.setLastLoginAt(user.getLastLoginAt());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setUpdatedAt(user.getUpdatedAt());
+        return response;
+    }
+
+    /**
+     * 获取当前登录用户的详细信息
+     */
+    public UserProfileResponse getCurrentUserProfile(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+        return toProfileResponse(user);
+    }
+
+    /**
+     * 更新当前登录用户的信息
+     */
+    @Transactional
+    public void updateUserProfile(Long userId, UpdateProfileRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            Long emailCount = userMapper.selectCount(
+                    new LambdaQueryWrapper<User>()
+                            .eq(User::getEmail, request.getEmail())
+                            .ne(User::getId, userId)
+            );
+            if (emailCount > 0) {
+                throw new BusinessException("Email already in use");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+
+        if (request.getLanguage() != null) {
+            user.setLanguage(request.getLanguage());
+        }
+
+        if (request.getTimezone() != null) {
+            user.setTimezone(request.getTimezone());
+        }
+
+        userMapper.updateById(user);
+    }
+
+    /**
+     * 修改密码
+     */
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BusinessException("New password and confirm password do not match");
+        }
+
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+
+        if (!passwordUtil.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new BusinessException("Old password is incorrect");
+        }
+
+        user.setPasswordHash(passwordUtil.encode(request.getNewPassword()));
+        userMapper.updateById(user);
+    }
+
+    /**
+     * 转换为个人资料响应对象
+     */
+    private UserProfileResponse toProfileResponse(User user) {
+        UserProfileResponse response = new UserProfileResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setBio(user.getBio());
+        response.setLanguage(user.getLanguage());
+        response.setTimezone(user.getTimezone());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
         return response;

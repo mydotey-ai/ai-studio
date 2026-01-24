@@ -3,7 +3,10 @@ package com.mydotey.ai.studio.controller;
 import com.mydotey.ai.studio.annotation.AuditLog;
 import com.mydotey.ai.studio.annotation.RequireRole;
 import com.mydotey.ai.studio.common.ApiResponse;
+import com.mydotey.ai.studio.dto.ChangePasswordRequest;
+import com.mydotey.ai.studio.dto.UpdateProfileRequest;
 import com.mydotey.ai.studio.dto.UpdateUserRequest;
+import com.mydotey.ai.studio.dto.UserProfileResponse;
 import com.mydotey.ai.studio.dto.UserResponse;
 import com.mydotey.ai.studio.service.UserService;
 import jakarta.validation.Valid;
@@ -62,5 +65,29 @@ public class UserController {
             @RequestAttribute("userId") Long operatorId) {
         userService.deleteUser(id, operatorId);
         return ApiResponse.success("User deleted successfully", null);
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<UserProfileResponse> getCurrentUser(@RequestAttribute("userId") Long userId) {
+        UserProfileResponse profile = userService.getCurrentUserProfile(userId);
+        return ApiResponse.success(profile);
+    }
+
+    @PutMapping("/me")
+    @AuditLog(action = "PROFILE_UPDATE", resourceType = "User", resourceIdParam = "userId")
+    public ApiResponse<Void> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            @RequestAttribute("userId") Long userId) {
+        userService.updateUserProfile(userId, request);
+        return ApiResponse.success("Profile updated successfully", null);
+    }
+
+    @PostMapping("/me/password")
+    @AuditLog(action = "PASSWORD_CHANGE", resourceType = "User", resourceIdParam = "userId")
+    public ApiResponse<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @RequestAttribute("userId") Long userId) {
+        userService.changePassword(userId, request);
+        return ApiResponse.success("Password changed successfully", null);
     }
 }
