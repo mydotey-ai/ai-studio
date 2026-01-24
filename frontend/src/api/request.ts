@@ -94,13 +94,8 @@ service.interceptors.response.use(
   error => {
     // Handle cached responses
     if (error.__cached) {
-      return Promise.resolve({
-        data: error.data,
-        status: 200,
-        statusText: 'OK (Cached)',
-        config: error.config,
-        headers: {}
-      })
+      // 直接返回缓存的数据，与正常响应的处理逻辑保持一致
+      return Promise.resolve(error.data)
     }
 
     const { response } = error
