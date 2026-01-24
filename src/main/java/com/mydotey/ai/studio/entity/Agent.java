@@ -31,7 +31,7 @@ public class Agent {
     private String workflowConfig;
 
     private Integer maxIterations;
-    private Long llmModelId;
+    private Long llmModelConfigId;
     private Instant createdAt;
     private Instant updatedAt;
 }
