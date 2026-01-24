@@ -7,17 +7,15 @@ set -e
 
 # 解析参数
 SKIP_FRONTEND=false
-MAVEN_OPTS=""
+MAVEN_OPTS=()
 
 for arg in "$@"; do
     case $arg in
         --skip-frontend)
             SKIP_FRONTEND=true
-            shift
             ;;
         *)
-            MAVEN_OPTS="$MAVEN_OPTS $arg"
-            shift
+            MAVEN_OPTS+=("$arg")
             ;;
     esac
 done
@@ -27,22 +25,25 @@ echo "  AI Studio 一体化打包"
 echo "======================================"
 echo ""
 
+# 提取版本号
+VERSION=$(grep "<version>" pom.xml | head -2 | tail -1 | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+
 # 构建 JAR
 echo "[1/2] 开始构建 Spring Boot JAR..."
 if [ "$SKIP_FRONTEND" = true ]; then
     echo "  跳过前端构建 (-DskipFrontend)"
-    mvn clean package -DskipFrontend $MAVEN_OPTS
+    mvn clean package -DskipFrontend "${MAVEN_OPTS[@]}"
 else
-    mvn clean package $MAVEN_OPTS
+    mvn clean package "${MAVEN_OPTS[@]}"
 fi
 
 echo ""
 echo "[2/2] 构建完成！"
 echo ""
-echo "输出文件: target/ai-studio-1.0.0.jar"
+echo "输出文件: target/ai-studio-${VERSION}.jar"
 echo ""
 echo "运行应用:"
-echo "  java -jar target/ai-studio-1.0.0.jar"
+echo "  java -jar target/ai-studio-${VERSION}.jar"
 echo ""
 echo "访问地址:"
 echo "  前端: http://localhost:8080"
