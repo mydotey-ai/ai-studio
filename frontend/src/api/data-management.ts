@@ -1,4 +1,4 @@
-import request from './request'
+import { get, post } from './request'
 import type {
   DataExportRequest,
   DataExportResponse,
@@ -11,7 +11,7 @@ import type {
  * 创建导出任务（异步）
  */
 export function createExportTask(data: DataExportRequest) {
-  return request.post<DataExportResponse>('/data-management/export', data)
+  return post<DataExportResponse>('/data-management/export', data)
 }
 
 /**
@@ -33,14 +33,14 @@ export function exportDataSync(data: DataExportRequest) {
  * 获取导出任务状态
  */
 export function getExportStatus(taskId: number) {
-  return request.get<DataExportResponse>(`/data-management/export/${taskId}/status`)
+  return get<DataExportResponse>(`/data-management/export/${taskId}/status`)
 }
 
 /**
  * 获取导出任务列表
  */
 export function getExportTasks() {
-  return request.get<ExportTask[]>('/data-management/export/tasks')
+  return get<ExportTask[]>('/data-management/export/tasks')
 }
 
 /**
@@ -52,7 +52,7 @@ export function createImportTask(file: File, strategy: string, validateOnly: boo
   formData.append('strategy', strategy)
   formData.append('validateOnly', String(validateOnly))
 
-  return request.post<DataImportResponse>('/data-management/import', formData, {
+  return post<DataImportResponse>('/data-management/import', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -63,12 +63,12 @@ export function createImportTask(file: File, strategy: string, validateOnly: boo
  * 获取导入任务状态
  */
 export function getImportStatus(taskId: number) {
-  return request.get<DataImportResponse>(`/data-management/import/${taskId}/status`)
+  return get<DataImportResponse>(`/data-management/import/${taskId}/status`)
 }
 
 /**
  * 获取导入任务列表
  */
 export function getImportTasks() {
-  return request.get<ImportTask[]>('/data-management/import/tasks')
+  return get<ImportTask[]>('/data-management/import/tasks')
 }
