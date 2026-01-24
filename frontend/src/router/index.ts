@@ -87,6 +87,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '数据管理', icon: 'Document' }
       },
       {
+        path: 'model-config',
+        name: 'ModelConfig',
+        component: () => import('@/views/ModelConfig.vue'),
+        meta: { title: '模型配置', icon: 'Setting', requiresAdmin: true }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/SettingsView.vue'),
