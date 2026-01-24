@@ -6,12 +6,14 @@ import com.mydotey.ai.studio.service.EmbeddingService;
 import com.mydotey.ai.studio.service.ModelConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Slf4j
 @Service("modelEmbeddingService")
+@Primary
 @RequiredArgsConstructor
 public class ModelEmbeddingServiceImpl implements EmbeddingService {
 

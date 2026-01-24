@@ -6,7 +6,7 @@ import com.mydotey.ai.studio.dto.ModelConfigRequest;
 import com.mydotey.ai.studio.dto.ModelConfigResponse;
 import com.mydotey.ai.studio.entity.ModelConfig;
 import com.mydotey.ai.studio.enums.ModelConfigType;
-import com.mydotey.ai.studio.exception.BusinessException;
+import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.mapper.ModelConfigMapper;
 import com.mydotey.ai.studio.service.ModelConfigService;
 import lombok.RequiredArgsConstructor;
