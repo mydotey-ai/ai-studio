@@ -25,6 +25,10 @@ public class KnowledgeBase {
 
     private String embeddingModel;
 
+    private Long embeddingModelId;
+
+    private Long llmModelId;
+
     private Integer chunkSize;
 
     private Integer chunkOverlap;
