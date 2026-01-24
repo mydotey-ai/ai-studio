@@ -154,7 +154,7 @@ import {
   type UpdateAgentRequest
 } from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
-import { getModelConfigs, type ModelConfig, type ModelConfigType } from '@/api/modelConfig'
+import { getModelConfigs, type ModelConfig, ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 
