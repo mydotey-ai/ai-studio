@@ -15,7 +15,7 @@
             style="max-width: 600px"
           >
             <el-form-item label="用户名">
-              <el-input v-model="profileForm.username" disabled />
+              <el-input v-model="username" disabled />
             </el-form-item>
             <el-form-item label="邮箱" prop="email">
               <el-input v-model="profileForm.email" />
@@ -109,6 +109,7 @@ import { userApi, type UserProfile, type UpdateProfileRequest, type ChangePasswo
 const activeTab = ref('basic')
 const saving = ref(false)
 const changing = ref(false)
+const username = ref('')
 
 const profileFormRef = ref<FormInstance>()
 const passwordFormRef = ref<FormInstance>()
@@ -133,7 +134,7 @@ const profileRules: FormRules = {
   ]
 }
 
-const validateConfirmPassword = (rule: any, value: any, callback: any) => {
+const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
   if (value === '') {
     callback(new Error('请再次输入新密码'))
   } else if (value !== passwordForm.newPassword) {
@@ -162,6 +163,7 @@ let userProfile: UserProfile | null = null
 async function loadUserProfile() {
   try {
     userProfile = await userApi.getUserProfile()
+    username.value = userProfile.username
     profileForm.email = userProfile.email
     profileForm.bio = userProfile.bio || ''
     profileForm.language = userProfile.language || 'zh-CN'
