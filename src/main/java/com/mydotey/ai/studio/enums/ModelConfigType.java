@@ -1,75 +1,37 @@
 package com.mydotey.ai.studio.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.baomidou.mybatisplus.annotation.EnumValue;
 
 /**
- * Model configuration type enum
+ * 模型配置类型
  */
-@Getter
-@AllArgsConstructor
 public enum ModelConfigType {
+    EMBEDDING("embedding", "向量模型"),
+    LLM("llm", "大语言模型");
 
-    /**
-     * OpenAI configuration type
-     */
-    OPENAI("openai", "OpenAI"),
-
-    /**
-     * Azure OpenAI configuration type
-     */
-    AZURE_OPENAI("azure_openai", "Azure OpenAI"),
-
-    /**
-     * Anthropic configuration type
-     */
-    ANTHROPIC("anthropic", "Anthropic"),
-
-    /**
-     * Hugging Face configuration type
-     */
-    HUGGING_FACE("hugging_face", "Hugging Face"),
-
-    /**
-     * Ollama configuration type
-     */
-    OLLAMA("ollama", "Ollama"),
-
-    /**
-     * Local AI configuration type
-     */
-    LOCAL_AI("local_ai", "Local AI"),
-
-    /**
-     * Custom configuration type
-     */
-    CUSTOM("custom", "Custom");
-
-    /**
-     * Code value
-     */
+    @EnumValue
     private final String code;
+    private final String description;
 
-    /**
-     * Display name
-     */
-    private final String displayName;
+    ModelConfigType(String code, String description) {
+        this.code = code;
+        this.description = description;
+    }
 
-    /**
-     * Get enum by code
-     *
-     * @param code code value
-     * @return ModelConfigType enum, return null if not found
-     */
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public static ModelConfigType fromCode(String code) {
-        if (code == null) {
-            return null;
-        }
         for (ModelConfigType type : values()) {
-            if (type.getCode().equals(code)) {
+            if (type.code.equals(code)) {
                 return type;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Unknown model config type: " + code);
     }
 }
