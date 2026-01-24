@@ -208,11 +208,11 @@ const formatDate = (date: string) => {
 
 const getRoleType = (role: string) => {
   const map: Record<string, any> = {
-    USER: '',
+    USER: 'info',
     ADMIN: 'warning',
     SUPER_ADMIN: 'danger'
   }
-  return map[role] || ''
+  return map[role] || 'info'
 }
 
 const getRoleLabel = (role: string) => {
