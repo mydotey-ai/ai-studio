@@ -30,8 +30,8 @@ export function register(data: RegisterRequest) {
   return post<LoginResponse>('/auth/register', data)
 }
 
-export function logout() {
-  return post('/auth/logout')
+export function logout(data: RefreshTokenRequest) {
+  return post('/auth/logout', data)
 }
 
 export function refreshToken(data: RefreshTokenRequest) {

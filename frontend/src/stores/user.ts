@@ -35,7 +35,9 @@ export const useUserStore = defineStore('user', () => {
 
   async function logout() {
     try {
-      await logoutApi()
+      if (refreshTokenStr.value) {
+        await logoutApi({ refreshToken: refreshTokenStr.value })
+      }
     } finally {
       token.value = ''
       refreshTokenStr.value = ''
