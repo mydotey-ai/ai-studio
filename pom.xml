@@ -256,7 +256,7 @@
                 <executions>
                     <execution>
                         <id>copy-frontend-resources</id>
-                        <phase>process-resources</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
