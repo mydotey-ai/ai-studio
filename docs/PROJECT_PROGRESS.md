@@ -1821,8 +1821,144 @@ src/main/java/com/mydotey/ai/studio/
    - 完整的缓存使用文档（245 行指南）
    - 性能优化验证报告（398 行总结）
 
+### Phase 12: 数据导入导出功能 ✅
+
+**完成时间：2026-01-24**
+
+**实现内容:**
+- 数据导出功能（同步/异步）
+- 数据导入功能（文件验证/导入）
+- 导入导出任务管理
+- 数据管理界面
+- 导出对话框组件
+- 导入对话框组件
+- 任务列表展示
+
+**新增文件:**
+```
+backend/
+├── src/main/java/com/mydotey/ai/studio/
+│   ├── dto/export/
+│   │   ├── DataExportRequest.java
+│   │   ├── DataExportResponse.java
+│   │   ├── DataImportRequest.java
+│   │   ├── DataImportResponse.java
+│   │   ├── ExportScope.java
+│   │   ├── ExportMetadata.java
+│   │   ├── ExportPackage.java
+│   │   └── DataStats.java
+│   ├── entity/
+│   │   ├── ExportTask.java
+│   │   └── ImportTask.java
+│   ├── mapper/
+│   │   ├── ExportTaskMapper.java
+│   │   └── ImportTaskMapper.java
+│   ├── service/
+│   │   ├── DataExportService.java
+│   │   └── DataImportService.java
+│   ├── controller/
+│   │   └── DataManagementController.java
+│   └── repository/
+│       ├── ExportTaskRepository.java
+│       └── ImportTaskRepository.java
+
+frontend/
+├── src/
+│   ├── types/
+│   │   └── data-management.ts
+│   ├── api/
+│   │   └── data-management.ts
+│   ├── components/
+│   │   └── data-management/
+│   │       ├── ExportDialog.vue
+│   │       └── ImportDialog.vue
+│   └── views/
+│       └── data-management/
+│           └── DataManagementView.vue
+
+src/main/resources/
+└── db/migration/
+    └── V11__export_import_tables.sql
+```
+
+**技术栈:**
+- Spring Boot 3.5.0（后端）
+- MyBatis-Plus 3.5.7（数据访问）
+- PostgreSQL（数据库）
+- Vue 3.5+（前端）
+- TypeScript 5.3+（前端类型）
+- Element Plus 2.13+（UI 组件）
+
+**核心功能:**
+- 数据导出（同步直接下载，异步任务处理）
+- 数据导入（文件验证，策略选择）
+- 任务管理（进度跟踪，状态查询）
+- 导入策略（跳过已存在，覆盖已存在，重命名冲突）
+- 导出范围（全部数据，知识库，Agent，聊天机器人，MCP服务器）
+- 导出选项（包含文档内容，包含对话记录）
+
+**API 端点:**
+```
+导出 API (/api/data-export/*):
+- POST /api/data-export/sync - 同步导出数据
+- POST /api/data-export/async - 异步导出数据
+- GET /api/data-export/tasks - 获取导出任务列表
+- GET /api/data-export/tasks/{id} - 获取导出任务详情
+
+导入 API (/api/data-import/*):
+- POST /api/data-import - 导入数据
+- GET /api/data-import/tasks - 获取导入任务列表
+- GET /api/data-import/tasks/{id} - 获取导入任务详情
+```
+
+**数据库表:**
+```sql
+-- 导出任务表
+CREATE TABLE export_tasks (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    organization_id BIGINT NOT NULL REFERENCES organizations(id),
+    scope VARCHAR(50) NOT NULL,
+    include_document_content BOOLEAN DEFAULT FALSE,
+    include_conversations BOOLEAN DEFAULT FALSE,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    file_path VARCHAR(255),
+    file_size BIGINT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+
+-- 导入任务表
+CREATE TABLE import_tasks (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    organization_id BIGINT NOT NULL REFERENCES organizations(id),
+    strategy VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    file_path VARCHAR(255),
+    file_size BIGINT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+```
+
+**前端界面:**
+- 数据管理主页面（任务列表，操作按钮）
+- 导出对话框（范围选择，选项配置）
+- 导入对话框（文件上传，策略选择）
+- 任务列表（状态显示，操作按钮）
+
+**完成状态:**
+- ✅ 后端服务实现
+- ✅ 前端组件实现
+- ✅ 数据库迁移
+- ✅ 类型定义
+- ✅ API 客户端
+- ✅ 路由配置
+- ✅ 前端构建测试 ✅
+- ✅ 后端编译测试 ✅
+
 **下一步计划:**
-- 数据导入导出功能
 - 用户个性化设置
 - 国际化支持 (i18n)
 - 优化 highlight.js 和 markdown-it 按需引入
