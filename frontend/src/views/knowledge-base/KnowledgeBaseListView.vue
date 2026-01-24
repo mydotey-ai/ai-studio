@@ -124,7 +124,7 @@ import {
   createKnowledgeBase,
   deleteKnowledgeBase as deleteKbApi
 } from '@/api/knowledge-base'
-import { getModelConfigs } from '@/api/modelConfig'
+import { modelConfigApi } from '@/api/modelConfig'
 import { ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import type { ModelConfig } from '@/api/modelConfig'
@@ -162,20 +162,22 @@ const rules: FormRules = {
 async function loadModels() {
   loadingModels.value = true
   try {
-    const [embedding, llm] = await Promise.all([
-      getModelConfigs(ModelConfigType.EMBEDDING),
-      getModelConfigs(ModelConfigType.LLM)
+    const [embeddingResponse, llmResponse] = await Promise.all([
+      modelConfigApi.getList(ModelConfigType.EMBEDDING),
+      modelConfigApi.getList(ModelConfigType.LLM)
     ])
+    const embedding = embeddingResponse as ModelConfig[];
+    const llm = llmResponse as ModelConfig[];
     embeddingModels.value = embedding
     llmModels.value = llm
 
     // Auto-select first available model if not selected
     if (!form.embeddingModelId && embedding.length > 0) {
-      const defaultModel = embedding.find(m => m.isDefault)
+      const defaultModel = embedding.find((m: any) => m.isDefault)
       form.embeddingModelId = defaultModel?.id || embedding[0].id
     }
     if (!form.llmModelId && llm.length > 0) {
-      const defaultModel = llm.find(m => m.isDefault)
+      const defaultModel = llm.find((m: any) => m.isDefault)
       form.llmModelId = defaultModel?.id || llm[0].id
     }
   } catch (error) {
@@ -235,11 +237,11 @@ function resetForm() {
 
   // Auto-select default models
   if (embeddingModels.value.length > 0) {
-    const defaultModel = embeddingModels.value.find(m => m.isDefault)
+    const defaultModel = embeddingModels.value.find((m: any) => m.isDefault)
     form.embeddingModelId = defaultModel?.id || embeddingModels.value[0].id
   }
   if (llmModels.value.length > 0) {
-    const defaultModel = llmModels.value.find(m => m.isDefault)
+    const defaultModel = llmModels.value.find((m: any) => m.isDefault)
     form.llmModelId = defaultModel?.id || llmModels.value[0].id
   }
 }

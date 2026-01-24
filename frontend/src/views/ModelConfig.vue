@@ -78,7 +78,6 @@
           <el-input v-model="form.endpoint" placeholder="https://api.openai.com/v1" />
         </el-form-item>
         <el-form-item label="API Key" prop="apiKey">
-">
           <el-input v-model="form.apiKey" placeholder="请输入API Key" show-password />
         </el-form-item>
         <el-form-item label="模型" prop="model">
@@ -134,34 +133,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import {
-const ModelConfigTypeLabels = {
-  [ModelConfigType.EMBEDDING]: '''向量模型'',
-  [ModelConfigType.LLM]: '''大语言模型''
-}
-
-  getModelConfig,
-  createModelConfig,
-  updateModelConfig,
-  deleteModelConfig,
-  setDefaultModelConfig,
-  testModelConfig,
-  type ModelConfig,
-  type CreateModelConfigRequest,
-  type ModelConfigType
-} from
-  getModelConfigs,
-  getModelConfig,
-  createModelConfig,
-  updateModelConfig,
-  deleteModelConfig,
-  setDefaultModelConfig,
-  testModelConfig,
-  type ModelConfig,
-  type CreateModelConfigRequest,
-  type ModelConfigType
-} from '@/api/modelConfig'
-import { ModelConfigType, ModelConfigTypeLabels } from '@/enums/modelConfigType'
+import { modelConfigApi, type ModelConfig, type CreateModelConfigRequest, ModelConfigType, ModelConfigTypeLabels } from '@/api/modelConfig'
 
 const activeType = ref(ModelConfigType.EMBEDDING)
 const configs = ref<ModelConfig[]>([])
@@ -171,7 +143,7 @@ const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
 
-const form = reactive<Partial<ModelConfigRequest>>({
+const form = reactive<Partial<CreateModelConfigRequest>>({
   name: '',
   type: ModelConfigType.EMBEDDING,
   endpoint: 'https://api.openai.com/v1',
@@ -197,7 +169,7 @@ const rules: FormRules = {
       required: true,
       message: '请输入维度',
       trigger: 'blur',
-      validator: (rule, value, callback) => {
+      validator: (_rule, value, callback) => {
         if (form.type === ModelConfigType.EMBEDDING && !value) {
           callback(new Error('请输入维度'))
         } else {
@@ -212,7 +184,7 @@ const loadConfigs = async () => {
   loading.value = true
   try {
     const res = await modelConfigApi.getList(activeType.value)
-    configs.value = res.data
+    configs.value = res as ModelConfig[]
   } catch (error) {
     ElMessage.error('加载配置失败')
   } finally {
@@ -271,10 +243,10 @@ const handleSubmit = async () => {
     submitting.value = true
 
     if (isEdit.value) {
-      await updateModelConfig(currentId.value, form as CreateModelConfigRequest)
+      await modelConfigApi.update(currentId.value, form as CreateModelConfigRequest)
       ElMessage.success('更新成功')
     } else {
-      await createModelConfig(form as CreateModelConfigRequest)
+      await modelConfigApi.create(form as CreateModelConfigRequest)
       ElMessage.success('创建成功')
     }
 
@@ -289,7 +261,7 @@ const handleSubmit = async () => {
 
 const handleSetDefault = async (row: ModelConfig) => {
   try {
-    await setDefaultModelConfig(row.id)
+    await modelConfigApi.setDefault(row.id)
     ElMessage.success('设置成功')
     loadConfigs()
   } catch (error) {
@@ -299,8 +271,9 @@ const handleSetDefault = async (row: ModelConfig) => {
 
 const handleTest = async (row: ModelConfig) => {
   try {
-    const res = await testModelConfig(row.id)
-    if (res.data) {
+    const res = await modelConfigApi.test(row.id)
+    const result = res as { data: boolean };
+    if (result.data) {
       ElMessage.success('配置测试成功')
     } else {
       ElMessage.error('配置测试失败')
@@ -315,7 +288,7 @@ const handleDelete = async (row: ModelConfig) => {
     await ElMessageBox.confirm(`确定要删除配置"${row.name}"吗？`, '确认删除', {
       type: 'warning'
     })
-    await deleteModelConfig(row.id)
+    await modelConfigApi.delete(row.id)
     ElMessage.success('删除成功')
     loadConfigs()
   } catch (error) {

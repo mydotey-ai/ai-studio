@@ -1,6 +1,6 @@
 import { get, post, put, del } from './request'
 
-export enum enum ModelConfigType {
+export enum ModelConfigType {
   EMBEDDING = 'embedding',
   LLM = 'llm'
 }
@@ -64,24 +64,24 @@ export interface UpdateModelConfigRequest {
 export const modelConfigApi = {
   // 获取模型配置列表
   getList: (type?: ModelConfigType) => {
-    return get<ModelConfig[]>('/api/model-configs', {
+    return get('/api/model-configs', {
       params: { type }
-    })
+    }) as Promise<ModelConfig[]>
   },
 
   // 获取模型配置详情
   getById: (id: number) => {
-    return get<ModelConfig>(`/api/model-configs/${id}`)
+    return get(`/api/model-configs/${id}`) as Promise<ModelConfig>
   },
 
   // 创建模型配置
   create: (data: CreateModelConfigRequest) => {
-    return post<ModelConfig>('/api/model-configs', data)
+    return post('/api/model-configs', data) as Promise<ModelConfig>
   },
 
   // 更新模型配置
   update: (id: number, data: UpdateModelConfigRequest) => {
-    return put<ModelConfig>(`/api/model-configs/${id}`, data)
+    return put(`/api/model-configs/${id}`, data) as Promise<ModelConfig>
   },
 
   // 删除模型配置
@@ -96,6 +96,6 @@ export const modelConfigApi = {
 
   // 测试配置
   test: (id: number) => {
-    return post(`/api/model-configs/${id}/test`)
+    return post(`/api/model-configs/${id}/test`) as Promise<{ data: boolean }>
   }
 }

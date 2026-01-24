@@ -154,7 +154,7 @@ import {
   type UpdateAgentRequest
 } from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
-import { getModelConfigs, type ModelConfig, ModelConfigType } from '@/api/modelConfig'
+import { modelConfigApi, type ModelConfig, ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 
@@ -232,12 +232,13 @@ async function loadKnowledgeBases() {
 
 async function loadLlmModels() {
   try {
-    const models = await getModelConfigs(ModelConfigType.LLM)
+    const response = await modelConfigApi.getList(ModelConfigType.LLM);
+    const models = response as ModelConfig[];
     llmModels.value = models
 
     // Auto-select default model if available
     if (models.length > 0 && !form.modelConfigId) {
-      const defaultModel = models.find(m => m.isDefault)
+      const defaultModel = models.find((m: any) => m.isDefault)
       if (defaultModel) {
         form.modelConfigId = defaultModel.id
         handleModelConfigChange(defaultModel.id)
