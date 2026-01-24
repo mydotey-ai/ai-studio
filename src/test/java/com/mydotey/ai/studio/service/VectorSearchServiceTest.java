@@ -234,7 +234,7 @@ class VectorSearchServiceTest {
         chunk.setDocumentId(documentId);
         chunk.setChunkIndex(chunkIndex);
         chunk.setContent(content);
-        chunk.setEmbedding("0.1,0.2,0.3");
+        chunk.setEmbedding(new float[]{0.1f, 0.2f, 0.3f});
         chunk.setMetadata("{}");
         chunk.setCreatedAt(Instant.now());
         chunk.setSimilarityScore(score);

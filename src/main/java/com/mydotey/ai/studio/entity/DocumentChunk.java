@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.mydotey.ai.studio.handler.JsonbTypeHandler;
+import com.mydotey.ai.studio.handler.VectorTypeHandler;
 import lombok.Data;
 
 import java.time.Instant;
@@ -20,8 +22,10 @@ public class DocumentChunk {
 
     private String content;
 
-    private String embedding;
+    @TableField(typeHandler = VectorTypeHandler.class)
+    private float[] embedding;
 
+    @TableField(typeHandler = JsonbTypeHandler.class)
     private String metadata;
 
     private Instant createdAt;

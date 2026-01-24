@@ -68,7 +68,7 @@ public class WebCrawlController {
             @PathVariable Long id,
             @RequestAttribute("userId") Long userId) {
         log.info("Starting crawl task: taskId={}, userId={}", id, userId);
-        webCrawlService.startCrawl(id);
+        webCrawlService.startCrawl(id, userId);
         return ApiResponse.<Void>success("Crawl task started successfully", null);
     }
 

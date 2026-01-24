@@ -84,7 +84,7 @@ public class WebCrawlService {
      * @param taskId The ID of the task to start
      */
     @Async
-    public void startCrawl(Long taskId) {
+    public void startCrawl(Long taskId, Long userId) {
         log.info("Starting crawl task: taskId={}", taskId);
 
         WebCrawlTask task = taskMapper.selectById(taskId);

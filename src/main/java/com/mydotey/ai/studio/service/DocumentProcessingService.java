@@ -141,7 +141,7 @@ public class DocumentProcessingService {
             chunk.setDocumentId(document.getId());
             chunk.setChunkIndex(i);
             chunk.setContent(chunkText);
-            chunk.setEmbedding(floatArrayToJson(embedding));
+            chunk.setEmbedding(embedding);
             chunk.setMetadata("{}");
 
             // 保存到数据库
@@ -159,20 +159,5 @@ public class DocumentProcessingService {
             config.setChunkOverlap(kb.getChunkOverlap());
         }
         return config;
-    }
-
-    /**
-     * 将 float 数组转换为 JSON 字符串
-     */
-    private String floatArrayToJson(float[] array) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                sb.append(",");
-            }
-            sb.append(array[i]);
-        }
-        sb.append("]");
-        return sb.toString();
     }
 }
