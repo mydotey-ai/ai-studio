@@ -12,6 +12,10 @@ public class CreateKnowledgeBaseRequest {
 
     private Boolean isPublic = false;
 
+    private Long embeddingModelId;
+
+    private Long llmModelId;
+
     private String embeddingModel = "text-embedding-3-small";
 
     private Integer chunkSize = 500;

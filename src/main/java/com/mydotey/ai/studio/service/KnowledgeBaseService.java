@@ -35,6 +35,8 @@ public class KnowledgeBaseService {
         kb.setOwnerId(userId);
         kb.setIsPublic(request.getIsPublic());
         kb.setEmbeddingModel(request.getEmbeddingModel());
+        kb.setEmbeddingModelId(request.getEmbeddingModelId());
+        kb.setLlmModelId(request.getLlmModelId());
         kb.setChunkSize(request.getChunkSize());
         kb.setChunkOverlap(request.getChunkOverlap());
         kb.setCreatedAt(Instant.now());
@@ -149,6 +151,8 @@ public class KnowledgeBaseService {
                 owner != null ? owner.getUsername() : null,
                 kb.getIsPublic(),
                 kb.getEmbeddingModel(),
+                kb.getEmbeddingModelId(),
+                kb.getLlmModelId(),
                 kb.getChunkSize(),
                 kb.getChunkOverlap(),
                 documentCount.intValue(),

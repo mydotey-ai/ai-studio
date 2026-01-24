@@ -66,6 +66,42 @@
         <el-form-item label="描述" prop="description">
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
+        <el-form-item label="向量模型" prop="embeddingModelId">
+          <el-select
+            v-model="form.embeddingModelId"
+            placeholder="请选择向量模型"
+            :loading="loadingModels"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="model in embeddingModels"
+              :key="model.id"
+              :label="model.name"
+              :value="model.id"
+            >
+              <span style="float: left">{{ model.name }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ model.model }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="LLM模型" prop="llmModelId">
+          <el-select
+            v-model="form.llmModelId"
+            placeholder="请选择LLM模型"
+            :loading="loadingModels"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="model in llmModels"
+              :key="model.id"
+              :label="model.name"
+              :value="model.id"
+            >
+              <span style="float: left">{{ model.name }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ model.model }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="可见性" prop="isPublic">
           <el-switch v-model="form.isPublic" active-text="公开" inactive-text="私有" />
         </el-form-item>
@@ -88,7 +124,10 @@ import {
   createKnowledgeBase,
   deleteKnowledgeBase as deleteKbApi
 } from '@/api/knowledge-base'
+import { getModelConfigs } from '@/api/modelConfig'
+import { ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
+import type { ModelConfig } from '@/api/modelConfig'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -97,7 +136,10 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateDialog = ref(false)
+const loadingModels = ref(false)
 const knowledgeBases = ref<KnowledgeBase[]>([])
+const embeddingModels = ref<ModelConfig[]>([])
+const llmModels = ref<ModelConfig[]>([])
 
 const pagination = reactive({
   page: 1,
@@ -108,11 +150,40 @@ const pagination = reactive({
 const form = reactive({
   name: '',
   description: '',
+  embeddingModelId: undefined as number | undefined,
+  llmModelId: undefined as number | undefined,
   isPublic: false
 })
 
 const rules: FormRules = {
   name: [{ required: true, message: '请输入知识库名称', trigger: 'blur' }]
+}
+
+async function loadModels() {
+  loadingModels.value = true
+  try {
+    const [embedding, llm] = await Promise.all([
+      getModelConfigs(ModelConfigType.EMBEDDING),
+      getModelConfigs(ModelConfigType.LLM)
+    ])
+    embeddingModels.value = embedding
+    llmModels.value = llm
+
+    // Auto-select first available model if not selected
+    if (!form.embeddingModelId && embedding.length > 0) {
+      const defaultModel = embedding.find(m => m.isDefault)
+      form.embeddingModelId = defaultModel?.id || embedding[0].id
+    }
+    if (!form.llmModelId && llm.length > 0) {
+      const defaultModel = llm.find(m => m.isDefault)
+      form.llmModelId = defaultModel?.id || llm[0].id
+    }
+  } catch (error) {
+    console.error('Failed to load models:', error)
+    ElMessage.error('加载模型配置失败')
+  } finally {
+    loadingModels.value = false
+  }
 }
 
 async function loadKnowledgeBases() {
@@ -157,8 +228,20 @@ async function handleCreate() {
 function resetForm() {
   form.name = ''
   form.description = ''
+  form.embeddingModelId = undefined
+  form.llmModelId = undefined
   form.isPublic = false
   formRef.value?.resetFields()
+
+  // Auto-select default models
+  if (embeddingModels.value.length > 0) {
+    const defaultModel = embeddingModels.value.find(m => m.isDefault)
+    form.embeddingModelId = defaultModel?.id || embeddingModels.value[0].id
+  }
+  if (llmModels.value.length > 0) {
+    const defaultModel = llmModels.value.find(m => m.isDefault)
+    form.llmModelId = defaultModel?.id || llmModels.value[0].id
+  }
 }
 
 function handleRowClick(row: KnowledgeBase) {
@@ -198,6 +281,7 @@ function formatDate(date: string) {
 }
 
 onMounted(() => {
+  loadModels()
   loadKnowledgeBases()
 })
 </script>

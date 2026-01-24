@@ -4,7 +4,9 @@ export interface KnowledgeBase {
   description?: string
   ownerId: number
   isPublic: boolean
-  embeddingModel: string
+  embeddingModel?: string
+  embeddingModelId?: number
+  llmModelId?: number
   chunkSize: number
   chunkOverlap: number
   documentCount?: number
@@ -32,6 +34,8 @@ export interface CreateKnowledgeBaseRequest {
   name: string
   description?: string
   isPublic?: boolean
+  embeddingModelId?: number
+  llmModelId?: number
   embeddingModel?: string
   chunkSize?: number
   chunkOverlap?: number

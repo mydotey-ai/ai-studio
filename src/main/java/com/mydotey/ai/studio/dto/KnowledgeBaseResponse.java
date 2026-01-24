@@ -15,6 +15,8 @@ public class KnowledgeBaseResponse {
     private String ownerName;
     private Boolean isPublic;
     private String embeddingModel;
+    private Long embeddingModelId;
+    private Long llmModelId;
     private Integer chunkSize;
     private Integer chunkOverlap;
     private Integer documentCount;
