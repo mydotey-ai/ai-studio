@@ -47,7 +47,7 @@ public class StreamingLlmService {
 
         try {
             // 构建消息
-            String messages = promptTemplateService.buildMessages(systemPrompt, userQuestion);
+            var messages = promptTemplateService.buildMessageList(systemPrompt, userQuestion);
 
             // 构建请求
             LlmRequest request = LlmRequest.builder()

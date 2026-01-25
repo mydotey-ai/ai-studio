@@ -55,19 +55,24 @@ export interface AgentExecutionRequest {
 }
 
 export interface AgentExecutionResponse {
-  executionId: string
-  result: string
-  steps: ExecutionStep[]
-  finished: boolean
+  answer: string
+  thoughtSteps: ThoughtStep[]
+  toolCalls: ToolCallResult[]
+  isComplete: boolean
 }
 
-export interface ExecutionStep {
+export interface ThoughtStep {
   step: number
-  type: 'thought' | 'action' | 'observation'
-  content: string
-  toolName?: string
-  toolArgs?: Record<string, any>
-  toolResult?: any
+  thought: string
+  action: string
+  observation: string
+}
+
+export interface ToolCallResult {
+  toolName: string
+  arguments: string
+  result: string
+  success: boolean
 }
 
 export function getAgents(params?: PaginationParams) {

@@ -43,7 +43,7 @@ public class LlmGenerationService {
 
         try {
             // 构建消息
-            String messages = promptTemplateService.buildMessages(systemPrompt, userQuestion);
+            var messages = promptTemplateService.buildMessageList(systemPrompt, userQuestion);
 
             // 构建请求
             LlmRequest request = LlmRequest.builder()
@@ -92,7 +92,7 @@ public class LlmGenerationService {
 
         try {
             // 构建消息
-            String messages = promptTemplateService.buildMessages(systemPrompt, userQuestion);
+            var messages = promptTemplateService.buildMessageList(systemPrompt, userQuestion);
 
             // 使用自定义配置或回退到全局配置
             String model = modelConfig != null && modelConfig.getModel() != null

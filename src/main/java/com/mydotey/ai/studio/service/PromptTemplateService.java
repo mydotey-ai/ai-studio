@@ -79,20 +79,31 @@ public class PromptTemplateService {
      */
     public String buildMessages(String systemPrompt, String userQuestion) {
         try {
-            List<Message> messages = List.of(
-                    Message.builder()
-                            .role(MessageRole.SYSTEM)
-                            .content(systemPrompt)
-                            .build(),
-                    Message.builder()
-                            .role(MessageRole.USER)
-                            .content(userQuestion)
-                            .build()
-            );
+            List<Message> messages = buildMessageList(systemPrompt, userQuestion);
             return objectMapper.writeValueAsString(messages);
         } catch (Exception e) {
             log.error("Failed to build messages JSON", e);
             throw new RuntimeException("Failed to build messages JSON", e);
         }
+    }
+
+    /**
+     * 构建完整的消息列表（用于 API 调用）
+     *
+     * @param systemPrompt 系统提示词
+     * @param userQuestion 用户问题
+     * @return 消息列表
+     */
+    public List<Message> buildMessageList(String systemPrompt, String userQuestion) {
+        return List.of(
+                Message.builder()
+                        .role(MessageRole.SYSTEM)
+                        .content(systemPrompt)
+                        .build(),
+                Message.builder()
+                        .role(MessageRole.USER)
+                        .content(userQuestion)
+                        .build()
+        );
     }
 }

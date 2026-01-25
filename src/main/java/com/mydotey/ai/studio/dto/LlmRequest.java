@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,7 +20,7 @@ public class LlmRequest {
     /**
      * 消息列表
      */
-    private String messages;
+    private List<Message> messages;
 
     /**
      * 温度参数（0-2）

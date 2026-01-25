@@ -143,34 +143,63 @@
         <div class="result-content">
           <div class="answer-section">
             <h4>最终回答</h4>
-            <div class="final-answer">{{ executionResult.result }}</div>
+            <div class="final-answer">{{ executionResult.answer }}</div>
           </div>
 
-          <div v-if="executionResult.steps && executionResult.steps.length > 0" class="steps-section">
-            <h4>执行步骤</h4>
+          <div v-if="executionResult.thoughtSteps && executionResult.thoughtSteps.length > 0" class="steps-section">
+            <h4>思考步骤</h4>
             <el-collapse accordion>
               <el-collapse-item
-                v-for="(step, index) in executionResult.steps"
+                v-for="(step, index) in executionResult.thoughtSteps"
                 :key="index"
-                :title="`步骤 ${step.step || index + 1}: ${getStepTypeLabel(step.type)}`"
+                :title="`步骤 ${step.step || index + 1}`"
                 :name="index"
               >
                 <div class="step-details">
-                  <div class="step-content">{{ step.content }}</div>
-
-                  <div v-if="step.toolName" class="step-tool">
-                    <strong>工具:</strong>
-                    <el-tag type="info" size="small">{{ step.toolName }}</el-tag>
+                  <div v-if="step.thought" class="step-content">
+                    <strong>思考:</strong>
+                    <p>{{ step.thought }}</p>
                   </div>
 
-                  <div v-if="step.toolArgs" class="step-params">
+                  <div v-if="step.action" class="step-action">
+                    <strong>行动:</strong>
+                    <p>{{ step.action }}</p>
+                  </div>
+
+                  <div v-if="step.observation" class="step-observation">
+                    <strong>观察:</strong>
+                    <p>{{ step.observation }}</p>
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+
+          <div v-if="executionResult.toolCalls && executionResult.toolCalls.length > 0" class="tools-section">
+            <h4>工具调用</h4>
+            <el-collapse accordion>
+              <el-collapse-item
+                v-for="(call, index) in executionResult.toolCalls"
+                :key="index"
+                :title="`工具调用 ${index + 1}: ${call.toolName}`"
+                :name="`tool-${index}`"
+              >
+                <div class="tool-details">
+                  <div v-if="call.arguments" class="tool-args">
                     <strong>参数:</strong>
-                    <pre class="json-display">{{ formatJson(step.toolArgs) }}</pre>
+                    <pre class="json-display">{{ call.arguments }}</pre>
                   </div>
 
-                  <div v-if="step.toolResult" class="step-result">
+                  <div v-if="call.result" class="tool-result">
                     <strong>结果:</strong>
-                    <pre class="json-display result">{{ formatJson(step.toolResult) }}</pre>
+                    <pre class="json-display result">{{ call.result }}</pre>
+                  </div>
+
+                  <div class="tool-status">
+                    <strong>状态:</strong>
+                    <el-tag :type="call.success ? 'success' : 'danger'" size="small">
+                      {{ call.success ? '成功' : '失败' }}
+                    </el-tag>
                   </div>
                 </div>
               </el-collapse-item>
@@ -178,8 +207,8 @@
           </div>
 
           <div class="status-section">
-            <el-tag :type="executionResult.finished ? 'success' : 'warning'">
-              {{ executionResult.finished ? '执行完成' : '执行中' }}
+            <el-tag :type="executionResult.isComplete ? 'success' : 'warning'">
+              {{ executionResult.isComplete ? '执行完成' : '执行中' }}
             </el-tag>
           </div>
         </div>
@@ -395,10 +424,11 @@ async function executeTest() {
       stream: false
     })
 
-    // 确保响应格式正确，即使没有steps也提供默认值
+    // 确保响应格式正确，即使没有步骤也提供默认值
     executionResult.value = {
       ...response,
-      steps: response.steps || []
+      thoughtSteps: response.thoughtSteps || [],
+      toolCalls: response.toolCalls || []
     }
     ElMessage.success('执行完成')
   } catch (error: unknown) {
@@ -415,17 +445,6 @@ function clearResult() {
   testQuery.value = ''
 }
 
-function formatJson(json: unknown) {
-  if (typeof json === 'string') {
-    try {
-      return JSON.stringify(JSON.parse(json), null, 2)
-    } catch {
-      return json
-    }
-  }
-  return JSON.stringify(json, null, 2)
-}
-
 function formatDateTime(date: string) {
   return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
@@ -439,20 +458,17 @@ function getWorkflowTypeColor(workflowType: string) {
   }
 }
 
-function getStepTypeLabel(type: string) {
-  switch (type) {
-    case 'thought': return '思考'
-    case 'action': return '行动'
-    case 'observation': return '观察'
-    default: return type
-  }
-}
-
 function getModelConfig(): AgentModelConfig {
   // 优先使用关联的模型配置信息
   if (agent.value?.llmModelConfig) {
     const { id, name, type, ...config } = agent.value.llmModelConfig
-    return config as AgentModelConfig
+    const result = config as any
+    return {
+      model: result.model || '-',
+      temperature: result.temperature || 0,
+      maxTokens: result.maxTokens || 0,
+      topP: result.topP || 0
+    }
   }
   // 回退到agent自身存储的模型配置
   if (!agent.value?.modelConfig) return { model: '-', temperature: 0, maxTokens: 0, topP: 0 }
@@ -628,7 +644,8 @@ onMounted(async () => {
 }
 
 .answer-section h4,
-.steps-section h4 {
+.steps-section h4,
+.tools-section h4 {
   margin: 0 0 12px 0;
   font-size: 16px;
   font-weight: 600;
@@ -654,23 +671,68 @@ onMounted(async () => {
   margin-top: 8px;
 }
 
-.step-content {
+.step-content,
+.step-action,
+.step-observation {
   margin-bottom: 12px;
-  padding: 8px;
+  padding: 10px;
   background: #f5f7fa;
   border-radius: 4px;
   line-height: 1.5;
 }
 
-.step-tool, .step-params, .step-result {
+.step-action {
+  background: #fff7e6;
+  border-left: 3px solid #faad14;
+}
+
+.step-observation {
+  background: #f6ffed;
+  border-left: 3px solid #52c41a;
+}
+
+.step-content strong,
+.step-action strong,
+.step-observation strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #606266;
+  font-weight: 600;
+}
+
+.step-content p,
+.step-action p,
+.step-observation p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* 工具调用样式 */
+.tool-details {
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+  margin-top: 8px;
+}
+
+.tool-args,
+.tool-result,
+.tool-status {
   margin-bottom: 12px;
 }
 
-.step-tool strong, .step-params strong, .step-result strong {
+.tool-args strong,
+.tool-result strong,
+.tool-statuses strong {
   display: inline-block;
   width: 80px;
   color: #606266;
   margin-right: 8px;
+}
+
+.tools-section {
+  margin-top: 16px;
 }
 
 .json-display {
