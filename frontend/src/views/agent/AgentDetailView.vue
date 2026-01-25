@@ -20,116 +20,109 @@
       </div>
     </div>
 
+    <!-- 基本信息卡片 -->
     <el-card v-if="agent" class="agent-card">
       <template #header>
         <div class="card-header">
-          <h2>{{ agent.name }}</h2>
-          <el-tag :type="agent.isPublic ? 'success' : 'info'">
-            {{ agent.isPublic ? '公开' : '私有' }}
-          </el-tag>
+          <div class="agent-title">
+            <h2>{{ agent.name }}</h2>
+            <el-tag :type="agent.isPublic ? 'success' : 'info'">
+              {{ agent.isPublic ? '公开' : '私有' }}
+            </el-tag>
+          </div>
+          <div class="agent-meta">
+            <el-tag :type="getWorkflowTypeColor(agent.workflowType)" effect="dark">
+              {{ agent.workflowType }}
+            </el-tag>
+          </div>
         </div>
       </template>
 
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="描述" :span="2">
-          {{ agent.description || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="工作流类型">
-          <el-tag :type="agent.workflowType === 'REACT' ? 'primary' : 'warning'">
-            {{ agent.workflowType }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="模型配置" :span="2">
-          <el-card class="model-config-card" shadow="never">
-            <template #header>
-              <span>LLM API 配置信息</span>
-            </template>
-            <div class="config-grid">
-              <div class="config-item">
+      <el-row :gutter="20">
+        <el-col :span="24">
+          <div class="section">
+            <h4>描述</h4>
+            <p class="agent-description">{{ agent.description || '-' }}</p>
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- 模型配置信息 -->
+      <el-row :gutter="20" v-if="getModelConfig()">
+        <el-col :span="24">
+          <div class="section">
+            <h4>模型配置</h4>
+            <div class="config-container">
+              <div class="config-item-simple">
                 <label>模型名称:</label>
-                <span>{{ getModelConfigValue('model') || '-' }}</span>
+                <span>{{ getModelConfig().model || '-' }}</span>
               </div>
-              <div class="config-item">
+              <div class="config-item-simple">
                 <label>温度:</label>
-                <span>{{ getModelConfigValue('temperature') || '-' }}</span>
+                <span>{{ getModelConfig().temperature ?? '-' }}</span>
               </div>
-              <div class="config-item">
+              <div class="config-item-simple">
                 <label>最大Token数:</label>
-                <span>{{ getModelConfigValue('maxTokens') || '-' }}</span>
+                <span>{{ getModelConfig().maxTokens || '-' }}</span>
               </div>
-              <div class="config-item">
+              <div class="config-item-simple" v-if="getModelConfig().topP !== undefined">
                 <label>Top-P:</label>
-                <span>{{ getModelConfigValue('topP') || '-' }}</span>
+                <span>{{ getModelConfig().topP }}</span>
               </div>
-              <div class="config-item" v-if="getModelConfigValue('endpoint')">
+              <div class="config-item-simple" v-if="getModelConfig().endpoint">
                 <label>API端点:</label>
-                <span>{{ getModelConfigValue('endpoint') }}</span>
+                <span>{{ getModelConfig().endpoint }}</span>
               </div>
-              <div class="config-item" v-if="getModelConfigValue('maskedApiKey')">
+              <div class="config-item-simple" v-if="getModelConfig().maskedApiKey">
                 <label>API密钥:</label>
-                <span>{{ getModelConfigValue('maskedApiKey') }}</span>
+                <span>{{ getModelConfig().maskedApiKey }}</span>
               </div>
             </div>
-          </el-card>
-        </el-descriptions-item>
-        <el-descriptions-item label="关联模型配置" :span="2" v-if="agent?.llmModelConfig">
-          <el-card class="linked-config-card" shadow="never">
-            <template #header>
-              <span>关联的模型配置详情</span>
-            </template>
-            <div class="linked-config-info">
-              <div class="config-detail">
-                <label>配置名称:</label>
-                <span>{{ agent.llmModelConfig.name }}</span>
-              </div>
-              <div class="config-detail">
-                <label>模型类型:</label>
-                <span>{{ agent.llmModelConfig.type }}</span>
-              </div>
-              <div class="config-detail">
-                <label>API端点:</label>
-                <span>{{ agent.llmModelConfig.endpoint }}</span>
-              </div>
-              <div class="config-detail">
-                <label>API密钥:</label>
-                <span>{{ agent.llmModelConfig.maskedApiKey }}</span>
-              </div>
-              <div class="config-detail">
-                <label>模型:</label>
-                <span>{{ agent.llmModelConfig.model }}</span>
-              </div>
-              <div class="config-detail" v-if="agent.llmModelConfig.temperature">
-                <label>温度:</label>
-                <span>{{ agent.llmModelConfig.temperature }}</span>
-              </div>
-              <div class="config-detail" v-if="agent.llmModelConfig.maxTokens">
-                <label>最大Token数:</label>
-                <span>{{ agent.llmModelConfig.maxTokens }}</span>
-              </div>
-            </div>
-          </el-card>
-        </el-descriptions-item>
-        <el-descriptions-item label="系统提示词" :span="2">
-          <div class="prompt-text">{{ agent.systemPrompt }}</div>
-        </el-descriptions-item>
-        <el-descriptions-item label="创建时间">
-          {{ formatDateTime(agent.createdAt) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="更新时间">
-          {{ formatDateTime(agent.updatedAt) }}
-        </el-descriptions-item>
-      </el-descriptions>
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- 系统提示词 -->
+      <el-row :gutter="20">
+        <el-col :span="24">
+          <div class="section">
+            <h4>系统提示词</h4>
+            <div class="system-prompt">{{ agent.systemPrompt }}</div>
+          </div>
+        </el-col>
+      </el-row>
+
+      <!-- 时间信息 -->
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <div class="section">
+            <h4>创建时间</h4>
+            <p>{{ formatDateTime(agent.createdAt) }}</p>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <div class="section">
+            <h4>更新时间</h4>
+            <p>{{ formatDateTime(agent.updatedAt) }}</p>
+          </div>
+        </el-col>
+      </el-row>
     </el-card>
 
-    <!-- Test Execution Panel -->
+    <!-- 测试面板 -->
     <el-card class="test-panel">
       <template #header>
         <h3>测试 Agent</h3>
       </template>
 
-      <el-form @submit.prevent="executeTest">
-        <el-form-item label="测试查询">
-          <el-input v-model="testQuery" type="textarea" :rows="3" placeholder="输入测试查询..." />
+      <el-form @submit.prevent="executeTest" :model="formState">
+        <el-form-item>
+          <el-input
+            v-model="testQuery"
+            type="textarea"
+            :rows="3"
+            placeholder="输入测试查询..."
+          />
         </el-form-item>
         <el-form-item>
           <el-button
@@ -140,86 +133,126 @@
           >
             执行测试
           </el-button>
-          <el-button :disabled="!executionResult" @click="clearResult"> 清空结果 </el-button>
+          <el-button :disabled="!executionResult" @click="clearResult">清空结果</el-button>
         </el-form-item>
       </el-form>
 
       <div v-if="executionResult" class="execution-result">
-        <el-divider>执行结果</el-divider>
+        <el-divider content-position="left">执行结果</el-divider>
 
-        <div class="result-section">
-          <h4>执行结果</h4>
-          <div class="answer-box">{{ executionResult.result }}</div>
-        </div>
+        <div class="result-content">
+          <div class="answer-section">
+            <h4>最终回答</h4>
+            <div class="final-answer">{{ executionResult.result }}</div>
+          </div>
 
-        <div v-if="executionResult.steps && executionResult.steps.length > 0" class="result-section">
-          <h4>执行步骤</h4>
-          <el-timeline>
-            <el-timeline-item
-              v-for="step in executionResult.steps"
-              :key="step.step"
-              :timestamp="`步骤 ${step.step}`"
-            >
-              <el-tag size="small" style="margin-bottom: 8px">{{ step.type }}</el-tag>
-              <div>{{ step.content }}</div>
-              <div v-if="step.toolName"><strong>工具:</strong> {{ step.toolName }}</div>
-              <div v-if="step.toolArgs">
-                <strong>参数:</strong>
-                <pre>{{ formatJson(step.toolArgs) }}</pre>
-              </div>
-              <div v-if="step.toolResult">
-                <strong>结果:</strong>
-                <pre>{{ formatJson(step.toolResult) }}</pre>
-              </div>
-            </el-timeline-item>
-          </el-timeline>
-        </div>
+          <div v-if="executionResult.steps && executionResult.steps.length > 0" class="steps-section">
+            <h4>执行步骤</h4>
+            <el-collapse accordion>
+              <el-collapse-item
+                v-for="(step, index) in executionResult.steps"
+                :key="index"
+                :title="`步骤 ${step.step || index + 1}: ${getStepTypeLabel(step.type)}`"
+                :name="index"
+              >
+                <div class="step-details">
+                  <div class="step-content">{{ step.content }}</div>
 
-        <div class="result-section">
-          <el-tag :type="executionResult.finished ? 'success' : 'warning'">
-            {{ executionResult.finished ? '执行完成' : '执行中' }}
-          </el-tag>
+                  <div v-if="step.toolName" class="step-tool">
+                    <strong>工具:</strong>
+                    <el-tag type="info" size="small">{{ step.toolName }}</el-tag>
+                  </div>
+
+                  <div v-if="step.toolArgs" class="step-params">
+                    <strong>参数:</strong>
+                    <pre class="json-display">{{ formatJson(step.toolArgs) }}</pre>
+                  </div>
+
+                  <div v-if="step.toolResult" class="step-result">
+                    <strong>结果:</strong>
+                    <pre class="json-display result">{{ formatJson(step.toolResult) }}</pre>
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+
+          <div class="status-section">
+            <el-tag :type="executionResult.finished ? 'success' : 'warning'">
+              {{ executionResult.finished ? '执行完成' : '执行中' }}
+            </el-tag>
+          </div>
         </div>
       </div>
     </el-card>
 
-    <!-- Edit Dialog -->
-    <el-dialog v-model="showEditDialog" title="编辑 Agent" width="600px" @close="resetForm">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入 Agent 名称" />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入 Agent 描述"
-          />
-        </el-form-item>
-        <el-form-item label="系统提示词" prop="systemPrompt">
-          <el-input
-            v-model="formData.systemPrompt"
-            type="textarea"
-            :rows="5"
-            placeholder="请输入系统提示词"
-          />
-        </el-form-item>
-        <el-form-item label="模型配置" prop="modelConfig">
-          <el-input
-            v-model="formData.modelConfig"
-            type="textarea"
-            :rows="3"
-            placeholder='{"model": "gpt-4", "temperature": 0.7}'
-          />
-        </el-form-item>
-        <el-form-item label="是否公开" prop="isPublic">
-          <el-switch v-model="formData.isPublic" />
-        </el-form-item>
+    <!-- 编辑对话框 -->
+    <el-dialog
+      v-model="showEditDialog"
+      title="编辑 Agent"
+      width="60%"
+      :fullscreen="dialogFullscreen"
+      @close="resetForm"
+    >
+      <el-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        label-width="120px"
+        label-position="top"
+      >
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="名称" prop="name">
+              <el-input v-model="formData.name" placeholder="请输入 Agent 名称" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="描述" prop="description">
+              <el-input
+                v-model="formData.description"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入 Agent 描述"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="系统提示词" prop="systemPrompt">
+              <el-input
+                v-model="formData.systemPrompt"
+                type="textarea"
+                :rows="6"
+                placeholder="请输入系统提示词"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="是否公开" prop="isPublic">
+              <el-switch v-model="formData.isPublic" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
+
       <template #footer>
         <el-button @click="showEditDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 确定 </el-button>
+        <el-button
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
+          确定
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -255,6 +288,7 @@ const showEditDialog = ref(false)
 const submitting = ref(false)
 const executing = ref(false)
 const formRef = ref<FormInstance>()
+const dialogFullscreen = ref(false)
 
 const testQuery = ref('')
 const executionResult = ref<AgentExecutionResponse | null>(null)
@@ -264,6 +298,10 @@ const formData = reactive<UpdateAgentRequest>({
   description: '',
   systemPrompt: '',
   isPublic: false
+})
+
+const formState = reactive({
+  testQuery: ''
 })
 
 const formRules: FormRules = {
@@ -392,13 +430,32 @@ function formatDateTime(date: string) {
   return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
-function getModelConfigValue(key: keyof AgentModelConfig) {
+function getWorkflowTypeColor(workflowType: string) {
+  switch (workflowType) {
+    case 'REACT': return 'primary'
+    case 'LINEAR': return 'warning'
+    case 'DAG': return 'success'
+    default: return 'info'
+  }
+}
+
+function getStepTypeLabel(type: string) {
+  switch (type) {
+    case 'thought': return '思考'
+    case 'action': return '行动'
+    case 'observation': return '观察'
+    default: return type
+  }
+}
+
+function getModelConfig(): AgentModelConfig {
   // 优先使用关联的模型配置信息
   if (agent.value?.llmModelConfig) {
-    return agent.value.llmModelConfig[key as keyof typeof agent.value.llmModelConfig]
+    const { id, name, type, ...config } = agent.value.llmModelConfig
+    return config as AgentModelConfig
   }
   // 回退到agent自身存储的模型配置
-  if (!agent.value?.modelConfig) return undefined
+  if (!agent.value?.modelConfig) return { model: '-', temperature: 0, maxTokens: 0, topP: 0 }
 
   let modelConfig: AgentModelConfig | null = null
 
@@ -406,13 +463,13 @@ function getModelConfigValue(key: keyof AgentModelConfig) {
     try {
       modelConfig = JSON.parse(agent.value.modelConfig) as AgentModelConfig
     } catch {
-      return undefined
+      return { model: '-', temperature: 0, maxTokens: 0, topP: 0 }
     }
   } else {
     modelConfig = agent.value.modelConfig as AgentModelConfig
   }
 
-  return modelConfig?.[key]
+  return modelConfig || { model: '-', temperature: 0, maxTokens: 0, topP: 0 }
 }
 
 onMounted(async () => {
@@ -432,6 +489,8 @@ onMounted(async () => {
 <style scoped>
 .agent-detail {
   padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
 .page-header {
@@ -439,6 +498,10 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .header-actions {
@@ -449,126 +512,231 @@ onMounted(async () => {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.card-header h2 {
+.agent-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agent-title h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
+  color: #303133;
+}
+
+.agent-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .agent-card {
   margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
-.json-config {
-  background: #f5f7fa;
-  padding: 10px;
-  border-radius: 4px;
+.section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fafcff;
+  border-radius: 6px;
+  border-left: 4px solid #409eff;
+}
+
+.section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.agent-description {
   margin: 0;
-  white-space: pre-wrap;
-  word-break: break-all;
+  line-height: 1.6;
+  color: #606266;
+  font-size: 14px;
 }
 
-.model-config-card {
-  width: 100%;
-}
-
-.linked-config-card {
-  width: 100%;
-  margin-top: 10px;
-}
-
-.model-config-card .el-card__header {
-  background-color: #f5f7fa;
-  border-bottom: 1px solid #ebeef5;
-  padding: 12px 20px;
-  font-weight: 600;
-}
-
-.linked-config-card .el-card__header {
-  background-color: #e8f4ff;
-  border-bottom: 1px solid #b3d8ff;
-  padding: 12px 20px;
-  font-weight: 600;
-}
-
-.config-grid {
+.config-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
 }
 
-.config-item, .config-detail {
+.config-item-simple {
   display: flex;
   flex-direction: column;
   padding: 8px 0;
 }
 
-.config-item label, .config-detail label {
+.config-item-simple label {
   font-weight: 600;
   color: #606266;
   margin-bottom: 4px;
   font-size: 14px;
 }
 
-.config-item span, .config-detail span {
+.config-item-simple span {
   color: #303133;
   word-break: break-all;
-  padding: 2px 0;
-  font-family: monospace;
-  background: #fafafa;
+  padding: 6px 10px;
+  background: white;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
-  padding: 4px 8px;
+  font-family: monospace;
   font-size: 13px;
+  display: inline-block;
+  max-width: 100%;
 }
 
-.prompt-text {
+.system-prompt {
   white-space: pre-wrap;
   line-height: 1.6;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #303133;
 }
 
 .test-panel {
   margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
 .execution-result {
   margin-top: 20px;
+  background: #f8f9fc;
+  padding: 16px;
+  border-radius: 6px;
 }
 
-.result-section {
-  margin-bottom: 30px;
+.result-content {
+  padding: 16px 0;
 }
 
-.result-section h4 {
-  margin-bottom: 15px;
+.answer-section h4,
+.steps-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
   font-weight: 600;
+  color: #303133;
 }
 
-.answer-box {
-  background: #f0f9ff;
+.final-answer {
+  background: white;
   border: 1px solid #b3d8ff;
   border-radius: 4px;
   padding: 15px;
   line-height: 1.6;
   white-space: pre-wrap;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(179, 216, 255, 0.3);
 }
 
-.tool-call-item {
+.step-details {
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+  margin-top: 8px;
+}
+
+.step-content {
+  margin-bottom: 12px;
+  padding: 8px;
   background: #f5f7fa;
   border-radius: 4px;
-  padding: 12px;
-  margin-bottom: 10px;
+  line-height: 1.5;
 }
 
-.tool-call-item pre {
-  background: white;
-  padding: 8px;
+.step-tool, .step-params, .step-result {
+  margin-bottom: 12px;
+}
+
+.step-tool strong, .step-params strong, .step-result strong {
+  display: inline-block;
+  width: 80px;
+  color: #606266;
+  margin-right: 8px;
+}
+
+.json-display {
+  background: #f8f9fa;
+  border: 1px solid #e4e7ed;
   border-radius: 4px;
-  margin: 5px 0;
+  padding: 10px;
+  margin: 8px 0;
   white-space: pre-wrap;
   word-break: break-all;
+  font-size: 12px;
+  font-family: monospace;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.json-display.result {
+  background: #f0f9ff;
+  border-color: #b3d8ff;
+}
+
+.status-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px solid #b3d8ff;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.el-collapse-item__header {
+  font-weight: 500;
+  color: #409eff;
+}
+
+@media (max-width: 768px) {
+  .agent-detail {
+    padding: 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .config-container {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section {
+    padding: 12px;
+  }
+
+  .step-tool strong, .step-params strong, .step-result strong {
+    width: 70px;
+  }
 }
 </style>
