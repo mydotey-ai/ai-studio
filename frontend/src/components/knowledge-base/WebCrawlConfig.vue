@@ -87,6 +87,7 @@ import {
 } from '@/api/document'
 import type { WebCrawlTask } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
+import { apiCache } from '@/utils/cache'
 
 interface Props {
   kbId: number
@@ -142,6 +143,8 @@ async function handleCreate() {
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
+      // Clear cache and reload tasks
+      apiCache.clear()
       loadTasks()
     } finally {
       submitting.value = false
@@ -153,6 +156,8 @@ async function handleStart(task: WebCrawlTask) {
   try {
     await startWebCrawlTask(task.id)
     ElMessage.success('已启动抓取任务')
+    // Clear cache and reload tasks
+    apiCache.clear()
     loadTasks()
   } catch (error) {
     console.error('Start task failed:', error)
@@ -169,6 +174,8 @@ async function handleDelete(task: WebCrawlTask) {
     })
     await deleteWebCrawlTask(task.id)
     ElMessage.success('删除成功')
+    // Clear cache and reload tasks
+    apiCache.clear()
     loadTasks()
   } catch (error) {
     if (error !== 'cancel') {

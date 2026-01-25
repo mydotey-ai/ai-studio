@@ -129,6 +129,7 @@ import { ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
 import type { ModelConfig } from '@/api/modelConfig'
 import dayjs from 'dayjs'
+import { apiCache } from '@/utils/cache'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -214,13 +215,9 @@ async function handleCreate() {
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
-      // Skip cache to get fresh data after creation
-      const data = await getKnowledgeBases(
-        { page: pagination.page, pageSize: pagination.pageSize },
-        true
-      )
-      knowledgeBases.value = data.records
-      pagination.total = data.total
+      // Clear cache and reload data
+      apiCache.clear()
+      await loadKnowledgeBases()
     } finally {
       submitting.value = false
     }
@@ -263,13 +260,9 @@ async function handleDelete(row: KnowledgeBase) {
     })
     await deleteKbApi(row.id)
     ElMessage.success('删除成功')
-    // Skip cache to get fresh data after deletion
-    const data = await getKnowledgeBases(
-      { page: pagination.page, pageSize: pagination.pageSize },
-      true
-    )
-    knowledgeBases.value = data.records
-    pagination.total = data.total
+    // Clear cache and reload data
+    apiCache.clear()
+    await loadKnowledgeBases()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Delete failed:', error)

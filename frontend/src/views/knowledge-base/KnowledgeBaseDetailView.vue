@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload, Link, Delete, UploadFilled } from '@element-plus/icons-vue'
@@ -97,6 +97,7 @@ import { getDocuments, uploadDocument, deleteDocument } from '@/api/document'
 import type { KnowledgeBase, Document } from '@/types/knowledge-base'
 import dayjs from 'dayjs'
 import WebCrawlConfig from '@/components/knowledge-base/WebCrawlConfig.vue'
+import { apiCache } from '@/utils/cache'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,6 +112,7 @@ const uploading = ref(false)
 const showUploadDialog = ref(false)
 const showWebCrawlDialog = ref(false)
 const uploadFile = ref<File | null>(null)
+const pollInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
 const docPagination = reactive({
   page: 1,
@@ -133,6 +135,57 @@ watch(
   },
   { immediate: true }
 )
+
+// Check if there are any documents in processing or pending status
+function hasProcessingDocuments() {
+  return documents.value.some(doc => doc.status === 'PROCESSING' || doc.status === 'PENDING')
+}
+
+// Start polling for document status updates
+function startPolling() {
+  stopPolling()
+  pollInterval.value = setInterval(() => {
+    if (activeTab.value === 'documents' && hasProcessingDocuments()) {
+      loadDocuments()
+    }
+  }, 3000) // Poll every 3 seconds
+}
+
+// Stop polling
+function stopPolling() {
+  if (pollInterval.value) {
+    clearInterval(pollInterval.value)
+    pollInterval.value = null
+  }
+}
+
+// Watch for tab changes
+watch(activeTab, (newTab) => {
+  if (newTab === 'documents') {
+    startPolling()
+  } else {
+    stopPolling()
+  }
+})
+
+// Watch for documents to start/stop polling based on status
+watch(documents, () => {
+  if (activeTab.value === 'documents') {
+    if (hasProcessingDocuments()) {
+      startPolling()
+    } else {
+      stopPolling()
+    }
+  }
+})
+
+onMounted(() => {
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 
 async function loadKnowledgeBase() {
   knowledgeBase.value = await getKnowledgeBase(kbId.value)
@@ -168,6 +221,8 @@ async function handleUpload() {
     ElMessage.success('上传成功，正在处理中...')
     showUploadDialog.value = false
     uploadFile.value = null
+    // Clear cache and reload documents
+    apiCache.clear()
     loadDocuments()
   } finally {
     uploading.value = false
@@ -183,6 +238,8 @@ async function handleDeleteDocument(doc: Document) {
     })
     await deleteDocument(doc.id)
     ElMessage.success('删除成功')
+    // Clear cache and reload documents
+    apiCache.clear()
     loadDocuments()
   } catch (error) {
     if (error !== 'cancel') {

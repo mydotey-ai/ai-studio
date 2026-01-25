@@ -69,7 +69,11 @@ public class DocumentProcessingService {
                 return;
             }
 
-            // 2. 读取文件内容
+            // 2. 更新状态为处理中
+            document.setStatus("PROCESSING");
+            documentMapper.updateById(document);
+
+            // 3. 读取文件内容
             byte[] fileBytes = Files.readAllBytes(Paths.get(document.getFileUrl()));
 
             // 3. 提取文本
@@ -90,7 +94,8 @@ public class DocumentProcessingService {
             // 6. 向量化并存储
             processChunks(document, chunks);
 
-            // 7. 更新文档状态
+            // 7. 更新文档状态为已完成
+            document = documentMapper.selectById(documentId); // 重新获取最新状态
             document.setStatus("COMPLETED");
             document.setChunkCount(chunks.size());
             documentMapper.updateById(document);
