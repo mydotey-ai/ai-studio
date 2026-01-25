@@ -161,6 +161,7 @@ import {
 import { getKnowledgeBases } from '@/api/knowledge-base'
 import { modelConfigApi, type ModelConfig, ModelConfigType } from '@/api/modelConfig'
 import type { KnowledgeBase } from '@/types/knowledge-base'
+import { apiCache } from '@/utils/cache'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -206,6 +207,11 @@ const rules: FormRules = {
     { required: true, message: '请输入系统提示词', trigger: 'blur' },
     { min: 10, message: '系统提示词至少 10 个字符', trigger: 'blur' }
   ]
+}
+
+// Clear all Agent list cache entries
+function clearAgentListCache() {
+  apiCache.clear('/agents')
 }
 
 async function loadAgents() {
@@ -313,6 +319,7 @@ async function handleSubmit() {
 
       showCreateDialog.value = false
       resetForm()
+      clearAgentListCache()
       loadAgents()
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '操作失败，请稍后重试'
@@ -400,6 +407,7 @@ async function handleDelete(row: Agent) {
     })
     await deleteAgentApi(row.id)
     ElMessage.success('删除成功')
+    clearAgentListCache()
     loadAgents()
   } catch (error: unknown) {
     if (error !== 'cancel') {
