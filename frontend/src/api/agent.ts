@@ -1,5 +1,6 @@
 import { get, post, put, del } from './request'
 import type { PaginationParams, PaginationResponse } from '@/types/common'
+import type { ModelConfig } from './modelConfig'
 
 export interface Agent {
   id: number
@@ -10,6 +11,8 @@ export interface Agent {
   isPublic: boolean
   workflowType: 'REACT' | 'LINEAR' | 'DAG'
   modelConfig: AgentModelConfig | string
+  llmModelConfigId?: number
+  llmModelConfig?: ModelConfig
   createdAt: string
   updatedAt: string
 }

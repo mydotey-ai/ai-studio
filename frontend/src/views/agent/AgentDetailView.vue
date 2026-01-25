@@ -72,6 +72,43 @@
             </div>
           </el-card>
         </el-descriptions-item>
+        <el-descriptions-item label="关联模型配置" :span="2" v-if="agent?.llmModelConfig">
+          <el-card class="linked-config-card" shadow="never">
+            <template #header>
+              <span>关联的模型配置详情</span>
+            </template>
+            <div class="linked-config-info">
+              <div class="config-detail">
+                <label>配置名称:</label>
+                <span>{{ agent.llmModelConfig.name }}</span>
+              </div>
+              <div class="config-detail">
+                <label>模型类型:</label>
+                <span>{{ agent.llmModelConfig.type }}</span>
+              </div>
+              <div class="config-detail">
+                <label>API端点:</label>
+                <span>{{ agent.llmModelConfig.endpoint }}</span>
+              </div>
+              <div class="config-detail">
+                <label>API密钥:</label>
+                <span>{{ agent.llmModelConfig.maskedApiKey }}</span>
+              </div>
+              <div class="config-detail">
+                <label>模型:</label>
+                <span>{{ agent.llmModelConfig.model }}</span>
+              </div>
+              <div class="config-detail" v-if="agent.llmModelConfig.temperature">
+                <label>温度:</label>
+                <span>{{ agent.llmModelConfig.temperature }}</span>
+              </div>
+              <div class="config-detail" v-if="agent.llmModelConfig.maxTokens">
+                <label>最大Token数:</label>
+                <span>{{ agent.llmModelConfig.maxTokens }}</span>
+              </div>
+            </div>
+          </el-card>
+        </el-descriptions-item>
         <el-descriptions-item label="系统提示词" :span="2">
           <div class="prompt-text">{{ agent.systemPrompt }}</div>
         </el-descriptions-item>
@@ -356,6 +393,11 @@ function formatDateTime(date: string) {
 }
 
 function getModelConfigValue(key: keyof AgentModelConfig) {
+  // 优先使用关联的模型配置信息
+  if (agent.value?.llmModelConfig) {
+    return agent.value.llmModelConfig[key as keyof typeof agent.value.llmModelConfig]
+  }
+  // 回退到agent自身存储的模型配置
   if (!agent.value?.modelConfig) return undefined
 
   let modelConfig: AgentModelConfig | null = null
@@ -433,9 +475,21 @@ onMounted(async () => {
   width: 100%;
 }
 
+.linked-config-card {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .model-config-card .el-card__header {
   background-color: #f5f7fa;
   border-bottom: 1px solid #ebeef5;
+  padding: 12px 20px;
+  font-weight: 600;
+}
+
+.linked-config-card .el-card__header {
+  background-color: #e8f4ff;
+  border-bottom: 1px solid #b3d8ff;
   padding: 12px 20px;
   font-weight: 600;
 }
@@ -446,20 +500,20 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.config-item {
+.config-item, .config-detail {
   display: flex;
   flex-direction: column;
   padding: 8px 0;
 }
 
-.config-item label {
+.config-item label, .config-detail label {
   font-weight: 600;
   color: #606266;
   margin-bottom: 4px;
   font-size: 14px;
 }
 
-.config-item span {
+.config-item span, .config-detail span {
   color: #303133;
   word-break: break-all;
   padding: 2px 0;

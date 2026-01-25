@@ -16,6 +16,8 @@ public class AgentResponse {
     private String systemPrompt;
     private Boolean isPublic;
     private String modelConfig;
+    private Long llmModelConfigId;
+    private ModelConfigDto llmModelConfig;
     private WorkflowType workflowType;
     private String workflowConfig;
     private Integer maxIterations;

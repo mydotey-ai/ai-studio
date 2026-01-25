@@ -14,6 +14,7 @@ import com.mydotey.ai.studio.entity.AgentTool;
 import com.mydotey.ai.studio.mapper.AgentKnowledgeBaseMapper;
 import com.mydotey.ai.studio.mapper.AgentMapper;
 import com.mydotey.ai.studio.mapper.AgentToolMapper;
+import com.mydotey.ai.studio.service.ModelConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class AgentService {
     private final AgentMapper agentMapper;
     private final AgentKnowledgeBaseMapper agentKbMapper;
     private final AgentToolMapper agentToolMapper;
+    private final ModelConfigService modelConfigService;
 
     /**
      * 创建 Agent
@@ -214,6 +216,17 @@ public class AgentService {
      * 转换 Agent 实体到响应 DTO
      */
     private AgentResponse toResponse(Agent agent) {
+        // 获取关联的模型配置信息
+        ModelConfigDto llmModelConfig = null;
+        if (agent.getLlmModelConfigId() != null) {
+            try {
+                llmModelConfig = modelConfigService.getConfigById(agent.getLlmModelConfigId());
+            } catch (Exception e) {
+                // 如果获取关联模型配置失败，不影响主要功能
+                log.warn("Failed to get model config for agent {}: {}", agent.getId(), e.getMessage());
+            }
+        }
+
         return AgentResponse.builder()
                 .id(agent.getId())
                 .name(agent.getName())
@@ -221,6 +234,8 @@ public class AgentService {
                 .systemPrompt(agent.getSystemPrompt())
                 .isPublic(agent.getIsPublic())
                 .modelConfig(agent.getModelConfig())
+                .llmModelConfigId(agent.getLlmModelConfigId())
+                .llmModelConfig(llmModelConfig)
                 .workflowType(WorkflowType.valueOf(agent.getWorkflowType()))
                 .maxIterations(agent.getMaxIterations())
                 .workflowConfig(agent.getWorkflowConfig())
