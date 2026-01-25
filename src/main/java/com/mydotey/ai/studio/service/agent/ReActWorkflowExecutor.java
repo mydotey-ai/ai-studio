@@ -69,25 +69,28 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
             log.info("ReAct iteration: {}", iteration);
 
             try {
-                // 1. 构建上下文
-                String context = buildContext(agent, request.getQuery(), thoughtSteps, kbIds);
+                // 1. 构建 ReAct 工作流的用户问题（包含查询和上下文）
+                String userQuestion = buildReActUserPrompt(request.getQuery(), toolIds);
 
-                // 2. LLM 推理 - 使用 Agent 的模型配置或全局配置
+                // 2. 获取 Agent 的系统提示词
+                String systemPrompt = getSystemPrompt(agent);
+
+                // 3. LLM 推理 - 使用 Agent 的模型配置或全局配置
                 LlmResponse llmResponse;
                 if (agentModelConfig != null) {
                     log.info("DEBUG: Using Agent model config method");
                     // 使用 Agent 的模型配置
                     llmResponse = llmGenerationService.generate(
-                            context,
-                            buildReActPrompt(toolIds),
+                            systemPrompt,
+                            userQuestion,
                             agentModelConfig
                     );
                 } else {
                     log.info("DEBUG: Using global config method");
                     // 使用全局配置
                     llmResponse = llmGenerationService.generate(
-                            context,
-                            buildReActPrompt(toolIds),
+                            systemPrompt,
+                            userQuestion,
                             null,
                             1000
                     );
@@ -127,22 +130,25 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
             .build();
     }
 
-    private String buildContext(Agent agent, String query,
-                               List<AgentExecutionResponse.ThoughtStep> thoughtSteps,
-                               List<Long> kbIds) {
-        StringBuilder context = new StringBuilder();
+    /**
+     * 获取 Agent 的系统提示词
+     */
+    private String getSystemPrompt(Agent agent) {
         String systemPrompt = agent.getSystemPrompt();
         if (systemPrompt != null && !systemPrompt.isBlank()) {
-            context.append(systemPrompt).append("\n\n");
-        } else {
-            context.append("You are a helpful assistant.\n\n");
+            return systemPrompt;
         }
-        context.append("Current question: ").append(query);
-        return context.toString();
+        return "You are a helpful assistant.";
     }
 
-    private String buildReActPrompt(List<Long> toolIds) {
-        StringBuilder prompt = new StringBuilder("\n\n");
+    /**
+     * 构建 ReAct 工作流的用户提示词（包含查询和工具信息）
+     */
+    private String buildReActUserPrompt(String query, List<Long> toolIds) {
+        StringBuilder prompt = new StringBuilder();
+
+        // 添加当前问题
+        prompt.append("Current question: ").append(query).append("\n\n");
 
         // 如果有工具可用，添加工具列表到提示词
         if (toolIds != null && !toolIds.isEmpty()) {
