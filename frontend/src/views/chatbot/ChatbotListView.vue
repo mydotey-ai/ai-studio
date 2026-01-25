@@ -156,13 +156,22 @@ const rules: FormRules = {
   agentId: [{ required: true, message: '请选择 Agent', trigger: 'change' }]
 }
 
-async function loadChatbots() {
+async function loadChatbots(forceRefresh: boolean = false) {
   loading.value = true
   try {
-    const data = await getChatbots({
-      page: pagination.page,
-      pageSize: pagination.pageSize
-    })
+    const requestConfig: any = {
+      params: {
+        page: pagination.page,
+        pageSize: pagination.pageSize
+      }
+    }
+
+    // 如果需要强制刷新，则跳过缓存
+    if (forceRefresh) {
+      requestConfig.headers = { 'X-Skip-Cache': 'true' }
+    }
+
+    const data = await getChatbots(requestConfig.params, requestConfig)
 
     // Handle both paginated and non-paginated responses
     const paginatedData = data as unknown as PaginationResponse<ChatbotResponse>
@@ -214,7 +223,7 @@ async function handleCreate() {
       ElMessage.success('创建成功')
       showCreateDialog.value = false
       resetForm()
-      await loadChatbots()
+      await loadChatbots(true) // 强制刷新以获取最新数据
     } catch (error) {
       console.error('Failed to create chatbot:', error)
       ElMessage.error('创建聊天机器人失败，请稍后重试')
@@ -251,7 +260,8 @@ async function handleDelete(row: ChatbotResponse) {
     })
     await deleteChatbotApi(row.id)
     ElMessage.success('删除成功')
-    loadChatbots()
+    // 清除相关缓存并强制重新加载数据
+    await loadChatbots(true)
   } catch {
     // User cancelled
   }

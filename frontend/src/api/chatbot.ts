@@ -4,15 +4,15 @@ import type { ChatbotResponse, CreateChatbotRequest, UpdateChatbotRequest } from
 export function getChatbots(params?: {
   page?: number
   pageSize?: number
-}): Promise<ChatbotResponse[]> {
-  return get('/chatbots/my', { params })
+}, config?: any): Promise<ChatbotResponse[]> {
+  return get('/chatbots/my', { ...config, params })
 }
 
 export function getPublishedChatbots(params?: {
   page?: number
   pageSize?: number
-}): Promise<ChatbotResponse[]> {
-  return get('/chatbots/published', { params })
+}, config?: any): Promise<ChatbotResponse[]> {
+  return get('/chatbots/published', { ...config, params })
 }
 
 export function getChatbot(id: number) {
