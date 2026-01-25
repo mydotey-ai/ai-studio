@@ -138,7 +138,7 @@ const messages = ref<Message[]>([])
 const currentConversationId = ref<number>()
 const isStreaming = ref(false)
 const streamingText = ref('')
-const eventSourceRef = ref<EventSource | null>(null)
+const eventSourceRef = ref<{ abort: () => void } | null>(null)
 
 const userInitial = computed(() => userStore.userInfo?.username?.charAt(0).toUpperCase() || 'U')
 
@@ -316,7 +316,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  eventSourceRef.value?.close()
+  eventSourceRef.value?.abort()
 })
 </script>
 

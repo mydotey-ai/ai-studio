@@ -1,5 +1,6 @@
 package com.mydotey.ai.studio.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mydotey.ai.studio.annotation.AuditLog;
 import com.mydotey.ai.studio.common.ApiResponse;
 import com.mydotey.ai.studio.dto.chatbot.*;
@@ -7,6 +8,7 @@ import com.mydotey.ai.studio.service.ChatService;
 import com.mydotey.ai.studio.service.ChatbotService;
 import com.mydotey.ai.studio.service.ConversationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -128,10 +130,18 @@ public class ChatbotController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "获取成功")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "未授权")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "聊天机器人不存在")
-    public ApiResponse<List<ConversationResponse>> getConversations(
+    public ApiResponse<ConversationPageResponse> getConversations(
             @PathVariable Long chatbotId,
-            @RequestAttribute("userId") Long userId) {
-        List<ConversationResponse> response = conversationService.getByChatbotAndUser(chatbotId, userId);
+            @RequestAttribute("userId") Long userId,
+            @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int pageSize) {
+        IPage<ConversationResponse> result = conversationService.getByChatbotAndUser(chatbotId, userId, page, pageSize);
+        ConversationPageResponse response = ConversationPageResponse.builder()
+                .records(result.getRecords())
+                .total(result.getTotal())
+                .current(result.getCurrent())
+                .size(result.getSize())
+                .build();
         return ApiResponse.success(response);
     }
 
@@ -216,14 +226,22 @@ public class ChatbotController {
 
         PrintWriter writer = response.getWriter();
 
-        // 简化版：直接调用非流式接口
-        // 实际实现需要通过 AgentExecutionService 的流式接口
-        ChatResponse chatResponse = chatService.chat(request, userId);
+        try {
+            // 简化版：直接调用非流式接口
+            // 实际实现需要通过 AgentExecutionService 的流式接口
+            ChatResponse chatResponse = chatService.chat(request, userId);
 
-        // 发送完整响应
-        writer.write("data: " + escapeSseData(chatResponse.getAnswer()) + "\n\n");
-        writer.write("data: [DONE]\n\n");
-        writer.flush();
+            // 发送完整响应
+            writer.write("data: " + escapeSseData(chatResponse.getAnswer()) + "\n\n");
+            writer.write("data: [DONE]\n\n");
+            writer.flush();
+        } catch (Exception e) {
+            log.error("Error in stream chat", e);
+            // 通过 SSE 发送错误信息
+            writer.write("data: " + escapeSseData("Error: " + e.getMessage()) + "\n\n");
+            writer.write("data: [ERROR]\n\n");
+            writer.flush();
+        }
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.mydotey.ai.studio.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.chatbot.ConversationResponse;
 import com.mydotey.ai.studio.dto.chatbot.MessageResponse;
@@ -82,6 +84,19 @@ public class ConversationService {
         return conversations.stream()
                 .map(conv -> toResponse(conv, List.of()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 分页获取用户在某个聊天机器人下的对话
+     */
+    public IPage<ConversationResponse> getByChatbotAndUser(Long chatbotId, Long userId, int page, int size) {
+        Page<Conversation> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Conversation> wrapper = new LambdaQueryWrapper<Conversation>()
+                .eq(Conversation::getChatbotId, chatbotId)
+                .eq(Conversation::getUserId, userId)
+                .orderByDesc(Conversation::getUpdatedAt);
+        IPage<Conversation> result = conversationMapper.selectPage(pageParam, wrapper);
+        return result.convert(conv -> toResponse(conv, List.of()));
     }
 
     /**

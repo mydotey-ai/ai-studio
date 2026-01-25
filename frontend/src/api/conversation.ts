@@ -24,12 +24,16 @@ export function sendMessage(data: ChatRequest) {
   return post('/chatbots/chat', data)
 }
 
+interface StreamController {
+  abort: () => void
+}
+
 export function sendMessageStream(
   data: ChatRequest,
   onMessage: (message: string) => void,
   onComplete: () => void,
   onError: (error: Error) => void
-): EventSource {
+): StreamController {
   const url = `${import.meta.env.VITE_API_BASE_URL}/chatbots/chat/stream`
   let token: string | null = null
   try {
@@ -38,37 +42,83 @@ export function sendMessageStream(
     console.warn('Failed to get token from storage:', error)
   }
 
-  const params = new URLSearchParams({
-    chatbotId: String(data.chatbotId),
-    message: data.message,
-    ...(data.conversationId && { conversationId: String(data.conversationId) }),
-    ...(token && { token })
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const controller = new AbortController()
+
+  fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+    signal: controller.signal
   })
-
-  const eventSource = new EventSource(`${url}?${params.toString()}`)
-
-  eventSource.onmessage = event => {
-    if (event.data === '[DONE]') {
-      onComplete()
-      eventSource.close()
-      return
-    }
-
-    try {
-      const data = event.data
-      if (data) {
-        onMessage(data)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-    } catch (error) {
-      onError(error as Error)
-      eventSource.close()
-    }
-  }
 
-  eventSource.onerror = () => {
-    onError(new Error('Stream connection error'))
-    eventSource.close()
-  }
+      const body = response.body
+      if (!body) {
+        throw new Error('Response body is not readable')
+      }
 
-  return eventSource
+      const reader = body.getReader()
+      const decoder = new TextDecoder()
+
+      function read() {
+        reader
+          .read()
+          .then(({ done, value }) => {
+            if (done) {
+              onComplete()
+              return
+            }
+
+            const chunk = decoder.decode(value, { stream: true })
+            const lines = chunk.split('\n')
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6)
+                if (data === '[DONE]') {
+                  onComplete()
+                  return
+                }
+                if (data && data.trim()) {
+                  try {
+                    // 解析 SSE 数据格式
+                    const unescapedData = data.replace(/\\n/g, '\n').replace(/\\"/g, '"')
+                    onMessage(unescapedData)
+                  } catch (error) {
+                    console.error('Failed to parse SSE data:', error)
+                  }
+                }
+              }
+            }
+
+            read()
+          })
+          .catch(error => {
+            if (error.name !== 'AbortError') {
+              onError(error)
+            }
+          })
+      }
+
+      read()
+    })
+    .catch(error => {
+      if (error.name !== 'AbortError') {
+        onError(error)
+      }
+    })
+
+  return {
+    abort: () => controller.abort()
+  }
 }

@@ -1,8 +1,10 @@
 package com.mydotey.ai.studio.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.mydotey.ai.studio.handler.JsonbTypeHandler;
 import lombok.Data;
 
 import java.time.Instant;
@@ -25,8 +27,10 @@ public class Chatbot {
 
     private Long ownerId;
 
+    @TableField(typeHandler = JsonbTypeHandler.class)
     private String settings;
 
+    @TableField(typeHandler = JsonbTypeHandler.class)
     private String styleConfig;
 
     private Boolean isPublished;
