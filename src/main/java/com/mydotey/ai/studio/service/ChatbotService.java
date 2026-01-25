@@ -118,8 +118,8 @@ public class ChatbotService {
         chatbot.setDescription(request.getDescription());
         chatbot.setWelcomeMessage(request.getWelcomeMessage());
         chatbot.setAvatarUrl(request.getAvatarUrl());
-        chatbot.setSettings(request.getSettings());
-        chatbot.setStyleConfig(request.getStyleConfig());
+        chatbot.setSettings(request.getSettings() != null ? request.getSettings() : "{}");
+        chatbot.setStyleConfig(request.getStyleConfig() != null ? request.getStyleConfig() : "{}");
         chatbot.setIsPublished(request.getIsPublished());
 
         chatbotMapper.updateById(chatbot);

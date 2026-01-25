@@ -3,6 +3,7 @@ package com.mydotey.ai.studio.handler;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
+import org.postgresql.util.PGobject;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -18,8 +19,10 @@ public class JsonbTypeHandler extends BaseTypeHandler<String> {
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, String parameter, JdbcType jdbcType) throws SQLException {
-        // Use setObject with Types.OTHER to handle JSONB properly
-        ps.setObject(i, parameter, java.sql.Types.OTHER);
+        PGobject jsonObject = new PGobject();
+        jsonObject.setType("jsonb");
+        jsonObject.setValue(parameter);
+        ps.setObject(i, jsonObject);
     }
 
     @Override
