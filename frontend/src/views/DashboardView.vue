@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import StatCard from '@/components/dashboard/StatCard.vue'
@@ -89,6 +90,8 @@ const trendsLoading = ref(false)
 const trendDays = ref(7)
 
 let refreshTimer: number | null = null
+
+const router = useRouter()
 
 // 统计卡片配置
 const statistics = ref([
@@ -245,7 +248,7 @@ const handleCardClick = (key: string) => {
   const route = routes[key]
   if (route) {
     // 使用 vue-router 跳转
-    console.log('Navigate to:', route)
+    router.push(route)
   }
 }
 
