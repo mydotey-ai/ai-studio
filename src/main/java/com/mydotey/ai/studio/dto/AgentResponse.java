@@ -1,6 +1,7 @@
 package com.mydotey.ai.studio.dto;
 
 import com.mydotey.ai.studio.dto.WorkflowType;
+import com.mydotey.ai.studio.dto.ModelConfigDto;
 import lombok.Builder;
 import lombok.Data;
 

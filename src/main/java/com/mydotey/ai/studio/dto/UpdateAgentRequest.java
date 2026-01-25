@@ -26,6 +26,8 @@ public class UpdateAgentRequest {
 
     private Integer maxIterations;
 
+    private Long llmModelConfigId;
+
     private List<Long> knowledgeBaseIds;
 
     private List<Long> toolIds;

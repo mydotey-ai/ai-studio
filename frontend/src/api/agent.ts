@@ -33,6 +33,7 @@ export interface CreateAgentRequest {
   isPublic?: boolean
   workflowType?: string
   modelConfig?: Partial<AgentModelConfig> | string
+  llmModelConfigId?: number
   knowledgeBaseIds?: number[]
   toolIds?: number[]
 }
@@ -43,6 +44,7 @@ export interface UpdateAgentRequest {
   systemPrompt?: string
   isPublic?: boolean
   modelConfig?: Partial<AgentModelConfig> | string
+  llmModelConfigId?: number
   knowledgeBaseIds?: number[]
   toolIds?: number[]
 }

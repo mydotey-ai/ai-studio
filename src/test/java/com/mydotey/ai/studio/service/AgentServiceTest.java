@@ -20,7 +20,8 @@ public class AgentServiceTest {
     private AgentMapper agentMapper = mock(AgentMapper.class);
     private AgentKnowledgeBaseMapper agentKbMapper = mock(AgentKnowledgeBaseMapper.class);
     private AgentToolMapper agentToolMapper = mock(AgentToolMapper.class);
-    private AgentService agentService = new AgentService(agentMapper, agentKbMapper, agentToolMapper);
+    private ModelConfigService modelConfigService = mock(ModelConfigService.class);
+    private AgentService agentService = new AgentService(agentMapper, agentKbMapper, agentToolMapper, modelConfigService);
 
     @Test
     void testCreateAgent_Success() {

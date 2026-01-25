@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.AgentResponse;
 import com.mydotey.ai.studio.dto.CreateAgentRequest;
+import com.mydotey.ai.studio.dto.ModelConfigDto;
 import com.mydotey.ai.studio.dto.UpdateAgentRequest;
 import com.mydotey.ai.studio.dto.WorkflowType;
 import com.mydotey.ai.studio.entity.Agent;
@@ -52,6 +53,7 @@ public class AgentService {
         agent.setWorkflowType(request.getWorkflowType().name());
         agent.setWorkflowConfig(request.getWorkflowConfig());
         agent.setMaxIterations(request.getMaxIterations());
+        agent.setLlmModelConfigId(request.getLlmModelConfigId());
         agent.setCreatedAt(Instant.now());
         agent.setUpdatedAt(Instant.now());
 
@@ -119,6 +121,9 @@ public class AgentService {
         }
         if (request.getMaxIterations() != null) {
             agent.setMaxIterations(request.getMaxIterations());
+        }
+        if (request.getLlmModelConfigId() != null) {
+            agent.setLlmModelConfigId(request.getLlmModelConfigId());
         }
         agent.setUpdatedAt(Instant.now());
 
@@ -215,7 +220,7 @@ public class AgentService {
     /**
      * 转换 Agent 实体到响应 DTO
      */
-    private AgentResponse toResponse(Agent agent) {
+    public AgentResponse toResponse(Agent agent) {
         // 获取关联的模型配置信息
         ModelConfigDto llmModelConfig = null;
         if (agent.getLlmModelConfigId() != null) {

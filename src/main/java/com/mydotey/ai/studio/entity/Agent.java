@@ -31,6 +31,7 @@ public class Agent {
     private String workflowConfig;
 
     private Integer maxIterations;
+    @TableField("llm_model_config_id")
     private Long llmModelConfigId;
     private Instant createdAt;
     private Instant updatedAt;

@@ -42,21 +42,8 @@ public class AgentController {
 
         Agent agent = agentService.createAgent(request, orgId, userId);
 
-        AgentResponse response = AgentResponse.builder()
-                .id(agent.getId())
-                .name(agent.getName())
-                .description(agent.getDescription())
-                .systemPrompt(agent.getSystemPrompt())
-                .isPublic(agent.getIsPublic())
-                .modelConfig(agent.getModelConfig())
-                .workflowType(com.mydotey.ai.studio.dto.WorkflowType.valueOf(agent.getWorkflowType()))
-                .maxIterations(agent.getMaxIterations())
-                .workflowConfig(agent.getWorkflowConfig())
-                .knowledgeBaseIds(agentService.getAgentKnowledgeBaseIds(agent.getId()))
-                .toolIds(agentService.getAgentToolIds(agent.getId()))
-                .createdAt(agent.getCreatedAt())
-                .updatedAt(agent.getUpdatedAt())
-                .build();
+        // 使用 AgentService 中的 toResponse 方法来确保包含关联的模型配置信息
+        AgentResponse response = agentService.toResponse(agent);
 
         return ApiResponse.success(response);
     }
@@ -72,21 +59,8 @@ public class AgentController {
     public ApiResponse<AgentResponse> getAgent(@PathVariable Long id) {
         Agent agent = agentService.getAgent(id);
 
-        AgentResponse response = AgentResponse.builder()
-                .id(agent.getId())
-                .name(agent.getName())
-                .description(agent.getDescription())
-                .systemPrompt(agent.getSystemPrompt())
-                .isPublic(agent.getIsPublic())
-                .modelConfig(agent.getModelConfig())
-                .workflowType(com.mydotey.ai.studio.dto.WorkflowType.valueOf(agent.getWorkflowType()))
-                .maxIterations(agent.getMaxIterations())
-                .workflowConfig(agent.getWorkflowConfig())
-                .knowledgeBaseIds(agentService.getAgentKnowledgeBaseIds(agent.getId()))
-                .toolIds(agentService.getAgentToolIds(agent.getId()))
-                .createdAt(agent.getCreatedAt())
-                .updatedAt(agent.getUpdatedAt())
-                .build();
+        // 使用 AgentService 中的 toResponse 方法来确保包含关联的模型配置信息
+        AgentResponse response = agentService.toResponse(agent);
 
         return ApiResponse.success(response);
     }

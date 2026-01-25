@@ -28,6 +28,8 @@ public class CreateAgentRequest {
 
     private Integer maxIterations = 10;
 
+    private Long llmModelConfigId;
+
     @NotEmpty(message = "At least one knowledge base is required")
     private List<Long> knowledgeBaseIds;
 

@@ -296,14 +296,16 @@ async function handleSubmit() {
           systemPrompt: form.systemPrompt,
           modelConfig: modelConfigJson,
           knowledgeBaseIds: form.knowledgeBaseIds,
-          isPublic: form.isPublic
+          isPublic: form.isPublic,
+          llmModelConfigId: form.modelConfigId
         }
         await updateAgent(editingId.value, updateData)
         ElMessage.success('更新成功')
       } else {
         const createData: CreateAgentRequest = {
           ...form,
-          modelConfig: modelConfigJson
+          modelConfig: modelConfigJson,
+          llmModelConfigId: form.modelConfigId
         }
         await createAgent(createData)
         ElMessage.success('创建成功')
