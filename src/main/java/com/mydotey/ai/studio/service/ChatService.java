@@ -167,4 +167,99 @@ public class ChatService {
             return "[]";
         }
     }
+
+    /**
+     * 流式聊天
+     */
+    public void chatStream(ChatRequest request, Long userId, StreamingChatCallback callback) {
+        Long chatbotId = request.getChatbotId();
+        Long conversationId = request.getConversationId();
+        String userMessage = request.getMessage();
+
+        log.info("Received stream chat request, chatbot: {}, conversation: {}, message: {}",
+                chatbotId, conversationId, userMessage);
+
+        try {
+            // 1. 获取聊天机器人
+            Chatbot chatbot = chatbotMapper.selectById(chatbotId);
+            if (chatbot == null) {
+                throw new RuntimeException("Chatbot not found");
+            }
+
+            // 增加访问计数
+            chatbotService.incrementAccessCount(chatbotId);
+
+            // 2. 获取或创建对话
+            Long conversationIdToUse;
+            if (conversationId == null) {
+                ConversationResponse convResponse = conversationService.create(chatbotId, userId);
+                conversationIdToUse = convResponse.getId();
+            } else {
+                conversationIdToUse = conversationId;
+            }
+
+            // 3. 保存用户消息
+            com.mydotey.ai.studio.entity.Message userMsg = new com.mydotey.ai.studio.entity.Message();
+            userMsg.setConversationId(conversationIdToUse);
+            userMsg.setRole("user");
+            userMsg.setContent(userMessage);
+            userMsg.setCreatedAt(Instant.now());
+            messageMapper.insert(userMsg);
+
+            // 4. 使用 Agent 流式执行
+            agentExecutionService.executeAgentStream(
+                    chatbot.getAgentId(),
+                    new AgentExecutionRequest() {{
+                        setQuery(userMessage);
+                        setContext(null);
+                    }},
+                    userId,
+                    new StreamingLlmService.StreamCallback() {
+                        private final StringBuilder fullResponse = new StringBuilder();
+
+                        @Override
+                        public void onContent(String content) {
+                            fullResponse.append(content);
+                            // 回调前端
+                            callback.onContent(content);
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            // 5. 保存助手回复
+                            try {
+                                com.mydotey.ai.studio.entity.Message assistantMsg = new com.mydotey.ai.studio.entity.Message();
+                                assistantMsg.setConversationId(conversationIdToUse);
+                                assistantMsg.setRole("assistant");
+                                assistantMsg.setContent(fullResponse.toString());
+                                assistantMsg.setSources(formatSources(null));
+                                assistantMsg.setToolCalls(formatToolCalls(null));
+                                assistantMsg.setMetadata("{}");
+                                assistantMsg.setCreatedAt(Instant.now());
+                                messageMapper.insert(assistantMsg);
+
+                                // 更新对话时间
+                                conversationService.touch(conversationIdToUse);
+
+                                // 通知完成
+                                callback.onComplete();
+                            } catch (Exception e) {
+                                log.error("Failed to save streaming response", e);
+                                callback.onError(e);
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            log.error("Error in agent stream execution", e);
+                            callback.onError(e);
+                        }
+                    }
+            );
+
+        } catch (Exception e) {
+            log.error("Error in stream chat", e);
+            callback.onError(e);
+        }
+    }
 }

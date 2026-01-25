@@ -4,17 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mydotey.ai.studio.config.LlmConfig;
 import com.mydotey.ai.studio.dto.LlmRequest;
+import com.mydotey.ai.studio.dto.ModelConfigDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 流式 LLM 服务
@@ -58,26 +60,29 @@ public class StreamingLlmService {
                     .stream(true)
                     .build();
 
+            // 构造请求体
+            String requestBody = objectMapper.writeValueAsString(request);
+
             // 构造请求头
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
             headers.setBearerAuth(config.getApiKey());
 
-            // 发送请求
-            HttpEntity<String> httpEntity = new HttpEntity<>(
-                    objectMapper.writeValueAsString(request),
-                    headers
-            );
-
             String url = config.getEndpoint() + "/chat/completions";
-            ResponseEntity<String> response = restTemplate.postForEntity(url, httpEntity, String.class);
 
-            // 解析流式响应
-            if (response.getStatusCode() == HttpStatus.OK) {
-                parseStreamResponse(response.getBody(), streamCallback);
-            } else {
-                streamCallback.onError(new RuntimeException("Unexpected response status: " + response.getStatusCode()));
-            }
+            // 使用 execute 方法获取流式响应
+            restTemplate.execute(
+                    url,
+                    HttpMethod.POST,
+                    httpRequest -> {
+                        httpRequest.getHeaders().putAll(headers);
+                        httpRequest.getBody().write(requestBody.getBytes());
+                    },
+                    response -> {
+                        parseStreamResponse(response, streamCallback);
+                        return null;
+                    }
+            );
 
         } catch (Exception e) {
             log.error("Failed to stream generate from LLM", e);
@@ -88,12 +93,16 @@ public class StreamingLlmService {
     /**
      * 解析流式响应
      */
-    private void parseStreamResponse(String responseBody, StreamCallback streamCallback) {
-        try {
-            // 解析每一行（SSE 格式：data: {...}）
-            String[] lines = responseBody.split("\n");
+    private void parseStreamResponse(ClientHttpResponse response, StreamCallback streamCallback) throws IOException {
+        InputStream inputStream = response.getBody();
+        if (inputStream == null) {
+            streamCallback.onError(new RuntimeException("Response body is null"));
+            return;
+        }
 
-            for (String line : lines) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
                 line = line.trim();
 
                 if (line.startsWith("data: ")) {
@@ -106,21 +115,104 @@ public class StreamingLlmService {
                     }
 
                     // 解析 JSON
-                    JsonNode json = objectMapper.readTree(data);
-                    JsonNode choices = json.get("choices");
+                    try {
+                        JsonNode json = objectMapper.readTree(data);
+                        JsonNode choices = json.get("choices");
 
-                    if (choices != null && choices.size() > 0) {
-                        JsonNode delta = choices.get(0).get("delta");
-                        if (delta != null && delta.has("content")) {
-                            String content = delta.get("content").asText();
-                            streamCallback.onContent(content);
+                        if (choices != null && choices.size() > 0) {
+                            JsonNode delta = choices.get(0).get("delta");
+                            if (delta != null && delta.has("content")) {
+                                String content = delta.get("content").asText();
+                                streamCallback.onContent(content);
+                            }
                         }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse stream data: {}, error: {}", data, e.getMessage());
+                        // 继续处理下一行
                     }
                 }
             }
+            // 正常结束流
+            streamCallback.onComplete();
+        } catch (Exception e) {
+            log.error("Error reading stream response", e);
+            streamCallback.onError(e);
+        }
+    }
+
+    /**
+     * 流式生成回答（使用自定义模型配置）
+     *
+     * @param systemPrompt 系统提示词
+     * @param userQuestion 用户问题
+     * @param modelConfig 模型配置
+     * @param streamCallback 流式响应回调函数
+     */
+    public void streamGenerateWithConfig(
+            String systemPrompt,
+            String userQuestion,
+            ModelConfigDto modelConfig,
+            StreamCallback streamCallback) {
+
+        try {
+            // 构建消息
+            var messages = promptTemplateService.buildMessageList(systemPrompt, userQuestion);
+
+            // 使用自定义配置或回退到全局配置
+            String model = modelConfig != null && modelConfig.getModel() != null
+                    ? modelConfig.getModel()
+                    : config.getModel();
+            String apiKey = modelConfig != null && modelConfig.getApiKey() != null
+                    ? modelConfig.getApiKey()
+                    : config.getApiKey();
+            String endpoint = modelConfig != null && modelConfig.getEndpoint() != null
+                    ? modelConfig.getEndpoint()
+                    : config.getEndpoint();
+            Double temperature = modelConfig != null && modelConfig.getTemperature() != null
+                    ? modelConfig.getTemperature()
+                    : config.getDefaultTemperature();
+            Integer maxTokens = modelConfig != null && modelConfig.getMaxTokens() != null
+                    ? modelConfig.getMaxTokens()
+                    : config.getDefaultMaxTokens();
+
+            log.info("LLM stream request - model: {}, endpoint: {}, using custom config: {}",
+                    model, endpoint, modelConfig != null);
+
+            // 构建请求
+            LlmRequest request = LlmRequest.builder()
+                    .model(model)
+                    .messages(messages)
+                    .temperature(temperature)
+                    .maxTokens(maxTokens)
+                    .stream(true)
+                    .build();
+
+            // 构造请求体
+            String requestBody = objectMapper.writeValueAsString(request);
+
+            // 构造请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            String url = endpoint + "/chat/completions";
+
+            // 使用 execute 方法获取流式响应
+            restTemplate.execute(
+                    url,
+                    HttpMethod.POST,
+                    httpRequest -> {
+                        httpRequest.getHeaders().putAll(headers);
+                        httpRequest.getBody().write(requestBody.getBytes());
+                    },
+                    response -> {
+                        parseStreamResponse(response, streamCallback);
+                        return null;
+                    }
+            );
 
         } catch (Exception e) {
-            log.error("Failed to parse stream response", e);
+            log.error("Failed to stream generate from LLM with custom config", e);
             streamCallback.onError(e);
         }
     }

@@ -6,6 +6,7 @@ import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.*;
 import com.mydotey.ai.studio.entity.Agent;
 import com.mydotey.ai.studio.service.*;
+import com.mydotey.ai.studio.service.StreamingChatCallback;
 import com.mydotey.ai.studio.service.mcp.McpRpcClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
     private final McpRpcClient mcpRpcClient;
     private final AgentService agentService;
     private final ModelConfigService modelConfigService;
+    private final StreamingLlmService streamingLlmService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -152,7 +154,7 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
 
         // 如果有工具可用，添加工具列表到提示词
         if (toolIds != null && !toolIds.isEmpty()) {
-            prompt.append("You have access to the following tools:\n");
+            prompt.append("You have access to following tools:\n");
             for (Long toolId : toolIds) {
                 prompt.append("- Tool ID: ").append(toolId).append("\n");
             }
@@ -161,5 +163,90 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
 
         prompt.append("Please provide a helpful answer.");
         return prompt.toString();
+    }
+
+    /**
+     * 流式执行 Agent
+     */
+    @Override
+    public void executeStream(Agent agent, AgentExecutionRequest request, Long userId, StreamingChatCallback callback) {
+        log.info("Executing ReAct workflow stream for agent: {}, query: {}", agent.getId(), request.getQuery());
+
+        try {
+            // 1. 获取 Agent 的系统提示词
+            String systemPrompt = getSystemPrompt(agent);
+
+            // 2. 构建用户问题
+            List<Long> toolIds = agentService.getAgentToolIds(agent.getId());
+            String userQuestion = buildReActUserPrompt(request.getQuery(), toolIds);
+
+            // 3. 获取 Agent 的模型配置
+            ModelConfigDto agentModelConfig = null;
+            if (agent.getLlmModelConfigId() != null) {
+                try {
+                    agentModelConfig = modelConfigService.getConfigById(agent.getLlmModelConfigId());
+                    log.info("Using agent model config: {}, model: {}, endpoint: {}",
+                            agentModelConfig.getName(), agentModelConfig.getModel(), agentModelConfig.getEndpoint());
+                } catch (Exception e) {
+                    log.warn("Failed to get agent model config, using default: {}", e.getMessage());
+                }
+            }
+
+            // 4. 流式生成回答
+            if (agentModelConfig != null) {
+                // 使用 Agent 的模型配置进行流式生成
+                streamingLlmService.streamGenerateWithConfig(
+                        systemPrompt,
+                        userQuestion,
+                        agentModelConfig,
+                        new StreamingLlmService.StreamCallback() {
+                            @Override
+                            public void onContent(String content) {
+                                callback.onContent(content);
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                callback.onComplete();
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                log.error("Error in stream generation", e);
+                                callback.onError(e);
+                            }
+                        }
+                );
+            } else {
+                // 使用全局配置进行流式生成
+                streamingLlmService.streamGenerate(
+                        systemPrompt,
+                        userQuestion,
+                        null,
+                        1000,
+                        new StreamingLlmService.StreamCallback() {
+                            @Override
+                            public void onContent(String content) {
+                                callback.onContent(content);
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                callback.onComplete();
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                log.error("Error in stream generation", e);
+                                callback.onError(e);
+                            }
+                        }
+                );
+            }
+
+        } catch (Exception e) {
+            log.error("Error in ReAct stream execution", e);
+            callback.onError(e);
+        }
     }
 }

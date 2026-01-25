@@ -7,6 +7,7 @@ import com.mydotey.ai.studio.dto.chatbot.*;
 import com.mydotey.ai.studio.service.ChatService;
 import com.mydotey.ai.studio.service.ChatbotService;
 import com.mydotey.ai.studio.service.ConversationService;
+import com.mydotey.ai.studio.service.StreamingChatCallback;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -227,14 +228,28 @@ public class ChatbotController {
         PrintWriter writer = response.getWriter();
 
         try {
-            // 简化版：直接调用非流式接口
-            // 实际实现需要通过 AgentExecutionService 的流式接口
-            ChatResponse chatResponse = chatService.chat(request, userId);
+            // 调用流式聊天服务
+            chatService.chatStream(request, userId, new StreamingChatCallback() {
+                @Override
+                public void onContent(String content) {
+                    writer.write("data: " + escapeSseData(content) + "\n\n");
+                    writer.flush();
+                }
 
-            // 发送完整响应
-            writer.write("data: " + escapeSseData(chatResponse.getAnswer()) + "\n\n");
-            writer.write("data: [DONE]\n\n");
-            writer.flush();
+                @Override
+                public void onComplete() {
+                    writer.write("data: [DONE]\n\n");
+                    writer.flush();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    log.error("Error in stream chat callback", e);
+                    writer.write("data: " + escapeSseData("Error: " + e.getMessage()) + "\n\n");
+                    writer.write("data: [ERROR]\n\n");
+                    writer.flush();
+                }
+            });
         } catch (Exception e) {
             log.error("Error in stream chat", e);
             // 通过 SSE 发送错误信息

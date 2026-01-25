@@ -62,7 +62,7 @@
           </el-avatar>
         </div>
         <div class="message-content">
-          <div class="message-text">{{ streamingText }}<span class="cursor">|</span></div>
+          <div class="message-text streaming" v-html="renderMarkdown(streamingText)"></div>
         </div>
       </div>
     </div>
@@ -221,7 +221,8 @@ watch(
   }
 
   &.streaming {
-    .cursor {
+    .message-text.streaming::after {
+      content: '|';
       animation: blink 1s infinite;
     }
   }
