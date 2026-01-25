@@ -62,7 +62,7 @@ const getActionType = (action: string) => {
   if (action.includes('DELETE')) return 'danger'
   if (action.includes('UPDATE')) return 'warning'
   if (action.includes('LOGIN')) return 'info'
-  return ''
+  return undefined
 }
 </script>
 
