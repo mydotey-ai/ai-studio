@@ -285,7 +285,7 @@ async function executeTest() {
   executing.value = true
   try {
     executionResult.value = await executeAgent(agent.value.id, {
-      input: testQuery.value,
+      query: testQuery.value,
       stream: false
     })
     ElMessage.success('执行完成')

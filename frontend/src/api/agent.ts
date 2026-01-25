@@ -43,7 +43,7 @@ export interface UpdateAgentRequest {
 }
 
 export interface AgentExecutionRequest {
-  input: string
+  query: string
   stream?: boolean
 }
 
