@@ -181,8 +181,10 @@ watch(
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 600px;
   background-color: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .messages-container {
@@ -336,7 +338,7 @@ watch(
 .input-container {
   display: flex;
   gap: 12px;
-  padding: 20px;
+  padding: 16px 20px;
   background-color: white;
   border-top: 1px solid #e4e7ed;
 
@@ -346,6 +348,7 @@ watch(
 
   .el-button {
     align-self: flex-end;
+    height: 40px;
   }
 }
 </style>

@@ -1,19 +1,25 @@
 <template>
   <div class="chatbot-detail">
-    <div class="header">
+    <div v-if="mode !== 'chat'" class="header">
       <el-page-header @back="router.back()">
         <template #content>
           <span class="title">{{ chatbot?.name }}</span>
         </template>
         <template #extra>
-          <el-button v-if="mode !== 'chat'" type="primary" :icon="ChatDotSquare" @click="startChat">
+          <el-button type="primary" :icon="ChatDotSquare" @click="startChat">
             开始对话
           </el-button>
         </template>
       </el-page-header>
     </div>
 
-    <div v-if="mode === 'chat'" class="chat-container">
+    <el-card v-if="mode === 'chat'" class="chat-card">
+      <template #header>
+        <div class="card-header">
+          <span class="card-title">与 {{ chatbot?.name }} 对话</span>
+          <el-button link type="primary" @click="exitChat">返回详情</el-button>
+        </div>
+      </template>
       <ChatPanel
         :messages="messages"
         :chatbot-name="chatbot?.name || 'Assistant'"
@@ -23,7 +29,7 @@
         :user-initial="userInitial"
         @send="handleSendMessage"
       />
-    </div>
+    </el-card>
 
     <el-tabs v-else v-model="activeTab" class="tabs">
       <el-tab-pane label="信息" name="info">
@@ -234,6 +240,10 @@ function startChat() {
   router.push(`/chatbots/${chatbotId.value}?mode=chat`)
 }
 
+function exitChat() {
+  router.push(`/chatbots/${chatbotId.value}`)
+}
+
 async function handleSendMessage(messageText: string) {
   const userMessage: Message = {
     id: Date.now(),
@@ -322,6 +332,10 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .chatbot-detail {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+
   .header {
     margin-bottom: 20px;
 
@@ -331,8 +345,21 @@ onBeforeUnmount(() => {
     }
   }
 
-  .chat-container {
-    height: calc(100vh - 120px);
+  .chat-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #303133;
+    }
   }
 
   .actions {
