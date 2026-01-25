@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mydotey.ai.studio.config.LlmConfig;
 import com.mydotey.ai.studio.dto.LlmRequest;
 import com.mydotey.ai.studio.dto.LlmResponse;
+import com.mydotey.ai.studio.dto.ModelConfigDto;
 import com.mydotey.ai.studio.service.PromptTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class LlmGenerationService {
     private final PromptTemplateService promptTemplateService;
 
     /**
-     * 生成回答（非流式）
+     * 生成回答（非流式）- 使用全局配置
      *
      * @param systemPrompt 系统提示词
      * @param userQuestion 用户问题
@@ -72,6 +73,72 @@ public class LlmGenerationService {
 
         } catch (Exception e) {
             log.error("Failed to generate response from LLM", e);
+            throw new RuntimeException("Failed to generate response: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 生成回答（非流式）- 使用自定义模型配置
+     *
+     * @param systemPrompt 系统提示词
+     * @param userQuestion 用户问题
+     * @param modelConfig 模型配置
+     * @return LLM 响应
+     */
+    public LlmResponse generate(
+            String systemPrompt,
+            String userQuestion,
+            ModelConfigDto modelConfig) {
+
+        try {
+            // 构建消息
+            String messages = promptTemplateService.buildMessages(systemPrompt, userQuestion);
+
+            // 使用自定义配置或回退到全局配置
+            String model = modelConfig != null && modelConfig.getModel() != null
+                    ? modelConfig.getModel()
+                    : config.getModel();
+            String apiKey = modelConfig != null && modelConfig.getApiKey() != null
+                    ? modelConfig.getApiKey()
+                    : config.getApiKey();
+            String endpoint = modelConfig != null && modelConfig.getEndpoint() != null
+                    ? modelConfig.getEndpoint()
+                    : config.getEndpoint();
+            Double temperature = modelConfig != null && modelConfig.getTemperature() != null
+                    ? modelConfig.getTemperature()
+                    : config.getDefaultTemperature();
+            Integer maxTokens = modelConfig != null && modelConfig.getMaxTokens() != null
+                    ? modelConfig.getMaxTokens()
+                    : config.getDefaultMaxTokens();
+
+            // 构建请求
+            LlmRequest request = LlmRequest.builder()
+                    .model(model)
+                    .messages(messages)
+                    .temperature(temperature)
+                    .maxTokens(maxTokens)
+                    .stream(false)
+                    .build();
+
+            // 构造请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            // 发送请求
+            HttpEntity<String> httpEntity = new HttpEntity<>(
+                    objectMapper.writeValueAsString(request),
+                    headers
+            );
+
+            String url = endpoint + "/chat/completions";
+            ResponseEntity<String> response = restTemplate.postForEntity(url, httpEntity, String.class);
+
+            // 解析响应
+            return parseLlmResponse(response.getBody());
+
+        } catch (Exception e) {
+            log.error("Failed to generate response from LLM with custom config", e);
             throw new RuntimeException("Failed to generate response: " + e.getMessage(), e);
         }
     }

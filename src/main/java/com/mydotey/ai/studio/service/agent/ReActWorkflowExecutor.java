@@ -1,5 +1,7 @@
 package com.mydotey.ai.studio.service.agent;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mydotey.ai.studio.common.exception.BusinessException;
 import com.mydotey.ai.studio.dto.*;
 import com.mydotey.ai.studio.entity.Agent;
@@ -21,6 +23,8 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
     private final LlmGenerationService llmGenerationService;
     private final McpRpcClient mcpRpcClient;
     private final AgentService agentService;
+    private final ModelConfigService modelConfigService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public AgentExecutionResponse execute(Agent agent, AgentExecutionRequest request, Long userId) {
@@ -46,6 +50,19 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
 
         // Null safety for maxIterations with default value of 10
         int maxIterations = agent.getMaxIterations() != null ? agent.getMaxIterations() : 10;
+
+        // 获取 Agent 的模型配置
+        ModelConfigDto agentModelConfig = null;
+        if (agent.getLlmModelConfigId() != null) {
+            try {
+                agentModelConfig = modelConfigService.getConfigById(agent.getLlmModelConfigId());
+                log.info("Using agent model config: {}, model: {}",
+                        agentModelConfig.getName(), agentModelConfig.getModel());
+            } catch (Exception e) {
+                log.warn("Failed to get agent model config, using default: {}", e.getMessage());
+            }
+        }
+
         while (!isComplete && iteration < maxIterations) {
             iteration++;
             log.info("ReAct iteration: {}", iteration);
@@ -54,13 +71,24 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
                 // 1. 构建上下文
                 String context = buildContext(agent, request.getQuery(), thoughtSteps, kbIds);
 
-                // 2. LLM 推理
-                LlmResponse llmResponse = llmGenerationService.generate(
-                    context,
-                    buildReActPrompt(toolIds),
-                    null,
-                    1000
-                );
+                // 2. LLM 推理 - 使用 Agent 的模型配置或全局配置
+                LlmResponse llmResponse;
+                if (agentModelConfig != null) {
+                    // 使用全局配置
+                    llmResponse = llmGenerationService.generate(
+                            context,
+                            buildReActPrompt(toolIds),
+                            null,
+                            1000
+                    );
+                } else {
+                    // 使用 Agent 的模型配置
+                    llmResponse = llmGenerationService.generate(
+                            context,
+                            buildReActPrompt(toolIds),
+                            agentModelConfig
+                    );
+                }
 
                 // 3. 解析 LLM 响应
                 if (llmResponse.getContent() != null && !llmResponse.getContent().isBlank()) {
@@ -80,10 +108,10 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
             } catch (Exception e) {
                 log.error("Error in ReAct iteration: {}", iteration, e);
                 thoughtSteps.add(AgentExecutionResponse.ThoughtStep.builder()
-                    .step(iteration)
-                    .thought("Error occurred")
-                    .observation("Error: " + e.getMessage())
-                    .build());
+                        .step(iteration)
+                        .thought("Error occurred")
+                        .observation("Error: " + e.getMessage())
+                        .build());
                 break;
             }
         }
@@ -111,6 +139,18 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
     }
 
     private String buildReActPrompt(List<Long> toolIds) {
-        return "\n\nPlease provide a helpful answer.";
+        StringBuilder prompt = new StringBuilder("\n\n");
+
+        // 如果有工具可用，添加工具列表到提示词
+        if (toolIds != null && !toolIds.isEmpty()) {
+            prompt.append("You have access to the following tools:\n");
+            for (Long toolId : toolIds) {
+                prompt.append("- Tool ID: ").append(toolId).append("\n");
+            }
+            prompt.append("\nUse these tools when needed.\n");
+        }
+
+        prompt.append("Please provide a helpful answer.");
+        return prompt.toString();
     }
 }
