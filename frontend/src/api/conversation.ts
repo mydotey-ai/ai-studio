@@ -70,35 +70,29 @@ export function sendMessageStream(
       const reader = body.getReader()
       const decoder = new TextDecoder()
 
+      let buffer = '' // 添加缓冲区来处理跨chunk的数据
+
       function read() {
         reader
           .read()
           .then(({ done, value }) => {
             if (done) {
+              // 处理剩余的缓冲区数据
+              if (buffer.trim()) {
+                processLine(buffer.trim())
+              }
               onComplete()
               return
             }
 
             const chunk = decoder.decode(value, { stream: true })
-            const lines = chunk.split('\n')
+            const lines = (buffer + chunk).split('\n')
+
+            // 保留最后一行，因为它可能不完整
+            buffer = lines.pop() || ''
 
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6)
-                if (data === '[DONE]') {
-                  onComplete()
-                  return
-                }
-                if (data && data.trim()) {
-                  try {
-                    // 解析 SSE 数据格式
-                    const unescapedData = data.replace(/\\n/g, '\n').replace(/\\"/g, '"')
-                    onMessage(unescapedData)
-                  } catch (error) {
-                    console.error('Failed to parse SSE data:', error)
-                  }
-                }
-              }
+              processLine(line)
             }
 
             read()
@@ -108,6 +102,26 @@ export function sendMessageStream(
               onError(error)
             }
           })
+      }
+
+      function processLine(line: string) {
+        const trimmedLine = line.trim()
+        if (trimmedLine.startsWith('data: ')) {
+          const data = trimmedLine.slice(6)
+          if (data === '[DONE]') {
+            onComplete()
+            return
+          }
+          if (data && data.trim()) {
+            try {
+              // 解析 SSE 数据格式
+              const unescapedData = data.replace(/\\n/g, '\n').replace(/\\"/g, '"')
+              onMessage(unescapedData)
+            } catch (error) {
+              console.error('Failed to parse SSE data:', error)
+            }
+          }
+        }
       }
 
       read()

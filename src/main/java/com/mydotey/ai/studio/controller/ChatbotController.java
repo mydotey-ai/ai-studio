@@ -224,6 +224,8 @@ public class ChatbotController {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Connection", "keep-alive");
+        // 禁用缓冲以确保流式响应
+        response.setHeader("X-Accel-Buffering", "no");
 
         PrintWriter writer = response.getWriter();
 
@@ -266,6 +268,7 @@ public class ChatbotController {
         if (data == null) {
             return "";
         }
-        return data.replace("\n", "\\n").replace("\"", "\\\"");
+        // 根据SSE规范，仅转义换行符和回车符以避免破坏SSE消息格式
+        return data.replace("\n", "\\n").replace("\r", "\\r");
     }
 }

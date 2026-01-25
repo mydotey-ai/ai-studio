@@ -6,9 +6,7 @@
           <span class="title">{{ chatbot?.name }}</span>
         </template>
         <template #extra>
-          <el-button type="primary" :icon="ChatDotSquare" @click="startChat">
-            开始对话
-          </el-button>
+          <el-button type="primary" :icon="ChatDotSquare" @click="startChat"> 开始对话 </el-button>
         </template>
       </el-page-header>
     </div>
@@ -273,8 +271,11 @@ async function handleSendMessage(messageText: string) {
         // Backend sends plain text chunks via SSE
         // data is a string, not an object
         if (typeof data === 'string' && data !== '[DONE]') {
+          // Append data to the streaming text to update the UI
           streamingText.value += data
+
           if (!assistantMessage) {
+            // Create the assistant message with initial content
             assistantMessage = {
               id: Date.now() + 1,
               conversationId: currentConversationId.value || 0,
@@ -284,14 +285,21 @@ async function handleSendMessage(messageText: string) {
             }
             messages.value.push(assistantMessage)
           } else {
+            // Update the existing assistant message content
+            // This will update the view through Vue's reactivity
             assistantMessage.content = streamingText.value
           }
         }
       },
       () => {
-        isStreaming.value = false
-        streamingText.value = ''
-        eventSourceRef.value = null
+        // Completion handler - add the final message to history if not already saved
+        if (assistantMessage) {
+          // The message has already been added to messages.value above
+          // Save it permanently when streaming completes
+          isStreaming.value = false
+          streamingText.value = ''
+          eventSourceRef.value = null
+        }
       },
       error => {
         ElMessage.error('发送失败: ' + error.message)
