@@ -30,49 +30,57 @@ const routes: RouteRecordRaw[] = [
         path: 'knowledge-bases',
         name: 'KnowledgeBases',
         component: () => import('@/views/knowledge-base/KnowledgeBaseListView.vue'),
-        meta: { title: '知识库', icon: 'FolderOpened' }
-      },
-      {
-        path: 'knowledge-bases/:id',
-        name: 'KnowledgeBaseDetail',
-        component: () => import('@/views/knowledge-base/KnowledgeBaseDetailView.vue'),
-        meta: { title: '知识库详情', hidden: true }
+        meta: { title: '知识库', icon: 'FolderOpened' },
+        children: [
+          {
+            path: ':id',
+            name: 'KnowledgeBaseDetail',
+            component: () => import('@/views/knowledge-base/KnowledgeBaseDetailView.vue'),
+            meta: { title: '知识库详情' }
+          }
+        ]
       },
       {
         path: 'agents',
         name: 'Agents',
         component: () => import('@/views/agent/AgentListView.vue'),
-        meta: { title: 'Agents', icon: 'User' }
-      },
-      {
-        path: 'agents/:id',
-        name: 'AgentDetail',
-        component: () => import('@/views/agent/AgentDetailView.vue'),
-        meta: { title: 'Agent详情', hidden: true }
+        meta: { title: 'Agents', icon: 'User' },
+        children: [
+          {
+            path: ':id',
+            name: 'AgentDetail',
+            component: () => import('@/views/agent/AgentDetailView.vue'),
+            meta: { title: 'Agent详情' }
+          }
+        ]
       },
       {
         path: 'chatbots',
         name: 'Chatbots',
         component: () => import('@/views/chatbot/ChatbotListView.vue'),
-        meta: { title: '聊天机器人', icon: 'ChatDotSquare' }
-      },
-      {
-        path: 'chatbots/:id',
-        name: 'ChatbotDetail',
-        component: () => import('@/views/chatbot/ChatbotDetailView.vue'),
-        meta: { title: '聊天机器人详情', hidden: true }
+        meta: { title: '聊天机器人', icon: 'ChatDotSquare' },
+        children: [
+          {
+            path: ':id',
+            name: 'ChatbotDetail',
+            component: () => import('@/views/chatbot/ChatbotDetailView.vue'),
+            meta: { title: '聊天机器人详情' }
+          }
+        ]
       },
       {
         path: 'mcp-servers',
         name: 'McpServers',
         component: () => import('@/views/mcp/McpServerListView.vue'),
-        meta: { title: 'MCP工具', icon: 'Connection' }
-      },
-      {
-        path: 'mcp-servers/:id',
-        name: 'McpServerDetail',
-        component: () => import('@/views/mcp/McpServerDetailView.vue'),
-        meta: { title: 'MCP服务器详情', hidden: true }
+        meta: { title: 'MCP工具', icon: 'Connection' },
+        children: [
+          {
+            path: ':id',
+            name: 'McpServerDetail',
+            component: () => import('@/views/mcp/McpServerDetailView.vue'),
+            meta: { title: 'MCP服务器详情' }
+          }
+        ]
       },
       {
         path: 'files',

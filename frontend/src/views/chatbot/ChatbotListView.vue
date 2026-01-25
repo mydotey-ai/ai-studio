@@ -1,5 +1,6 @@
 <template>
-  <div class="chatbot-list">
+  <router-view v-slot="{ Component: RouteComponent, route }">
+    <div v-if="route.name === 'Chatbots'" class="chatbot-list">
     <div class="header">
       <h2>聊天机器人</h2>
       <el-button type="primary" :icon="Plus" @click="openCreateDialog"> 创建聊天机器人 </el-button>
@@ -102,7 +103,10 @@
         <el-button type="primary" :loading="submitting" @click="handleCreate"> 创建 </el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+
+    <component v-else :is="RouteComponent" />
+  </router-view>
 </template>
 
 <script setup lang="ts">

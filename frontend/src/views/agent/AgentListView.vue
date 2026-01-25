@@ -1,5 +1,6 @@
 <template>
-  <div class="agent-list">
+  <router-view v-slot="{ Component: RouteComponent, route }">
+    <div v-if="route.name === 'Agents'" class="agent-list">
     <div class="header">
       <h2>Agents</h2>
       <el-button type="primary" :icon="Plus" @click="showCreateDialog = true">
@@ -136,7 +137,10 @@
         </el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+
+    <component v-else :is="RouteComponent" />
+  </router-view>
 </template>
 
 <script setup lang="ts">

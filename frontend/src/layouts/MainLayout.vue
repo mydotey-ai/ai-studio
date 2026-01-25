@@ -10,11 +10,11 @@
         :default-active="activeMenu"
         :collapse="isCollapse"
         :unique-opened="true"
-        router
+        @select="handleMenuSelect"
         class="sidebar-menu"
       >
         <template v-for="route in menuRoutes" :key="route.path">
-          <el-menu-item v-if="!route.meta?.hidden" :index="route.path" :route="route.path">
+          <el-menu-item v-if="!route.meta?.hidden" :index="route.path">
             <el-icon v-if="route.meta?.icon">
               <component :is="getIcon(String(route.meta.icon))" />
             </el-icon>
@@ -57,11 +57,7 @@
       </el-header>
 
       <el-main class="main-content">
-        <router-view v-slot="{ Component: RouteComponent }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="RouteComponent" />
-          </transition>
-        </router-view>
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -93,7 +89,22 @@ const userStore = useUserStore()
 const isCollapse = ref(false)
 
 const userInfo = computed(() => userStore.userInfo)
-const activeMenu = computed(() => currentRoute.path)
+// Find the parent menu item for the current route
+const activeMenu = computed(() => {
+  const currentPath = currentRoute.path
+
+  // Try to find a menu route that matches the current path
+  const matchedRoute = menuRoutes.value.find(route => {
+    if (route.path === currentPath) return true
+
+    // Check if current path starts with route path (for detail pages)
+    if (currentPath.startsWith(route.path + '/')) return true
+
+    return false
+  })
+
+  return matchedRoute?.path || currentPath
+})
 
 // Get menu routes from router configuration
 const routerConfig = router.getRoutes()
@@ -118,6 +129,12 @@ function getIcon(iconName: string): Component {
 
 function toggleCollapse() {
   isCollapse.value = !isCollapse.value
+}
+
+function handleMenuSelect(index: string) {
+  // Always use absolute path to prevent relative path issues
+  const path = index.startsWith('/') ? index : `/${index}`
+  router.replace(path)
 }
 
 async function handleCommand(command: string) {

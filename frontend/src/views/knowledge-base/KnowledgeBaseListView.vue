@@ -1,5 +1,7 @@
 <template>
-  <div class="kb-list">
+  <router-view v-slot="{ Component: RouteComponent, route }">
+    <!-- Show list view only when on the base route -->
+    <div v-if="route.name === 'KnowledgeBases'" class="kb-list">
     <div class="header">
       <h2>知识库</h2>
       <el-button type="primary" :icon="Plus" @click="showCreateDialog = true">
@@ -111,7 +113,11 @@
         <el-button type="primary" :loading="submitting" @click="handleCreate"> 创建 </el-button>
       </template>
     </el-dialog>
-  </div>
+    </div>
+
+    <!-- Render detail view as child route -->
+    <component v-else :is="RouteComponent" />
+  </router-view>
 </template>
 
 <script setup lang="ts">

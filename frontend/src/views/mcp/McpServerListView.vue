@@ -1,5 +1,6 @@
 <template>
-  <div class="mcp-server-list">
+  <router-view v-slot="{ Component: RouteComponent, route }">
+    <div v-if="route.name === 'McpServers'" class="mcp-server-list">
     <div class="header">
       <h2>MCP服务器</h2>
       <el-button type="primary" :icon="Plus" @click="handleCreate"> 创建服务器 </el-button>
@@ -51,6 +52,9 @@
       </el-table-column>
     </el-table>
   </div>
+
+    <component v-else :is="RouteComponent" />
+  </router-view>
 </template>
 
 <script setup lang="ts">
