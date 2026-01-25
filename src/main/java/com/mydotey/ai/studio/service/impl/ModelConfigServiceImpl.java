@@ -32,13 +32,16 @@ public class ModelConfigServiceImpl implements ModelConfigService {
         // 验证必填字段
         validateRequest(request);
 
+        // 对输入数据进行trim处理
+        ModelConfigRequest trimmedRequest = trimRequest(request);
+
         // 如果设置为默认，取消其他默认配置
-        if (Boolean.TRUE.equals(request.getIsDefault())) {
-            removePreviousDefault(request.getType(), orgId);
+        if (Boolean.TRUE.equals(trimmedRequest.getIsDefault())) {
+            removePreviousDefault(trimmedRequest.getType(), orgId);
         }
 
         ModelConfig config = new ModelConfig();
-        BeanUtils.copyProperties(request, config);
+        BeanUtils.copyProperties(trimmedRequest, config);
         config.setOrgId(orgId);
         config.setCreatedBy(userId);
         config.setCreatedAt(Instant.now());
@@ -60,12 +63,15 @@ public class ModelConfigServiceImpl implements ModelConfigService {
 
         validateRequest(request);
 
+        // 对输入数据进行trim处理
+        ModelConfigRequest trimmedRequest = trimRequest(request);
+
         // 如果设置为默认，取消其他默认配置
-        if (Boolean.TRUE.equals(request.getIsDefault()) && !Boolean.TRUE.equals(config.getIsDefault())) {
-            removePreviousDefault(request.getType(), orgId);
+        if (Boolean.TRUE.equals(trimmedRequest.getIsDefault()) && !Boolean.TRUE.equals(config.getIsDefault())) {
+            removePreviousDefault(trimmedRequest.getType(), orgId);
         }
 
-        BeanUtils.copyProperties(request, config, "id", "orgId", "createdAt", "createdBy");
+        BeanUtils.copyProperties(trimmedRequest, config, "id", "orgId", "createdAt", "createdBy");
         config.setUpdatedAt(Instant.now());
 
         modelConfigMapper.updateById(config);
@@ -200,6 +206,24 @@ public class ModelConfigServiceImpl implements ModelConfigService {
         // 部分隐藏API Key
         response.setMaskedApiKey(maskApiKey(config.getApiKey()));
         return response;
+    }
+
+    private ModelConfigRequest trimRequest(ModelConfigRequest request) {
+        ModelConfigRequest trimmed = new ModelConfigRequest();
+        trimmed.setName(request.getName() != null ? request.getName().trim() : null);
+        trimmed.setType(request.getType());
+        trimmed.setEndpoint(request.getEndpoint() != null ? request.getEndpoint().trim() : null);
+        trimmed.setApiKey(request.getApiKey() != null ? request.getApiKey().trim() : null);
+        trimmed.setModel(request.getModel() != null ? request.getModel().trim() : null);
+        trimmed.setDimension(request.getDimension());
+        trimmed.setTemperature(request.getTemperature());
+        trimmed.setMaxTokens(request.getMaxTokens());
+        trimmed.setTimeout(request.getTimeout());
+        trimmed.setEnableStreaming(request.getEnableStreaming());
+        trimmed.setIsDefault(request.getIsDefault());
+        trimmed.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
+
+        return trimmed;
     }
 
     private String maskApiKey(String apiKey) {

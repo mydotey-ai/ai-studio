@@ -242,11 +242,20 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
 
+    // 在提交前对敏感字段进行trim处理
+    const trimmedForm = {
+      ...form,
+      endpoint: form.endpoint?.trim(),
+      apiKey: form.apiKey?.trim(),
+      model: form.model?.trim(),
+      name: form.name?.trim()
+    }
+
     if (isEdit.value) {
-      await modelConfigApi.update(currentId.value, form as CreateModelConfigRequest)
+      await modelConfigApi.update(currentId.value, trimmedForm as CreateModelConfigRequest)
       ElMessage.success('更新成功')
     } else {
-      await modelConfigApi.create(form as CreateModelConfigRequest)
+      await modelConfigApi.create(trimmedForm as CreateModelConfigRequest)
       ElMessage.success('创建成功')
     }
 

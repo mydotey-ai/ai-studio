@@ -40,7 +40,37 @@
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="模型配置" :span="2">
-          <pre class="json-config">{{ formatJson(agent.modelConfig) }}</pre>
+          <el-card class="model-config-card" shadow="never">
+            <template #header>
+              <span>LLM API 配置信息</span>
+            </template>
+            <div class="config-grid">
+              <div class="config-item">
+                <label>模型名称:</label>
+                <span>{{ getModelConfigValue('model') || '-' }}</span>
+              </div>
+              <div class="config-item">
+                <label>温度:</label>
+                <span>{{ getModelConfigValue('temperature') || '-' }}</span>
+              </div>
+              <div class="config-item">
+                <label>最大Token数:</label>
+                <span>{{ getModelConfigValue('maxTokens') || '-' }}</span>
+              </div>
+              <div class="config-item">
+                <label>Top-P:</label>
+                <span>{{ getModelConfigValue('topP') || '-' }}</span>
+              </div>
+              <div class="config-item" v-if="getModelConfigValue('endpoint')">
+                <label>API端点:</label>
+                <span>{{ getModelConfigValue('endpoint') }}</span>
+              </div>
+              <div class="config-item" v-if="getModelConfigValue('maskedApiKey')">
+                <label>API密钥:</label>
+                <span>{{ getModelConfigValue('maskedApiKey') }}</span>
+              </div>
+            </div>
+          </el-card>
         </el-descriptions-item>
         <el-descriptions-item label="系统提示词" :span="2">
           <div class="prompt-text">{{ agent.systemPrompt }}</div>
@@ -171,7 +201,8 @@ import {
   executeAgent,
   type Agent,
   type UpdateAgentRequest,
-  type AgentExecutionResponse
+  type AgentExecutionResponse,
+  type AgentModelConfig
 } from '@/api/agent'
 import { getKnowledgeBases } from '@/api/knowledge-base'
 import type { KnowledgeBase } from '@/types/knowledge-base'
@@ -324,6 +355,24 @@ function formatDateTime(date: string) {
   return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
+function getModelConfigValue(key: keyof AgentModelConfig) {
+  if (!agent.value?.modelConfig) return undefined
+
+  let modelConfig: AgentModelConfig | null = null
+
+  if (typeof agent.value.modelConfig === 'string') {
+    try {
+      modelConfig = JSON.parse(agent.value.modelConfig) as AgentModelConfig
+    } catch {
+      return undefined
+    }
+  } else {
+    modelConfig = agent.value.modelConfig as AgentModelConfig
+  }
+
+  return modelConfig?.[key]
+}
+
 onMounted(async () => {
   await Promise.all([fetchAgent(), fetchKnowledgeBases()])
   if (agent.value) {
@@ -378,6 +427,48 @@ onMounted(async () => {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.model-config-card {
+  width: 100%;
+}
+
+.model-config-card .el-card__header {
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #ebeef5;
+  padding: 12px 20px;
+  font-weight: 600;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.config-item label {
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.config-item span {
+  color: #303133;
+  word-break: break-all;
+  padding: 2px 0;
+  font-family: monospace;
+  background: #fafafa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 
 .prompt-text {

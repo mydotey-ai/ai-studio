@@ -19,6 +19,8 @@ export interface AgentModelConfig {
   temperature: number
   maxTokens: number
   topP: number
+  endpoint?: string
+  maskedApiKey?: string
 }
 
 export interface CreateAgentRequest {
