@@ -149,7 +149,7 @@ public class WebCrawlServiceTest {
         doNothing().when(crawlOrchestrator).execute(any(WebCrawlTask.class));
 
         // When
-        webCrawlService.startCrawl(taskId);
+        webCrawlService.startCrawl(taskId, 1L);
 
         // Then
         ArgumentCaptor<WebCrawlTask> captor = ArgumentCaptor.forClass(WebCrawlTask.class);
@@ -167,7 +167,7 @@ public class WebCrawlServiceTest {
 
         // When & Then
         assertThrows(BusinessException.class, () -> {
-            webCrawlService.startCrawl(taskId);
+            webCrawlService.startCrawl(taskId, 1L);
         });
 
         verify(crawlOrchestrator, never()).execute(any(WebCrawlTask.class));

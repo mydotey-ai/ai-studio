@@ -125,7 +125,7 @@ public class WebCrawlControllerTest {
     @Test
     void testStartTask_Success() throws Exception {
         // Given
-        doNothing().when(webCrawlService).startCrawl(eq(1L));
+        doNothing().when(webCrawlService).startCrawl(eq(1L), eq(1L));
 
         // When & Then
         mockMvc.perform(post("/api/web-crawl/tasks/1/start")

@@ -126,7 +126,7 @@ class WebCrawlingIntegrationTest {
         assertEquals(0, task.getFailedPages());
 
         // 2. Start crawl (async operation)
-        webCrawlService.startCrawl(task.getId());
+        webCrawlService.startCrawl(task.getId(), testUserId);
 
         // 3. Wait for crawl to progress (async operation may take time)
         // Note: Due to @Transactional, the async operation runs in a different transaction
@@ -316,7 +316,7 @@ class WebCrawlingIntegrationTest {
         assertNotNull(progressBefore.getPages());
 
         // Start crawl
-        webCrawlService.startCrawl(task.getId());
+        webCrawlService.startCrawl(task.getId(), testUserId);
 
         // Wait a bit for crawl to start
         try {
