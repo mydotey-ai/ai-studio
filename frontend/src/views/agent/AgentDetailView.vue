@@ -85,7 +85,7 @@
           <div class="answer-box">{{ executionResult.result }}</div>
         </div>
 
-        <div v-if="executionResult.steps.length > 0" class="result-section">
+        <div v-if="executionResult.steps && executionResult.steps.length > 0" class="result-section">
           <h4>执行步骤</h4>
           <el-timeline>
             <el-timeline-item
@@ -284,10 +284,16 @@ async function executeTest() {
 
   executing.value = true
   try {
-    executionResult.value = await executeAgent(agent.value.id, {
+    const response = await executeAgent(agent.value.id, {
       query: testQuery.value,
       stream: false
     })
+
+    // 确保响应格式正确，即使没有steps也提供默认值
+    executionResult.value = {
+      ...response,
+      steps: response.steps || []
+    }
     ElMessage.success('执行完成')
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : '执行失败'
