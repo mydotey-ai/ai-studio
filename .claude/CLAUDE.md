@@ -1,8 +1,6 @@
-```
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-```
 
 ## AI Studio Codebase Overview
 
@@ -37,6 +35,7 @@ ai-studio/
 ├── docker-compose.dev.yml  # Development environment configuration
 ├── docker-compose.prod.yml # Production environment configuration
 ├── start.sh                # One-click startup script
+├── start-local.sh          # Local development script (alternative to Docker)
 ├── .env.example            # Environment variables example
 └── README.md               # Project documentation
 ```
@@ -64,6 +63,35 @@ ai-studio/
 - **Axios** - HTTP client
 - **ECharts** - Data visualization
 
+## Testing
+
+### Test Configuration
+- **Test Database**: PostgreSQL (configured in `application-test.yml`)
+  - Test Database URL: jdbc:postgresql://localhost:5432/ai_studio_test
+  - Test Username: postgres
+  - Test Password: xx123456XX
+- **Test Frameworks**: JUnit 5, Mockito, Spring Test
+- **Test Location**: `src/test/java/` for backend tests
+
+### Running Tests
+```bash
+# Run all tests
+mvn test
+
+# Run a specific test class
+mvn test -Dtest=ClassNameTest
+
+# Run tests with coverage report
+mvn jacoco:report
+```
+
+### Test Best Practices
+- Write unit tests for all business logic
+- Use @DataJpaTest for repository layer tests
+- Use @SpringBootTest for integration tests
+- Follow Given-When-Then pattern in test names
+- Mock external dependencies in unit tests
+
 ## Development Commands
 
 ### Backend (Maven)
@@ -74,14 +102,8 @@ mvn clean package
 # Run the application
 mvn spring-boot:run
 
-# Run tests
-mvn test
-
-# Run a single test class
-mvn test -Dtest=ClassNameTest
-
-# Run tests with coverage
-mvn jacoco:report
+# Run tests (covered in Testing section)
+# mvn test
 
 # Check for dependency updates
 mvn versions:display-dependency-updates
@@ -224,11 +246,30 @@ Key variables to configure in `.env`:
 - `EMBEDDING_API_KEY`: Embedding service API key
 - `LLM_API_KEY`: LLM service API key
 
+### PostgreSQL Test Configuration
+PostgreSQL test database configuration is located in `application-test.yml`:
+- Test Database URL: jdbc:postgresql://localhost:5432/ai_studio_test
+- Test Username: postgres
+- Test Password: xx123456XX
+
 ## API Documentation
 
 API documentation is available at:
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+## Configuration Files
+
+### Application Configuration
+- `application.yml` - Main application configuration
+- `application-dev.yml` - Development environment configuration
+- `application-test.yml` - Test environment configuration (includes PostgreSQL test settings)
+- `application-prod.yml` - Production environment configuration
+
+### Docker Configuration
+- `docker-compose.yml` - Base Docker Compose configuration
+- `docker-compose.dev.yml` - Development environment overrides
+- `docker-compose.prod.yml` - Production environment overrides
 
 ## Monitoring and Health Checks
 
@@ -285,7 +326,7 @@ API documentation is available at:
 
 1. **Branch**: Create a new branch for each feature or bug fix
 2. **Code**: Implement changes following existing patterns
-3. **Test**: Write unit tests for backend changes
+3. **Test**: Write unit tests for backend changes (see Testing section)
 4. **Lint**: Run frontend linting and formatting
 5. **Commit**: Use meaningful commit messages
 6. **Push**: Push changes to remote repository

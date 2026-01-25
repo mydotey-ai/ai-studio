@@ -53,11 +53,12 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
 
         // 获取 Agent 的模型配置
         ModelConfigDto agentModelConfig = null;
+        log.info("Agent llmModelConfigId: {}", agent.getLlmModelConfigId());
         if (agent.getLlmModelConfigId() != null) {
             try {
                 agentModelConfig = modelConfigService.getConfigById(agent.getLlmModelConfigId());
-                log.info("Using agent model config: {}, model: {}",
-                        agentModelConfig.getName(), agentModelConfig.getModel());
+                log.info("Using agent model config: {}, model: {}, endpoint: {}",
+                        agentModelConfig.getName(), agentModelConfig.getModel(), agentModelConfig.getEndpoint());
             } catch (Exception e) {
                 log.warn("Failed to get agent model config, using default: {}", e.getMessage());
             }
@@ -74,19 +75,21 @@ public class ReActWorkflowExecutor implements WorkflowExecutor {
                 // 2. LLM 推理 - 使用 Agent 的模型配置或全局配置
                 LlmResponse llmResponse;
                 if (agentModelConfig != null) {
+                    log.info("DEBUG: Using Agent model config method");
+                    // 使用 Agent 的模型配置
+                    llmResponse = llmGenerationService.generate(
+                            context,
+                            buildReActPrompt(toolIds),
+                            agentModelConfig
+                    );
+                } else {
+                    log.info("DEBUG: Using global config method");
                     // 使用全局配置
                     llmResponse = llmGenerationService.generate(
                             context,
                             buildReActPrompt(toolIds),
                             null,
                             1000
-                    );
-                } else {
-                    // 使用 Agent 的模型配置
-                    llmResponse = llmGenerationService.generate(
-                            context,
-                            buildReActPrompt(toolIds),
-                            agentModelConfig
                     );
                 }
 

@@ -25,6 +25,8 @@ public class ReActWorkflowExecutorTest {
     private LlmGenerationService llmGenerationService;
     private McpRpcClient mcpRpcClient;
     private AgentService agentService;
+    private ModelConfigService modelConfigService;
+    private ObjectMapper objectMapper;
     private ReActWorkflowExecutor executor;
 
     @BeforeEach
@@ -33,7 +35,9 @@ public class ReActWorkflowExecutorTest {
         llmGenerationService = mock(LlmGenerationService.class);
         mcpRpcClient = mock(McpRpcClient.class);
         agentService = mock(AgentService.class);
-        executor = new ReActWorkflowExecutor(ragService, llmGenerationService, mcpRpcClient, agentService);
+        modelConfigService = mock(ModelConfigService.class);
+        objectMapper = mock(ObjectMapper.class);
+        executor = new ReActWorkflowExecutor(ragService, llmGenerationService, mcpRpcClient, agentService, modelConfigService, objectMapper);
     }
 
     @Test

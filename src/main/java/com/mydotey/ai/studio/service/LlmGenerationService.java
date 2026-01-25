@@ -111,6 +111,9 @@ public class LlmGenerationService {
                     ? modelConfig.getMaxTokens()
                     : config.getDefaultMaxTokens();
 
+            log.info("LLM request - model: {}, endpoint: {}, using custom config: {}",
+                    model, endpoint, modelConfig != null);
+
             // 构建请求
             LlmRequest request = LlmRequest.builder()
                     .model(model)
