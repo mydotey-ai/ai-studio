@@ -138,6 +138,51 @@ cd frontend && npm run format
 ./start.sh help
 ```
 
+### Local Development (start-local.sh)
+```bash
+# 启动开发环境（前后端分离）
+./start-local.sh start
+
+# 只启动后端服务
+./start-local.sh start-backend
+
+# 只启动前端开发服务器
+./start-local.sh start-frontend
+
+# 重启所有服务
+./start-local.sh restart
+
+# 重启后端服务
+./start-local.sh restart-backend
+
+# 重启前端服务
+./start-local.sh restart-frontend
+
+# 停止所有服务
+./start-local.sh stop
+
+# 检查服务状态
+./start-local.sh status
+
+# 查看日志
+./start-local.sh logs backend    # 查看后端日志（实时）
+./start-local.sh logs frontend   # 查看前端日志（实时）
+./start-local.sh logs all        # 查看所有日志
+
+# 编译后端（跳过测试）
+./start-local.sh build
+
+# 显示帮助信息
+./start-local.sh help
+```
+
+**注意事项：**
+- 开发测试时使用 `start-local.sh` 脚本
+- 前后端分离架构：后端运行在 8080 端口，前端开发服务器运行在 3000 端口
+- 前端开发服务器会自动将 `/api` 请求代理到后端 8080 端口
+- 访问应用时使用 http://localhost:3000
+- 前端支持热重载，代码修改后会自动刷新
+
 ### Docker Compose (Direct Commands)
 ```bash
 # Start development environment
@@ -159,7 +204,14 @@ docker-compose ps
 
 ## Build and Deployment
 
-### Local Development
+### Local Development (推荐)
+1. 确保已安装 Java 21、Maven、Node.js、npm、PostgreSQL 和 Redis
+2. 确保 PostgreSQL 和 Redis 服务正在运行
+3. 运行 `./start-local.sh start` 启动开发环境
+4. 访问应用：http://localhost:3000
+5. 默认登录账号：admin / 123456
+
+### Docker Compose Development
 1. Ensure Docker and Docker Compose are installed
 2. Copy `.env.example` to `.env` and configure environment variables
 3. Run `./start.sh start` to start the development environment
