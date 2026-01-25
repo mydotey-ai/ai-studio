@@ -9,7 +9,7 @@ export interface Agent {
   ownerId: number
   isPublic: boolean
   workflowType: 'REACT' | 'LINEAR' | 'DAG'
-  modelConfig: AgentModelConfig
+  modelConfig: AgentModelConfig | string
   createdAt: string
   updatedAt: string
 }
@@ -27,7 +27,7 @@ export interface CreateAgentRequest {
   systemPrompt: string
   isPublic?: boolean
   workflowType?: string
-  modelConfig?: Partial<AgentModelConfig>
+  modelConfig?: Partial<AgentModelConfig> | string
   knowledgeBaseIds?: number[]
   toolIds?: number[]
 }
@@ -37,7 +37,7 @@ export interface UpdateAgentRequest {
   description?: string
   systemPrompt?: string
   isPublic?: boolean
-  modelConfig?: Partial<AgentModelConfig>
+  modelConfig?: Partial<AgentModelConfig> | string
   knowledgeBaseIds?: number[]
   toolIds?: number[]
 }

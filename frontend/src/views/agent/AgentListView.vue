@@ -154,6 +154,7 @@ import {
   updateAgent,
   deleteAgent as deleteAgentApi,
   type Agent,
+  type AgentModelConfig,
   type CreateAgentRequest,
   type UpdateAgentRequest
 } from '@/api/agent'
@@ -287,19 +288,24 @@ async function handleSubmit() {
 
     submitting.value = true
     try {
+      const modelConfigJson = JSON.stringify(form.modelConfig)
       if (isEdit.value && editingId.value) {
         const updateData: UpdateAgentRequest = {
           name: form.name,
           description: form.description,
           systemPrompt: form.systemPrompt,
-          modelConfig: form.modelConfig,
+          modelConfig: modelConfigJson,
           knowledgeBaseIds: form.knowledgeBaseIds,
           isPublic: form.isPublic
         }
         await updateAgent(editingId.value, updateData)
         ElMessage.success('更新成功')
       } else {
-        await createAgent(form)
+        const createData: CreateAgentRequest = {
+          ...form,
+          modelConfig: modelConfigJson
+        }
+        await createAgent(createData)
         ElMessage.success('创建成功')
       }
 
@@ -361,13 +367,25 @@ function handleEdit(row: Agent) {
   form.name = row.name
   form.description = row.description || ''
   form.systemPrompt = row.systemPrompt
-  form.modelConfig = row.modelConfig
+
+  // Parse modelConfig from JSON string if it's a string
+  if (typeof row.modelConfig === 'string') {
+    form.modelConfig = JSON.parse(row.modelConfig) as AgentModelConfig
+  } else {
+    form.modelConfig = row.modelConfig
+  }
+
   form.knowledgeBaseIds = []
   form.toolIds = []
   form.isPublic = row.isPublic
+
   // Try to find matching model config id based on model name
-  const matchingModel = llmModels.value.find(m => m.model === row.modelConfig.model)
+  const modelConfigObj = typeof row.modelConfig === 'string'
+    ? JSON.parse(row.modelConfig) as AgentModelConfig
+    : row.modelConfig
+  const matchingModel = llmModels.value.find(m => m.model === modelConfigObj.model)
   form.modelConfigId = matchingModel ? matchingModel.id : undefined
+
   showCreateDialog.value = true
 }
 
